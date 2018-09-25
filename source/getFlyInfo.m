@@ -22,5 +22,8 @@ FlyData.line = input('Line: ','s');
 % Get eclosion date
 FlyData.eclosionDate = input('Ecclosion date: ','s');
 
+% Get sex of the fly
+FlyData.sex = input('Sex: ','s');
+
 % Save
 save('flyData','FlyData')
