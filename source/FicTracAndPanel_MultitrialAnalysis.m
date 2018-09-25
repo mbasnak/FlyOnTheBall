@@ -19,20 +19,20 @@ yPanels = 5;
 
 %% Subset acquisition of x and y pos, as well as FicTrac data
 
-data.xPanelVolts =  rawData (:,xPanels); 
+data.xPanelVolts =  rawData.trial1 (:,xPanels); 
 VOLTAGE_RANGE = 9.77; % This should be 10 V, but empirically I measure 0.1 V for pos x=1 and 9.87 V for pos x=96
 maxValX =  96 ;% pattern.x_num (I am using 96 for every pattern now, but if it wasn't the case I would need to adjust it)
 data.xPanelPos = round ((data.xPanelVolts  * maxValX ) /VOLTAGE_RANGE); % Convert from what it reads in volts from the Ni-Daq to an X position in pixels in the panels
 
-data.yPanelVolts =  rawData (:, yPanels);
+data.yPanelVolts =  rawData.trial1 (:, yPanels);
 VOLTAGE_RANGE = 9.86; %likewise, empirically this should be 10V, but I am getting 9.86
 maxValY = 1;% I think I am using 1 for my Y dimension for every pattern except the 4px grating, which uses 2
 data.yPanelPos = round ((data.yPanelVolts  * maxValY) /VOLTAGE_RANGE);
 
 %FicTrac data
-data.ficTracAngularPosition = rawData ( : , headingFly); 
-data.ficTracIntx = rawData ( : , xFly); 
-data.ficTracInty = rawData ( : , yFly); 
+data.ficTracAngularPosition = rawData.trial1 ( : , headingFly); 
+data.ficTracIntx = rawData.trial1 ( : , xFly); 
+data.ficTracInty = rawData.trial1 ( : , yFly); 
 
 %% Output in degrees of the Panels position
 
@@ -53,7 +53,7 @@ end
 
 
 % Create a time vector in sec
-time = linspace(0,(size(rawData,1)/1000),size(rawData,1)); %1000 is our sampling rate
+time = linspace(0,(size(rawData.trial1,1)/1000),size(rawData.trial1,1)); %1000 is our sampling rate
 
 % Plot the position of the stimulus in degrees for the trial
 figure,
@@ -113,7 +113,7 @@ end
 
 %%  How much is the fly moving?
 
-[percentMoving, moving] = IsFlyWalking(rawData);
+[percentMoving, moving] = IsFlyWalking(rawData.trial1);
 
 %add a zero before moving start, for the frame 1 to have a "is not moving"
 %assigned
@@ -205,6 +205,9 @@ if isequal(typeOfStim, 'closed_loop_bar') | isequal(typeOfStim, 'dark_closed_loo
 end
 
 
+%This gives me the exact same plot as the previous one, so there is
+%something clearly wrong.
+
 %% Using Yvette's function to filtrate and unwrap the data
 % I don't understand very well what this is doing
 % The angular velocity looks extremely peaky
@@ -236,4 +239,3 @@ xlabel('Time (s)');
 ylim([0 365]);
 title('Heading of the fly');
 %For some reason this last plot has different time units.
-

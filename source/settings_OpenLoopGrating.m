@@ -1,5 +1,6 @@
 %% Setings Open loop grating
 
+startPos = [round(rand*97) 1];
 niOI.DurationInSeconds = 0.5;
 
 Panel_com('set_pattern_id', 2); %the pattern 2 are the gratings
