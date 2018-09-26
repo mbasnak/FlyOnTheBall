@@ -1,5 +1,15 @@
 
-function [percentMoving,moving] = IsFlyWalking(rawData)
+function [percentMoving,moving] = IsFlyWalking(rawData,voltThresh)
+% This function determines the percentage of the trial that the fly spends
+% walking. For this, it takes as inputs the raw voltage data (rawData), as
+% well as a voltThresh above which mvt will be considered (this threshold
+% will if possible be determined by a previous assessment of the noise of
+% the voltage reading, using the function assesNoise).
+% It outputs both the percentage of the trial that the fly spends moving,
+% as well as the frame by frame assessment of whether the fly is moving or
+% not.
+
+
 
 %we need to compute a vector that is the difference of each pos with the
 %previous one
@@ -9,8 +19,6 @@ for j = 1:size(rawData,2)
     end
 end
 
-%we need to set a minimum voltage change to imply the animal is walking
-voltThresh = 0.002;
 
 %we need to see whether in any of the 3 FicTrac outputs the voltage is
 %above that threshold, and in that case set the "moving" variable to 1

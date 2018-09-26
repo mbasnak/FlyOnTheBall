@@ -3,11 +3,10 @@
 % This code analyses multi-trial experiments
 
 close all; clear all;
-%prompt the user to say the exp n, and save the answer as "expNum"
-expNum = input('What is the exp number?','s');
 
-%open the dataExpNum*.mat file with that number
-load(['dataExpNum',expNum,'.mat']);
+% prompt the user to select the file to open and load it.
+[file,path] = uigetfile();
+load([path,file]);
 
 % Define Ni-Daq channels ID
 headingFly = 1;
@@ -59,16 +58,6 @@ time{i} = linspace(0,(size(rawData{i},1)/1000),size(rawData{i},1)); %1000 is our
 
 end
 
-% Plot the position of the stimulus in degrees for the trial
-for i = 1:size(rawData,2)
-    figure,
-    plot(time{i},posToDeg{i})
-    ylim([0 365]);
-    ylabel('Position of the stimulus (deg)');
-    xlabel('Time (s)');
-    title('Position of the stimulus in deg as a function of time', 'Interpreter', 'none');
-end
-
 
 %% Probability density function of the stimulus position
 
@@ -90,18 +79,6 @@ for p = 1:size(remapPosToDeg,2)
 probabilities{p} = counts{p}./sum(counts{p});
 degs{p} = linspace(-180,180,length(counts{p}));
  
-figure,
-subplot(1,2,1)
-histogram(remapPosToDeg{p},20,'Normalization','probability')
-xlim([-180 180]); ylim([0 max(probabilities{p})+0.05]);
-title('Histogram of the stimulus position');
-ylabel('Probability'); xlabel('Stimulus position (deg)');
-
-subplot(1,2,2),
-plot(degs{p},probabilities{p},'k')
-xlim([-180 180]); ylim([0 max(probabilities{p})+0.05]);
-title('Probability density of the stimulus position');
-ylabel('Probability density'); xlabel('Stimulus position (deg)');
 
 %I need to add the type of stimulus, that I read from "trials". and also
 %make fewer bins? specially for the optomotor response ones, since they are
@@ -134,8 +111,14 @@ end
 
 %%  How much is the fly moving?
 
+% 1) Assess noise to determine the best criterion for whether the fly is
+% moving or not
+
+voltThresh = assessNoise;
+
 for i = 1:size(rawData,2)
- [percentMoving(i), moving{i}] = IsFlyWalking(rawData{i});
+  voltThreshold{i} = voltThresh;
+ [percentMoving(i), moving{i}] = IsFlyWalking(rawData{i},voltThresh);
 
 %add a zero before moving start, for the frame 1 to have a "is not moving"
 %assigned
@@ -172,24 +155,6 @@ for i = 1:size(rawData,2)
  probabilitiesFlyMoving{i} = countsFlyMoving{i}./sum(countsFlyMoving{i});
  degsFlyMoving{i} = linspace(-180,180,length(countsFlyMoving{i}));
 
- figure,
- subplot(1,2,1)
- histogram(remapFlyPosToDegMoving{i},20,'Normalization','probability')
- xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving{i})+0.05]);
- title('Histogram of the fly heading');
- ylabel('Probability'); xlabel('Fly heading (deg)');
-
- subplot(1,2,2),
- plot(degsFlyMoving{i},probabilitiesFlyMoving{i},'k')
- xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving{i})+0.05]);
- title('Probability density of the fly heading');
- ylabel('Probability density'); xlabel('Fly heading (deg)');
-%Add the starting pos of the bar if the stimulus was a closed-loop bar
- if isequal(trials{i}, 'ClosedLoopBar') | isequal(trials{i}, 'DarkClosedLoopBar') 
-   hold on
-   line([remapStartPos{i} remapStartPos{i}],[0 max(probabilitiesFlyMoving{i})+0.05],'Color',[1 0 0])
- end
-
 end
 
 
@@ -202,12 +167,6 @@ for i = 1:size(rawData,2)
 % decode angular velocity and accumulated position
  [angularVelocity{i},filteredFicTracPos{i}] = ficTracSignalDecoding(data.ficTracAngularPosition{i}, 1000, LOWPASS_FILTER_CUTOFF, THRESHOLD_ANGULAR_VELOCITY);
 
- figure,
- plot(time{i},angularVelocity{i})
- ylabel('Angular velocity of the fly');
- xlabel('Time (s)');
- % chek the time (if the acq. rate is set to 10000, it is fine)
- title('Angular velocity of the fly');
 end
 
 
@@ -252,4 +211,75 @@ for i = 1:size(rawData,2)
     
     end
     
+end
+
+%% Plot by trial type
+
+% For dark-closed loop bars
+
+figure,
+
+for i = 1:size(rawData,2)
+    
+    if isequal(trials{i},'DarkClosedLoopBar')
+        plot(degsFlyMoving{i},probabilitiesFlyMoving{i})
+        xlim([-180 180])
+        title('Probability density of the fly heading');
+        ylabel('Probability density'); xlabel('Fly heading (deg)');
+        hold on
+        %add the mean and standard deviation
     end
+     
+end
+
+DarkBarTrials = cellfun(@(x) isequal(x,'DarkClosedLoopBar'), trials);
+DarkBarProbabilities = cell2mat(probabilitiesFlyMoving(DarkBarTrials));
+DarkBarProbabilitiesReshaped = reshape(DarkBarProbabilities,[20,length(DarkBarProbabilities)/20]);
+meanHeading = mean(DarkBarProbabilitiesReshaped,2);
+plot(degsFlyMoving{1},meanHeading,'k','LineWidth',2)
+
+
+% For light closed loop bars
+
+figure,
+
+for i = 1:size(rawData,2)
+    
+    if isequal(trials{i},'ClosedLoopBar')
+        plot(degsFlyMoving{i},probabilitiesFlyMoving{i})
+        xlim([-180 180])
+        title('Probability density of the fly heading');
+        ylabel('Probability density'); xlabel('Fly heading (deg)');
+        hold on
+        %add the mean and standard deviation
+    end
+     
+end
+
+LightBarTrials = cellfun(@(x) isequal(x,'ClosedLoopBar'), trials);
+LightBarProbabilities = cell2mat(probabilitiesFlyMoving(LightBarTrials));
+LightBarProbabilitiesReshaped = reshape(LightBarProbabilities,[20,length(LightBarProbabilities)/20]);
+meanHeading = mean(LightBarProbabilitiesReshaped,2);
+plot(degsFlyMoving{1},meanHeading,'k','LineWidth',2)
+
+
+% For open-loop gratings
+
+figure,
+
+for i = 1:size(rawData,2)
+    
+    if isequal(trials{i},'OpenLoopGrating')
+        plot(time{i},angularVelocity{i})
+        ylabel('Angular velocity of the fly');
+        xlabel('Time (s)');
+        title('Angular velocity of the fly');
+        hold on
+    end
+     
+end
+
+OpenLoopGratingTrials = cellfun(@(x) isequal(x,'OpenLoopGrating'), trials);
+OpenLoopGratingVelocities = cell2mat(angularVelocity(OpenLoopGratingTrials));
+meanVelocity = mean(OpenLoopGratingVelocities,2);
+plot(time{find(OpenLoopGratingTrials==1,1)},meanVelocity,'k','LineWidth',2)
