@@ -274,12 +274,12 @@ for i = 1:size(rawData,2)
         ylabel('Angular velocity of the fly');
         xlabel('Time (s)');
         title('Angular velocity of the fly');
-        hold on
-    end
+        end
      
 end
 
 OpenLoopGratingTrials = cellfun(@(x) isequal(x,'OpenLoopGrating'), trials);
 OpenLoopGratingVelocities = cell2mat(angularVelocity(OpenLoopGratingTrials));
-meanVelocity = mean(OpenLoopGratingVelocities,2);
-plot(time{find(OpenLoopGratingTrials==1,1)},meanVelocity,'k','LineWidth',2)
+OpenLoopGratingProbabilitiesReshaped = reshape(OpenLoopGratingProbabilities,[20,length(OpenLoopGratingProbabilities)/20]);
+meanHeading = mean(DarkBarProbabilitiesReshaped,2);
+plot(degsFlyMoving{1},meanHeading,'k','LineWidth',2)
