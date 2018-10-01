@@ -113,7 +113,8 @@ end
 
 %%  How much is the fly moving?
 
-[percentMoving, moving] = IsFlyWalking(rawData);
+voltThresh = assessNoise;
+[percentMoving, moving] = IsFlyWalking(rawData,voltThresh);
 
 %add a zero before moving start, for the frame 1 to have a "is not moving"
 %assigned
