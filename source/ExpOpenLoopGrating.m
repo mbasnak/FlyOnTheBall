@@ -2,7 +2,7 @@
 
 function ExpOpenLoopGrating(flyNum,expNum,time)
 
-cd 'Z:\Wilson Lab\Mel\codes\behavior';
+cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data';
 
 daqreset %reset DAC object
 devID = 'Dev1';  % Set device ID (to know what the ID is, you can type "daq.getDevices"
@@ -18,7 +18,7 @@ for i = 1:5
     aI(i).InputType = 'SingleEnded';
 end
 
-Panel_com('set_pattern_id', 2); %the pattern 2 are the gratings
+Panel_com('set_pattern_id', 4); %the pattern 2 are the gratings
 Panel_com('set_mode', [4 4]); %set the mode to be controlled by an outside function
 Panel_com('set_position',[5 1]); %we should run this if we want to stimuli to start centered (doesn't make a lot of sense for the gratings though)
 Panel_com('set_posfunc_id',[1 2]);
@@ -37,12 +37,12 @@ if flyNum ==1 %if it's the first fly
 end
 
 if expNum == 1 %if it's the first experiment for this fly
-   cd (['Z:\Wilson Lab\Mel\codes\behavior\',date]); %move to today's folder
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\',date]); %move to today's folder
    mkdir (strcat('flyNum',num2str(flyNum))) %inside that folder make a folder for this fly
-   cd (['Z:\Wilson Lab\Mel\codes\behavior\',date,'\flyNum',num2str(flyNum)])
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\',date,'\flyNum',num2str(flyNum)])
    getFlyInfo() %get fly's details
 else
-   cd (['Z:\Wilson Lab\Mel\codes\behavior\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
 end
 
 

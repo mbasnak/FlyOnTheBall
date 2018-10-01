@@ -93,10 +93,8 @@ plot(degs,probabilities,'k')
 xlim([-180 180]); ylim([0 max(probabilities)+0.05]);
 title('Probability density of the stimulus position');
 ylabel('Probability density'); xlabel('Stimulus position (deg)');
-
-
-%transform and remap stim starting pos if closed-loop bar
-if isequal(typeOfStim, 'closed_loop_bar') | isequal(typeOfStim, 'dark_closed_loop_bar')
+if isequal(typeOfStim, 'closed_loop_bar') | isequal(typeOfStim, 'dark_closed_loop_bar') 
+   hold on
     remapStartPos = 0;
      if startPos(1) ==93 | startPos(1) ==94 | startPos(1) ==95 | startPos(1) ==96 | startPos(1) ==97
         startingPos = (startPos(1)-92)*pxToDeg; % Correct the offset and multiply by factor to get deg
@@ -109,6 +107,7 @@ if isequal(typeOfStim, 'closed_loop_bar') | isequal(typeOfStim, 'dark_closed_loo
     else
        remapStartPos = startingPos;
     end 
+       line([remapStartPos remapStartPos],[0 max(probabilities)+0.05],'Color',[1 0 0])
 end
 
 %%  How much is the fly moving?

@@ -202,12 +202,20 @@ for i = 1:size(rawData,2)
         
         
 % For the open-loop gratings, plot stim position and fly's angular velocity
+    elseif isequal(trials{i}, 'OpenLoopGratingRight')
+    subplot(1,2,2)
+    plot(time{i},angularVelocity{i})
+    ylabel('Angular velocity of the fly');
+    xlabel('Time (s)');
+    title('Angular velocity of the fly for Right Garting trials');
+    
     else
     subplot(1,2,2)
     plot(time{i},angularVelocity{i})
     ylabel('Angular velocity of the fly');
     xlabel('Time (s)');
-    title('Angular velocity of the fly');
+    title('Angular velocity of the fly for Left Grating trials');
+        
     
     end
     
@@ -263,23 +271,45 @@ meanHeading = mean(LightBarProbabilitiesReshaped,2);
 plot(degsFlyMoving{1},meanHeading,'k','LineWidth',2)
 
 
-% For open-loop gratings
+% For Right side open-loop gratings
 
 figure,
 
 for i = 1:size(rawData,2)
     
-    if isequal(trials{i},'OpenLoopGrating')
+    if isequal(trials{i},'OpenLoopGratingRight')
         plot(time{i},angularVelocity{i})
         ylabel('Angular velocity of the fly');
         xlabel('Time (s)');
-        title('Angular velocity of the fly');
+        title('Angular velocity of the fly for right side trials');
         hold on
     end
      
 end
 
-OpenLoopGratingTrials = cellfun(@(x) isequal(x,'OpenLoopGrating'), trials);
+OpenLoopGratingTrials = cellfun(@(x) isequal(x,'OpenLoopGratingRight'), trials);
 OpenLoopGratingVelocities = cell2mat(angularVelocity(OpenLoopGratingTrials));
 meanVelocity = mean(OpenLoopGratingVelocities,2);
 plot(time{find(OpenLoopGratingTrials==1,1)},meanVelocity,'k','LineWidth',2)
+
+
+% For Left side open-loop gratings
+
+figure,
+
+for i = 1:size(rawData,2)
+    
+    if isequal(trials{i},'OpenLoopGratingLeft')
+        plot(time{i},angularVelocity{i})
+        ylabel('Angular velocity of the fly');
+        xlabel('Time (s)');
+        title('Angular velocity of the fly for left side trials');
+        hold on
+    end
+     
+end
+
+OpenLoopGratingTrialsLeft = cellfun(@(x) isequal(x,'OpenLoopGratingleft'), trials);
+OpenLoopGratingVelocitiesLeft = cell2mat(angularVelocity(OpenLoopGratingTrialsLeft));
+meanVelocityLeft = mean(OpenLoopGratingVelocitiesLeft,2);
+plot(time{find(OpenLoopGratingTrialsLeft==1,1)},meanVelocityLeft,'k','LineWidth',2)
