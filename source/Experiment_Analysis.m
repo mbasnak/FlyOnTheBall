@@ -34,6 +34,12 @@ for i = 1:size(rawData,2)
  data.ficTracInty{i} = rawData{i} ( : , yFly); 
 end
 
+%% Downsample, unwrap and smooth position data, then get velocity and smooth
+
+[smoothed] = velocityAnalysis(data,1000);
+% for most experiments I have used 1000 Hz as a sample rate, and it is what
+% I will use from now on, so that's how I'll leave it, but this could be
+% changed in case of need
 
 %% Output in degrees of the Panels position
 
@@ -153,68 +159,18 @@ for i = 1:size(rawData,2)
 end
 
 
-%% Compute angular velocity, specially for the open-loop grating trials
+% %% Compute angular velocity, specially for the open-loop grating trials
+% 
+% for i = 1:size(rawData,2)
+%     
+%  LOWPASS_FILTER_CUTOFF = 50; % Hz
+%  THRESHOLD_ANGULAR_VELOCITY = 200; % degrees / s  this is the max velocity that can be allowed into analysis
+% % decode angular velocity and accumulated position
+%  [angularVelocity{i},filteredFicTracPos{i}] = ficTracSignalDecoding(data.ficTracAngularPosition{i}, 10000, LOWPASS_FILTER_CUTOFF, THRESHOLD_ANGULAR_VELOCITY);
+%  [forwardVelocity{i},filteredForwardPos{i}] = ficTracSignalDecoding(data.ficTracInty{i}, 10000, LOWPASS_FILTER_CUTOFF, THRESHOLD_ANGULAR_VELOCITY);
+% end
 
-for i = 1:size(rawData,2)
-    
- LOWPASS_FILTER_CUTOFF = 50; % Hz
- THRESHOLD_ANGULAR_VELOCITY = 200; % degrees / s  this is the max velocity that can be allowed into analysis
-% decode angular velocity and accumulated position
- [angularVelocity{i},filteredFicTracPos{i}] = ficTracSignalDecoding(data.ficTracAngularPosition{i}, 10000, LOWPASS_FILTER_CUTOFF, THRESHOLD_ANGULAR_VELOCITY);
- [forwardVelocity{i},filteredForwardPos{i}] = ficTracSignalDecoding(data.ficTracInty{i}, 10000, LOWPASS_FILTER_CUTOFF, THRESHOLD_ANGULAR_VELOCITY);
-end
 
-
-%% Plot everything
-
-for i = 1:size(rawData,2)
-    figure,
-    subplot(1,2,1)
-    plot(time{i},posToDeg{i})
-    ylim([0 365]);
-    ylabel('Position of the stimulus (deg)');
-    xlabel('Time (s)');
-    title('Position of the stimulus in deg as a function of time', 'Interpreter', 'none');
- 
-% For the closed-loop bars, plot stim position and fly heading
-    if isequal(trials{i}, 'ClosedLoopBar')
-    subplot(1,2,2)
-    plot(degsFlyMoving{i},probabilitiesFlyMoving{i},'k')
-    xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving{i})+0.05]);
-    title('Probability density of the fly heading');
-    ylabel('Probability density'); xlabel('Fly heading (deg)');
-    hold on
-    line([remapStartPos{i} remapStartPos{i}],[0 max(probabilitiesFlyMoving{i})+0.05],'Color',[0 0 1])
-
-    elseif isequal(trials{i}, 'DarkClosedLoopBar')
-    subplot(1,2,2)
-    plot(degsFlyMoving{i},probabilitiesFlyMoving{i},'b')
-    xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving{i})+0.05]);
-    title('Probability density of the fly heading');
-    ylabel('Probability density'); xlabel('Fly heading (deg)');
-    hold on
-    line([remapStartPos{i} remapStartPos{i}],[0 max(probabilitiesFlyMoving{i})+0.05],'Color',[0 0 0])
-        
-        
-% For the open-loop gratings, plot stim position and fly's angular velocity
-    elseif isequal(trials{i}, 'OpenLoopGratingRight')
-    subplot(1,2,2)
-    plot(time{i},angularVelocity{i})
-    ylabel('Angular velocity of the fly');
-    xlabel('Time (s)');
-    title('Angular velocity of the fly for Right Garting trials');
-    
-    else
-    subplot(1,2,2)
-    plot(time{i},angularVelocity{i})
-    ylabel('Angular velocity of the fly');
-    xlabel('Time (s)');
-    title('Angular velocity of the fly for Left Grating trials');
-        
-    
-    end
-    
-end
 
 %% Plot by trial type
 
@@ -283,7 +239,7 @@ figure,
 for i = 1:size(rawData,2)
     
     if isequal(trials{i},'OpenLoopGratingRight')
-        plot(time{i},angularVelocity{i})
+        plot(smoothed.angularVel{i})
         ylabel('Angular velocity of the fly');
         xlabel('Time (s)');
         title({'Angular velocity of the fly';'Clockwise open-loop gratings'});
@@ -293,11 +249,12 @@ for i = 1:size(rawData,2)
 end
 
 OpenLoopGratingTrials = cellfun(@(x) isequal(x,'OpenLoopGratingRight'), trials);
-OpenLoopGratingVelocities = cell2mat(angularVelocity(OpenLoopGratingTrials));
+OpenLoopGratingVelocities = cell2mat(smoothed.angularVel(OpenLoopGratingTrials));
 meanVelocity = mean(OpenLoopGratingVelocities,2);
 stdVelocity = std(OpenLoopGratingVelocities,[],2);
 steVelocity = stdVelocity/(sqrt(sum(OpenLoopGratingTrials)));
-[hl,hp]= boundedline(time{find(OpenLoopGratingTrials==1,1)},meanVelocity, steVelocity,'k','alpha')
+time = linspace(1,size(smoothed.angularVel{find(OpenLoopGratingTrials==1,1)},1),size(smoothed.angularVel{find(OpenLoopGratingTrials==1,1)},1));
+[hl,hp]= boundedline(time,meanVelocity, steVelocity,'k','alpha')
 ho = outlinebounds(hl,hp);
 set(ho, 'linestyle', ':', 'color', 'k');
 saveas(gcf,strcat(path,'AllRightGratingTrials_PDHeading_ExpNum', file(end-4), '.png'));
@@ -309,7 +266,7 @@ figure,
 for i = 1:size(rawData,2)
     
     if isequal(trials{i},'OpenLoopGratingLeft')
-        plot(time{i},angularVelocity{i})
+        plot(smoothed.angularVel{i})
         ylabel('Angular velocity of the fly');
         xlabel('Time (s)');
         title({'Angular velocity of the fly';'Counter clock wise open-loop gratings'});
@@ -319,11 +276,75 @@ for i = 1:size(rawData,2)
 end
 
 OpenLoopGratingTrialsLeft = cellfun(@(x) isequal(x,'OpenLoopGratingLeft'), trials);
-OpenLoopGratingVelocitiesLeft = cell2mat(angularVelocity(OpenLoopGratingTrialsLeft));
+OpenLoopGratingVelocitiesLeft = cell2mat(smoothed.angularVel(OpenLoopGratingTrialsLeft));
 meanVelocityLeft = mean(OpenLoopGratingVelocitiesLeft,2);
 stdVelocityLeft = std(OpenLoopGratingVelocitiesLeft,[],2);
 steVelocityLeft = stdVelocityLeft/(sqrt(sum(OpenLoopGratingTrialsLeft)));
-[hl,hp]= boundedline(time{find(OpenLoopGratingTrialsLeft==1,1)},meanVelocityLeft, steVelocityLeft,'k','alpha')
+[hl,hp]= boundedline(time,meanVelocityLeft, steVelocityLeft,'k','alpha')
 ho = outlinebounds(hl,hp);
 set(ho, 'linestyle', ':', 'color', 'k');
-saveas(gcf,strcat(path,'AllLeftBarTrials_PDHeading_ExpNum', file(end-4), '.png'));
+saveas(gcf,strcat(path,'AllLeftGratingTrials_PDHeading_ExpNum', file(end-4), '.png'));
+
+%% forward velocity analysis
+% this is a criterion to decide which trials to include in the analysis
+
+% figure,
+% for i = 1:size(rawData,2)
+% plot(smoothed.yVel{i})
+% hold on
+% end
+
+
+
+
+
+%% Plot individual trials
+
+for i = 1:size(rawData,2)
+    figure,
+    subplot(1,2,1)
+    plot(time{i},posToDeg{i})
+    ylim([0 365]);
+    ylabel('Position of the stimulus (deg)');
+    xlabel('Time (s)');
+    title('Position of the stimulus in deg as a function of time', 'Interpreter', 'none');
+ 
+% For the closed-loop bars, plot stim position and fly heading
+    if isequal(trials{i}, 'ClosedLoopBar')
+    subplot(1,2,2)
+    plot(degsFlyMoving{i},probabilitiesFlyMoving{i},'k')
+    xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving{i})+0.05]);
+    title('Probability density of the fly heading');
+    ylabel('Probability density'); xlabel('Fly heading (deg)');
+    hold on
+    line([remapStartPos{i} remapStartPos{i}],[0 max(probabilitiesFlyMoving{i})+0.05],'Color',[0 0 1])
+
+    elseif isequal(trials{i}, 'DarkClosedLoopBar')
+    subplot(1,2,2)
+    plot(degsFlyMoving{i},probabilitiesFlyMoving{i},'b')
+    xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving{i})+0.05]);
+    title('Probability density of the fly heading');
+    ylabel('Probability density'); xlabel('Fly heading (deg)');
+    hold on
+    line([remapStartPos{i} remapStartPos{i}],[0 max(probabilitiesFlyMoving{i})+0.05],'Color',[0 0 0])
+        
+        
+% For the open-loop gratings, plot stim position and fly's angular velocity
+    elseif isequal(trials{i}, 'OpenLoopGratingRight')
+    subplot(1,2,2)
+    plot(time{i},angularVelocity{i})
+    ylabel('Angular velocity of the fly');
+    xlabel('Time (s)');
+    title('Angular velocity of the fly for Right Garting trials');
+    
+    else
+    subplot(1,2,2)
+    plot(time{i},angularVelocity{i})
+    ylabel('Angular velocity of the fly');
+    xlabel('Time (s)');
+    title('Angular velocity of the fly for Left Grating trials');
+        
+    
+    end
+    
+end
