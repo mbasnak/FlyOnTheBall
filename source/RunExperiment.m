@@ -13,7 +13,7 @@ trials = trialPattern(randperm(numel(trialPattern)));
 daqreset %reset DAC object
 devID = 'Dev1';  % Set device ID (to know what the ID is, you can type "daq.getDevices"
 niOI = daq.createSession('ni'); %create a session
-niOI.Rate = 10000;% set sample rate
+niOI.Rate = 1000;% set sample rate
 % Determine the analog INPUT Channels
 aI = niOI.addAnalogInputChannel( devID , 1:5 , 'Voltage' );
 % Set all channels to the correct inputType, likely 'SingleEnded'
