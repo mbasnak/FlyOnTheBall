@@ -99,9 +99,14 @@ end
 %figure,
 
 for i = 1:size(data.ficTracIntx,2)
-    smoothed.Intx{i} = smooth(unwrapped.Intx{i},10); %smooth using a 10 number window
-    smoothed.Inty{i} = smooth(unwrapped.Inty{i},10);
-    smoothed.angularPosition{i} = smooth(unwrapped.angularPosition{i},10);
+%     smoothed.Intx{i} = smooth(unwrapped.Intx{i},10); %smooth using a 10 number window
+%     smoothed.Inty{i} = smooth(unwrapped.Inty{i},10);
+%     smoothed.angularPosition{i} = smooth(unwrapped.angularPosition{i},10);
+%     
+    smoothed.Intx{i} = smoothdata(unwrapped.Intx{i}); %smooth using a 10 number window
+    smoothed.Inty{i} = smoothdata(unwrapped.Inty{i});
+    smoothed.angularPosition{i} = smoothdata(unwrapped.angularPosition{i});
+    
     
 % subplot(1,3,1)
 % plot(smoothed.Intx{i})
@@ -178,10 +183,16 @@ end
 
 for i=1:size(data.ficTracIntx,2)
     
-    smoothed.xVel{i} = smooth(diff.Intx{i},10);
-    smoothed.yVel{i} = smooth(diff.Inty{i},10);
-    smoothed.angularVel{i} = smooth(diff.angularPosition{i},10);
+%     smoothed.xVel{i} = smooth(diff.Intx{i},10);
+%     smoothed.yVel{i} = smooth(diff.Inty{i},10);
+%     smoothed.angularVel{i} = smooth(diff.angularPosition{i},10);
+%   
+    
+    smoothed.xVel{i} = smoothdata(diff.Intx{i});
+    smoothed.yVel{i} = smoothdata(diff.Inty{i});
+    smoothed.angularVel{i} = smoothdata(diff.angularPosition{i});
   
+    
 % subplot(1,3,1)
 % plot(smoothed.xVel{i})
 % hold on
