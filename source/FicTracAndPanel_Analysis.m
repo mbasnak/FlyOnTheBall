@@ -4,11 +4,10 @@
 
 %%% This code analyses the output of the panels and the FicTrac data
 close all; clear all;
-%prompt the user to say the exp n, and save the answer as "expNum"
-expNum = input('What is the exp number?','s');
 
-%open the dataExpNum*.mat file with that number
-load(['dataExpNum',expNum,'.mat']);
+% prompt the user to select the file to open and load it.
+[file,path] = uigetfile();
+load([path,file]);
 
 % Define Ni-Daq channels ID
 headingFly = 1;
@@ -33,6 +32,14 @@ data.yPanelPos = round ((data.yPanelVolts  * maxValY) /VOLTAGE_RANGE);
 data.ficTracAngularPosition = rawData ( : , headingFly); 
 data.ficTracIntx = rawData ( : , xFly); 
 data.ficTracInty = rawData ( : , yFly); 
+
+
+%% Downsample, unwrap and smooth position data, then get velocity and smooth
+
+[smoothed] = singleTrialVelocityAnalysis(data,1000);
+% for most experiments I have used 1000 Hz as a sample rate, and it is what
+% I will use from now on, so that's how I'll leave it, but this could be
+% changed in case of need
 
 %% Output in degrees of the Panels position
 
@@ -112,8 +119,7 @@ end
 
 %%  How much is the fly moving?
 
-voltThresh = assessNoise;
-[percentMoving, moving] = IsFlyWalking(rawData,voltThresh);
+[percentMoving, moving] = IsFlyWalking(rawData,0.002);
 
 %add a zero before moving start, for the frame 1 to have a "is not moving"
 %assigned
@@ -167,8 +173,7 @@ if isequal(typeOfStim, 'closed_loop_bar') | isequal(typeOfStim, 'dark_closed_loo
    line([remapStartPos remapStartPos],[0 max(probabilitiesFly)+0.05],'Color',[1 0 0])
 end
 
-%add text with the type of stim
-saveas(gcf,strcat('ProbabilityDensityFlyHeading_ExpNum', expNum, '.png'))
+
 
 %% Probability density keeping only those frames when the fly was moving
 
@@ -182,13 +187,13 @@ for i = 1:length(remapFlyPosToDegMoving)
 end
 
 % Plot the histogram and probability density
-[countsFlyMoving] = histcounts(remapFlyPosToDegMoving,20);
+[countsFlyMoving] = histcounts(remapFlyPosToDegMoving,40);
 probabilitiesFlyMoving = countsFlyMoving./sum(countsFlyMoving);
 degsFlyMoving = linspace(-180,180,length(countsFlyMoving));
 
 figure,
 subplot(1,2,1)
-histogram(remapFlyPosToDegMoving,20,'Normalization','probability')
+histogram(remapFlyPosToDegMoving,40,'Normalization','probability')
 xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving)+0.05]);
 title('Histogram of the fly heading');
 ylabel('Probability'); xlabel('Fly heading (deg)');
@@ -204,36 +209,15 @@ if isequal(typeOfStim, 'closed_loop_bar') | isequal(typeOfStim, 'dark_closed_loo
    line([remapStartPos remapStartPos],[0 max(probabilitiesFlyMoving)+0.05],'Color',[1 0 0])
 end
 
+%add text with the type of stim
+saveas(gcf,strcat('ProbabilityDensityFlyHeading_ExpNum', file(end-4), '.png'))
+%% Forward velocity
 
-%% Using Yvette's function to filtrate and unwrap the data
-% I don't understand very well what this is doing
-% The angular velocity looks extremely peaky
-% Should I be using a smoothing method?
-
-LOWPASS_FILTER_CUTOFF= 100; % Hz
-THRESHOLD_ANGULAR_VELOCITY = 800; % degrees / s  this is the max velocity that can be allowed into analysis
-% decode angular velocity and accumulated position
-[ angularVelocity , filteredFicTracPos ] = ficTracSignalDecoding(data.ficTracAngularPosition, 1000, LOWPASS_FILTER_CUTOFF, THRESHOLD_ANGULAR_VELOCITY);
+forwardVelocity = smoothed.xVel;
 
 figure,
-subplot(3,1,1)
-plot(time,posToDeg)
-ylim([0 365]);
-ylabel('Position of the stimulus in degrees');
-xlabel('Time (s)');
-title('Position of the stimulus in degrees');
-
-subplot(3,1,2)
-plot(time,angularVelocity)
-ylabel('Angular velocity of the fly');
-xlabel('Time (s)');
-title('Angular velocity of the fly');
-
-subplot(3,1,3)
-plot(time,filteredFicTracPos)
-ylabel('Unwrapped heading of the fly (deg)');
-xlabel('Time (s)');
-ylim([0 365]);
-title('Heading of the fly');
-%For some reason this last plot has different time units.
+plot(forwardVelocity)
+title('Forward velocity of the fly');
+xlabel('Time')
+ylabel('Velocity (deg/s)')
 

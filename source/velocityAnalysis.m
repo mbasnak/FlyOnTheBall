@@ -10,7 +10,7 @@ function [smoothed] = velocityAnalysis(data, sampleRate)
 
 %% Downsample the position data to match FicTrac's output
 
-%figure,
+% figure,
 
 for i = 1:size(data.ficTracIntx,2)
     % Downsample to match FicTrac's output
@@ -39,7 +39,7 @@ end
 
 %% Tranform signal from voltage to radians for unwrapping
 
-%figure,
+% figure,
 
 for i = 1:size(data.ficTracIntx,2)
     
@@ -67,7 +67,7 @@ end
 
 %% Unwrapping 
 
-%figure,
+% figure,
 
 for i = 1:size(data.ficTracIntx,2)
 
@@ -96,7 +96,7 @@ end
 
 %% Smooth the data
 
-%figure,
+% figure,
 
 for i = 1:size(data.ficTracIntx,2)
 %     smoothed.Intx{i} = smooth(unwrapped.Intx{i},10); %smooth using a 10 number window
@@ -174,7 +174,7 @@ for i = 1:size(data.ficTracIntx,2)
 % hold on
 % title('angular velcoty in degrees/s')
 % hold on    
-%     
+    
 end
 
     %%  Smooth again
@@ -185,7 +185,7 @@ for i=1:size(data.ficTracIntx,2)
     
 %     smoothed.xVel{i} = smooth(diff.Intx{i},10);
 %     smoothed.yVel{i} = smooth(diff.Inty{i},10);
-%     smoothed.angularVel{i} = smooth(diff.angularPosition{i},10);
+%     smoothed.angularVel{i} = smooth(diff.angularPosition{i},5);
 %   
     
     smoothed.xVel{i} = smoothdata(diff.Intx{i});

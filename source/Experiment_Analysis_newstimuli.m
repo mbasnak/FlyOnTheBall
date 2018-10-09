@@ -81,7 +81,7 @@ for p = 1:size(remapPosToDeg,2)
  end
  
  % Calculate the probability densities
-[counts{p}] = histcounts(remapPosToDeg{p},20);
+[counts{p}] = histcounts(remapPosToDeg{p},40);
 probabilities{p} = counts{p}./sum(counts{p});
 degs{p} = linspace(-180,180,length(counts{p}));
 
@@ -91,7 +91,7 @@ end
 remapStartPos = cell(1,size(rawData,2));
 for p = 1:size(rawData,2)
     %transform and remap stim starting pos if closed-loop bar
- if isequal(trials{p}, 'ClosedLoopBar') | isequal(trials{p}, 'DarkClosedLoopBar')
+ if isequal(trials{p}, 'LowerInt3pxClosedLoopBar') | isequal(trials{p}, 'Dark3pxDarkerBackClosedLoopBar')
     remapStartPos{p} = 0;
      if isequal(startPosition{p}(1),93) | isequal(startPosition{p}(1),94) | isequal(startPosition{p}(1),95) | isequal(startPosition{p}(1),96) | isequal(startPosition{p}(1),97)
         startingPos{p} = (startPosition{p}(1)-92)*pxToDeg; % Correct the offset and multiply by factor to get deg
@@ -111,15 +111,23 @@ end
 
 %%  How much is the fly moving?
 
-% 1) Assess noise to determine the best criterion for whether the fly is
-% moving or not
-voltThresh = assessNoise;
+% 1) Analyze forward velocity
 
-% 2) Use the voltage threshold obtained by the empty trial to determne the
-% frames in which the fly is moving
+forwardVel = smoothed.xVel;
+
+% for i = 1:length(forwardVel)
+%     figure,
+%     plot(forwardVel{i})
+% end
+
+% I need to determine which criteria are going to make a "good" forward
+% velocity
+
+
+% 2) Use a voltage threshold to determine the frames in which the fly is moving
 for i = 1:size(rawData,2)
-  voltThreshold{i} = voltThresh;
- [percentMoving(i), moving{i}] = IsFlyWalking(rawData{i},voltThresh);
+  voltThreshold{i} = 0.002;
+ [percentMoving(i), moving{i}] = IsFlyWalking(rawData{i},0.002);
 
 %add a zero before moving start, for the frame 1 to have a "is not moving"
 %assigned
@@ -152,27 +160,14 @@ for i = 1:size(rawData,2)
  end
 
 % Plot the histogram and probability density
- [countsFlyMoving{i}] = histcounts(remapFlyPosToDegMoving{i},20);
+ [countsFlyMoving{i}] = histcounts(remapFlyPosToDegMoving{i},40);
  probabilitiesFlyMoving{i} = countsFlyMoving{i}./sum(countsFlyMoving{i});
  degsFlyMoving{i} = linspace(-180,180,length(countsFlyMoving{i}));
 
 end
 
 
-% %% Compute angular velocity, specially for the open-loop grating trials
-% 
-% for i = 1:size(rawData,2)
-%     
-%  LOWPASS_FILTER_CUTOFF = 50; % Hz
-%  THRESHOLD_ANGULAR_VELOCITY = 200; % degrees / s  this is the max velocity that can be allowed into analysis
-% % decode angular velocity and accumulated position
-%  [angularVelocity{i},filteredFicTracPos{i}] = ficTracSignalDecoding(data.ficTracAngularPosition{i}, 10000, LOWPASS_FILTER_CUTOFF, THRESHOLD_ANGULAR_VELOCITY);
-%  [forwardVelocity{i},filteredForwardPos{i}] = ficTracSignalDecoding(data.ficTracInty{i}, 10000, LOWPASS_FILTER_CUTOFF, THRESHOLD_ANGULAR_VELOCITY);
-% end
-
-
-
-%% Plot by trial type
+%% Plot by trial type: stripe fixation
 
 % For dark-closed loop bars
 
@@ -193,7 +188,7 @@ end
 
 DarkBarTrials = cellfun(@(x) isequal(x,'Dark3pxDarkerBackClosedLoopBar'), trials);
 DarkBarProbabilities = cell2mat(probabilitiesFlyMoving(DarkBarTrials));
-DarkBarProbabilitiesReshaped = reshape(DarkBarProbabilities,[20,length(DarkBarProbabilities)/20]);
+DarkBarProbabilitiesReshaped = reshape(DarkBarProbabilities,[40,length(DarkBarProbabilities)/40]);
 meanHeading = mean(DarkBarProbabilitiesReshaped,2);
 stdHeading = std(DarkBarProbabilitiesReshaped,[],2);
 steHeading = stdHeading/(sqrt(sum(DarkBarTrials)));
@@ -222,7 +217,7 @@ end
 
 LightBarTrials = cellfun(@(x) isequal(x,'LowerInt3pxClosedLoopBar'), trials);
 LightBarProbabilities = cell2mat(probabilitiesFlyMoving(LightBarTrials));
-LightBarProbabilitiesReshaped = reshape(LightBarProbabilities,[20,length(LightBarProbabilities)/20]);
+LightBarProbabilitiesReshaped = reshape(LightBarProbabilities,[40,length(LightBarProbabilities)/40]);
 meanHeading = mean(LightBarProbabilitiesReshaped,2);
 stdHeading = std(LightBarProbabilitiesReshaped,[],2);
 steHeading = stdHeading/(sqrt(sum(LightBarTrials)));
@@ -232,6 +227,16 @@ set(ho, 'linestyle', ':', 'color', 'k');
 saveas(gcf,strcat(path,'AllLightBarTrials_PDHeading_ExpNum', file(end-4), '.png'));
 
 
+%% Plot by trial type: optomotor response
+
+for i = 1:length(smoothed.angularVel)
+    % make all the angular velocities start at 0 to be able to compare them
+    angularVelocity{i} = smoothed.angularVel{i}-smoothed.angularVel{i}(1);
+    % create time vector for the plots
+    Time{i} = linspace(0,1,length(angularVelocity{i})); 
+end
+
+
 % For Right side open-loop gratings
 
 figure,
@@ -239,8 +244,8 @@ figure,
 for i = 1:size(rawData,2)
     
     if isequal(trials{i},'Darker3pxOpenLoopGratingRight')
-        plot(smoothed.angularVel{i})
-        ylabel('Angular velocity of the fly');
+        plot(Time{i},angularVelocity{i})
+        ylabel('Angular velocity of the fly (deg/s)');
         xlabel('Time (s)');
         title({'Angular velocity of the fly';'Clockwise open-loop gratings'});
         hold on
@@ -249,14 +254,16 @@ for i = 1:size(rawData,2)
 end
 
 OpenLoopGratingTrials = cellfun(@(x) isequal(x,'Darker3pxOpenLoopGratingRight'), trials);
-OpenLoopGratingVelocities = cell2mat(smoothed.angularVel(OpenLoopGratingTrials));
+OpenLoopGratingVelocities = cell2mat(angularVelocity(OpenLoopGratingTrials));
 meanVelocity = mean(OpenLoopGratingVelocities,2);
 stdVelocity = std(OpenLoopGratingVelocities,[],2);
 steVelocity = stdVelocity/(sqrt(sum(OpenLoopGratingTrials)));
-time = linspace(1,size(smoothed.angularVel{find(OpenLoopGratingTrials==1,1)},1),size(smoothed.angularVel{find(OpenLoopGratingTrials==1,1)},1));
-[hl,hp]= boundedline(time,meanVelocity, steVelocity,'k','alpha')
+time = Time(OpenLoopGratingTrials);
+[hl,hp]= boundedline(time{1},meanVelocity, steVelocity,'k','alpha')
 ho = outlinebounds(hl,hp);
 set(ho, 'linestyle', ':', 'color', 'k');
+hline = refline([0 0]);
+hline.Color = 'r'; hline.LineStyle = '--';
 saveas(gcf,strcat(path,'AllRightGratingTrials_PDHeading_ExpNum', file(end-4), '.png'));
 
 % For Left side open-loop gratings
@@ -266,8 +273,8 @@ figure,
 for i = 1:size(rawData,2)
     
     if isequal(trials{i},'Darker3pxOpenLoopGratingLeft')
-        plot(smoothed.angularVel{i})
-        ylabel('Angular velocity of the fly');
+        plot(Time{i},angularVelocity{i})
+        ylabel('Angular velocity of the fly (deg/s)');
         xlabel('Time (s)');
         title({'Angular velocity of the fly';'Counter clock wise open-loop gratings'});
         hold on
@@ -276,26 +283,16 @@ for i = 1:size(rawData,2)
 end
 
 OpenLoopGratingTrialsLeft = cellfun(@(x) isequal(x,'Darker3pxOpenLoopGratingLeft'), trials);
-OpenLoopGratingVelocitiesLeft = cell2mat(smoothed.angularVel(OpenLoopGratingTrialsLeft));
+OpenLoopGratingVelocitiesLeft = cell2mat(angularVelocity(OpenLoopGratingTrialsLeft));
 meanVelocityLeft = mean(OpenLoopGratingVelocitiesLeft,2);
 stdVelocityLeft = std(OpenLoopGratingVelocitiesLeft,[],2);
 steVelocityLeft = stdVelocityLeft/(sqrt(sum(OpenLoopGratingTrialsLeft)));
-[hl,hp]= boundedline(time,meanVelocityLeft, steVelocityLeft,'k','alpha')
+[hl,hp]= boundedline(time{1},meanVelocityLeft, steVelocityLeft,'k','alpha')
 ho = outlinebounds(hl,hp);
 set(ho, 'linestyle', ':', 'color', 'k');
+hline = refline([0 0]);
+hline.Color = 'r'; hline.LineStyle = '--';
 saveas(gcf,strcat(path,'AllLeftGratingTrials_PDHeading_ExpNum', file(end-4), '.png'));
-
-%% forward velocity analysis
-% this is a criterion to decide which trials to include in the analysis
-
-% figure,
-% for i = 1:size(rawData,2)
-% plot(smoothed.yVel{i})
-% hold on
-% end
-
-
-
 
 
 %% Plot individual trials

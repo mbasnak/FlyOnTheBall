@@ -1,7 +1,7 @@
 %% Setings Open loop grating to the right
 
 startPos = [round(rand*97) 1];
-niOI.DurationInSeconds = 0.5;
+niOI.DurationInSeconds = 1;
 
 Panel_com('set_pattern_id', 5); %the pattern 4 are the gratings
 Panel_com('set_mode', [4 4]); %set the mode to be controlled by an outside function
