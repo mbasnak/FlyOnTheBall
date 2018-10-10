@@ -131,6 +131,26 @@ end
 
 saveas(gcf,strcat(path,'ProbabilityDensityStimPosition_ExpNum', file(end-4), '.png'))
 
+%% Polar coordinates analysis
+
+%Plot the histogram in polar coordinates
+posToRad = posToDeg.*pi/180;
+figure,
+polarhistogram(posToRad,20,'Normalization','pdf','FaceColor',[0.6,0.3,0.3]);
+title({'Probability density of the stimulus position';typeOfStim});
+% hold on
+% polarhistogram(deg2rad(noPanelDeg),20,'FaceColor','k');
+
+saveas(gcf,strcat(path,'PolarHistogramStimPosition_ExpNum', file(end-4), '.png'))
+
+% some statistics...
+
+CircularStats = circ_stats(posToRad);
+%circularError = circularStd/(sqrt(length(posToDeg)));
+ %I'm not sure what the n should be for the error in this case.
+[pval,z] = circ_rtest(posToRad);
+
+
 %%  How much is the fly moving?
 
 [percentMoving, moving] = IsFlyWalking(rawData,0.002);

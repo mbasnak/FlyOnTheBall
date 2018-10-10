@@ -21,7 +21,7 @@ end
 %set a rendom starting point for the stim
 startPos = [round(rand*97) 1];
 
-Panel_com('set_pattern_id', 7); %load the light stripe pattern
+Panel_com('set_pattern_id', 9); %load the light stripe pattern
 Panel_com('set_mode', [3 0]); %set the x to be controlled by FicTrac and the Y to be open loop
 Panel_com('set_position',startPos); %we can also comment this out, or start at [5 1]
 Panel_com('start');
