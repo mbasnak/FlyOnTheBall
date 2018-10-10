@@ -42,11 +42,17 @@ function [smoothed] = singleTrialVelocityAnalysis(data, sampleRate)
     smoothed.Inty = smoothdata(unwrapped.Inty,10);
     smoothed.angularPosition = smoothdata(unwrapped.angularPosition,10);
     
+%     smoothed.Intx = smooth(unwrapped.Intx,10); %smooth using a 10 number window
+%     smoothed.Inty = smooth(unwrapped.Inty,10);
+%     smoothed.angularPosition = smooth(unwrapped.angularPosition,10);
+%     
+    
+    
     
 %% Transform back to degrees 
     
-    deg.Intx = (smoothed.Intx / (2*pi)) * 360;
-    deg.Inty = (smoothed.Inty / (2*pi)) * 360;
+    deg.Intx = smoothed.Intx * 4.75;
+    deg.Inty = smoothed.Inty * 4.75;
     deg.angularPosition = (smoothed.angularPosition / (2*pi)) * 360;
 
     
@@ -62,6 +68,9 @@ function [smoothed] = singleTrialVelocityAnalysis(data, sampleRate)
     smoothed.xVel = smoothdata(diff.Intx,10);
     smoothed.yVel = smoothdata(diff.Inty,10);
     smoothed.angularVel = smoothdata(diff.angularPosition,5);
-
+    
+%     smoothed.xVel = smooth(diff.Intx,10);
+%     smoothed.yVel = smooth(diff.Inty,10);
+%     smoothed.angularVel = smooth(diff.angularPosition,5);
 
 end

@@ -124,14 +124,14 @@ for i = 1:size(data.ficTracIntx,2)
 end
     
     
-%% Transform back to degrees 
+%% Transform back to degrees for the angular velocity and to metric system for the forward and side velocity
 
 %figure, 
 
 for i = 1:size(data.ficTracIntx,2)
     
-    deg.Intx{i} = (smoothed.Intx{i} / (2*pi)) * 360;
-    deg.Inty{i} = (smoothed.Inty{i} / (2*pi)) * 360;
+    deg.Intx{i} = smoothed.Intx{i}.* 4.6;
+    deg.Inty{i} = smoothed.Inty{i}.* 4.6;
     deg.angularPosition{i} = (smoothed.angularPosition{i} / (2*pi)) * 360;
 
 % subplot(1,3,1)
@@ -183,10 +183,10 @@ end
 
 for i=1:size(data.ficTracIntx,2)
     
-%     smoothed.xVel{i} = smooth(diff.Intx{i},10);
-%     smoothed.yVel{i} = smooth(diff.Inty{i},10);
-%     smoothed.angularVel{i} = smooth(diff.angularPosition{i},5);
-%   
+% %     smoothed.xVel{i} = smooth(diff.Intx{i},10);
+% %     smoothed.yVel{i} = smooth(diff.Inty{i},10);
+% %     smoothed.angularVel{i} = smooth(diff.angularPosition{i},5);
+% %   
     
     smoothed.xVel{i} = smoothdata(diff.Intx{i});
     smoothed.yVel{i} = smoothdata(diff.Inty{i});

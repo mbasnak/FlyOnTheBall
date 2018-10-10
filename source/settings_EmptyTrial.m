@@ -1,6 +1,6 @@
 %% Settings Empty trial
 
-startPos = [round(rand*97) 1];
+startPos = [round(rand*96) 1];
 niOI.DurationInSeconds = 10;
 
 Panel_com('set_pattern_id', 2); %the pattern 4 are the gratings

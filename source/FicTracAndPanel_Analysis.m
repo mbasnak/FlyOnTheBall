@@ -70,12 +70,10 @@ ylabel('Position of the stimulus (deg)');
 xlabel('Time (s)');
 title({'Position of the stimulus in deg as a function of time', typeOfStim}, 'Interpreter', 'none');
 
-
+saveas(gcf,strcat(path,'PanelOutput_ExpNum', file(end-4), '.png'))
 %% Probability density function of the stimulus position
 
 % Remapping the positions to span -180 to 180 deg
-
-%for e = 1:length(ExpNum)
 remapPosToDeg = posToDeg;
 for i = 1:length(remapPosToDeg)   
     if remapPosToDeg(i) > 180
@@ -97,11 +95,16 @@ ylabel('Probability'); xlabel('Stimulus position (deg)');
 
 subplot(1,2,2),
 plot(degs,probabilities,'k')
+set(0, 'DefaulttextInterpreter', 'none')
+suptitle(typeOfStim);
 xlim([-180 180]); ylim([0 max(probabilities)+0.05]);
 title('Probability density of the stimulus position');
 ylabel('Probability density'); xlabel('Stimulus position (deg)');
-if isequal(typeOfStim, 'closed_loop_bar') | isequal(typeOfStim, 'dark_closed_loop_bar') 
-   hold on
+if contains(typeOfStim,'closed_loop')
+%if isequal(typeOfStim, 'closed_loop_bar') | isequal(typeOfStim, 'dark_closed_loop_bar') 
+   hold on 
+   %add line showing the start pos. of the stim. to see whether the fly
+   %just kept it there
     remapStartPos = 0;
      if startPos(1) ==93 | startPos(1) ==94 | startPos(1) ==95 | startPos(1) ==96 | startPos(1) ==97
         startingPos = (startPos(1)-92)*pxToDeg; % Correct the offset and multiply by factor to get deg
@@ -115,7 +118,18 @@ if isequal(typeOfStim, 'closed_loop_bar') | isequal(typeOfStim, 'dark_closed_loo
        remapStartPos = startingPos;
     end 
        line([remapStartPos remapStartPos],[0 max(probabilities)+0.05],'Color',[1 0 0])
+
+%add rectangle showing where the panel is off (and the bar can't be seen)
+noPanel = [17:23]; %xpos where a 2 px bar can't be seen.
+noPanelDeg = (noPanel+4)*pxToDeg;
+l1 = line([noPanelDeg(1) noPanelDeg(1)],[0 max(probabilities)+0.05]);
+l2 = line([noPanelDeg(7) noPanelDeg(7)],[0 max(probabilities)+0.05]);
+set([l1 l2],'Color',[.5 .5 .5]);
+patch([noPanelDeg(1) noPanelDeg(7) noPanelDeg(7) noPanelDeg(1)], [0 0 max(probabilities)+0.05 max(probabilities)+0.05],[.5 .5 .5],'FaceAlpha',0.3)
+
 end
+
+saveas(gcf,strcat(path,'ProbabilityDensityStimPosition_ExpNum', file(end-4), '.png'))
 
 %%  How much is the fly moving?
 
@@ -141,37 +155,37 @@ end
 %mirror of that of the stimulus.
 
 
-flyPosToDeg = data.ficTracAngularPosition.*36; %if 10 V = 360 deg, then xV = 36x deg
-
-remapFlyPosToDeg = flyPosToDeg;
-for i = 1:length(remapFlyPosToDeg)   
-    if remapFlyPosToDeg(i) > 180
-        remapFlyPosToDeg(i) = remapFlyPosToDeg(i) - 360;  
-    end   
-end
-
-% Plot the histogram and probability density
-[countsFly] = histcounts(remapFlyPosToDeg,20);
-probabilitiesFly = countsFly./sum(countsFly);
-degsFly = linspace(-180,180,length(countsFly));
-
-figure,
-subplot(1,2,1)
-histogram(remapFlyPosToDeg,20,'Normalization','probability')
-xlim([-180 180]); ylim([0 max(probabilitiesFly)+0.05]);
-title('Histogram of the fly heading');
-ylabel('Probability'); xlabel('Fly heading (deg)');
-
-subplot(1,2,2),
-plot(degsFly,probabilitiesFly,'k')
-xlim([-180 180]); ylim([0 max(probabilitiesFly)+0.05]);
-title('Probability density of the fly heading');
-ylabel('Probability density'); xlabel('Fly heading (deg)');
-%Add the starting pos of the bar if the stimulus was a closed-loop bar
-if isequal(typeOfStim, 'closed_loop_bar') | isequal(typeOfStim, 'dark_closed_loop_bar') 
-   hold on
-   line([remapStartPos remapStartPos],[0 max(probabilitiesFly)+0.05],'Color',[1 0 0])
-end
+% flyPosToDeg = data.ficTracAngularPosition.*36; %if 10 V = 360 deg, then xV = 36x deg
+% 
+% remapFlyPosToDeg = flyPosToDeg;
+% for i = 1:length(remapFlyPosToDeg)   
+%     if remapFlyPosToDeg(i) > 180
+%         remapFlyPosToDeg(i) = remapFlyPosToDeg(i) - 360;  
+%     end   
+% end
+% 
+% % Plot the histogram and probability density
+% [countsFly] = histcounts(remapFlyPosToDeg,20);
+% probabilitiesFly = countsFly./sum(countsFly);
+% degsFly = linspace(-180,180,length(countsFly));
+% 
+% figure,
+% subplot(1,2,1)
+% histogram(remapFlyPosToDeg,20,'Normalization','probability')
+% xlim([-180 180]); ylim([0 max(probabilitiesFly)+0.05]);
+% title('Histogram of the fly heading');
+% ylabel('Probability'); xlabel('Fly heading (deg)');
+% 
+% subplot(1,2,2),
+% plot(degsFly,probabilitiesFly,'k')
+% xlim([-180 180]); ylim([0 max(probabilitiesFly)+0.05]);
+% title('Probability density of the fly heading');
+% ylabel('Probability density'); xlabel('Fly heading (deg)');
+% %Add the starting pos of the bar if the stimulus was a closed-loop bar
+% if isequal(typeOfStim, 'closed_loop_bar') | isequal(typeOfStim, 'dark_closed_loop_bar') 
+%    hold on
+%    line([remapStartPos remapStartPos],[0 max(probabilitiesFly)+0.05],'Color',[1 0 0])
+% end
 
 
 
@@ -187,37 +201,45 @@ for i = 1:length(remapFlyPosToDegMoving)
 end
 
 % Plot the histogram and probability density
-[countsFlyMoving] = histcounts(remapFlyPosToDegMoving,40);
+[countsFlyMoving] = histcounts(remapFlyPosToDegMoving,20);
 probabilitiesFlyMoving = countsFlyMoving./sum(countsFlyMoving);
 degsFlyMoving = linspace(-180,180,length(countsFlyMoving));
 
 figure,
 subplot(1,2,1)
-histogram(remapFlyPosToDegMoving,40,'Normalization','probability')
+histogram(remapFlyPosToDegMoving,20,'Normalization','probability')
 xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving)+0.05]);
 title('Histogram of the fly heading');
 ylabel('Probability'); xlabel('Fly heading (deg)');
 
 subplot(1,2,2),
 plot(degsFlyMoving,probabilitiesFlyMoving,'k')
+suptitle(typeOfStim)
 xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving)+0.05]);
 title('Probability density of the fly heading');
 ylabel('Probability density'); xlabel('Fly heading (deg)');
 %Add the starting pos of the bar if the stimulus was a closed-loop bar
-if isequal(typeOfStim, 'closed_loop_bar') | isequal(typeOfStim, 'dark_closed_loop_bar') 
+if contains(typeOfStim,'closed_loop')
+%if isequal(typeOfStim, 'closed_loop_bar') | isequal(typeOfStim, 'dark_closed_loop_bar') 
    hold on
    line([remapStartPos remapStartPos],[0 max(probabilitiesFlyMoving)+0.05],'Color',[1 0 0])
+   patch([noPanelDeg(1) noPanelDeg(7) noPanelDeg(7) noPanelDeg(1)], [0 0 max(probabilitiesFlyMoving)+0.05 max(probabilitiesFlyMoving)+0.05],[.5 .5 .5],'FaceAlpha',0.3)
 end
 
-%add text with the type of stim
-saveas(gcf,strcat('ProbabilityDensityFlyHeading_ExpNum', file(end-4), '.png'))
+saveas(gcf,strcat(path,'ProbabilityDensityFlyHeading_ExpNum', file(end-4), '.png'))
 %% Forward velocity
 
 forwardVelocity = smoothed.xVel;
+meanVelocity = mean(forwardVelocity);
+time = linspace(0,(length(rawData)/1000),length(forwardVelocity));
 
 figure,
-plot(forwardVelocity)
-title('Forward velocity of the fly');
-xlabel('Time')
-ylabel('Velocity (deg/s)')
+plot(time,forwardVelocity,'k')
+hold on
+hline = refline([0 meanVelocity]);
+hline.Color = 'r'; hline.LineStyle = '--';
+title({'Forward velocity of the fly', typeOfStim}, 'Interpreter', 'none');
+xlabel('Time (s)')
+ylabel('Velocity (mm/s)')
 
+saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(end-4), '.png'))

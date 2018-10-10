@@ -7,7 +7,7 @@ function RunExperiment(trialPattern,flyNum,expNum)
 % this experiment.
 
 % shuffle the trials position
-trials = trialPattern(randperm(numel(trialPattern)));
+trials = trialPattern;%(randperm(numel(trialPattern)));
 
 % set up NiDaq acquisition session
 daqreset %reset DAC object
