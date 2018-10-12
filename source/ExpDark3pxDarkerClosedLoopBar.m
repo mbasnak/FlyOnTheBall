@@ -20,7 +20,7 @@ for i = 1:5
 end
 
 %set a rendom starting point for the stim
-startPos = [round(rand*97) 1];
+startPos = [(round(rand*96)+1) 1];
 
 Panel_com('set_pattern_id', 13); 
 Panel_com('set_mode', [3 0]); %set the x to be controlled by FicTrac and the Y to be open loop

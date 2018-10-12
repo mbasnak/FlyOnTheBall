@@ -41,26 +41,68 @@ data.ficTracInty = rawData ( : , yFly);
 % I will use from now on, so that's how I'll leave it, but this could be
 % changed in case of need
 
+
+%% Forward velocity analysis
+
+% The forward velocity is a good indicative of whether the fly is walking
+% well in that trial or not
+
+forwardVelocity = smoothed.xVel;
+meanVelocity = mean(forwardVelocity);
+time = linspace(0,(length(rawData)/1000),length(forwardVelocity));
+
+figure,
+subplot(2,1,1)
+plot(time,forwardVelocity,'k','HandleVisibility','off')
+xlim = ([0 time(end)]);
+hold on
+hline = refline([0 meanVelocity]);
+hline.Color = 'r'; hline.LineStyle = '--';
+rline = refline([0 0]);
+rline.Color = [.5 .5 .5]; rline.LineWidth = 1.5;
+title({'Forward velocity of the fly', typeOfStim}, 'Interpreter', 'none');
+xlabel('Time (s)')
+ylabel('Velocity (mm/s)')
+legend('Mean forward velocity');
+
+subplot(2,1,2)
+histogram(forwardVelocity,'FaceColor',[.4 .2 .6])
+title('Distribution of forward velocities');
+xlabel('Forward velocity (mm/s)');
+ylabel('Frequency');
+
+saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(end-4), '.png'))
+
+
+
+%%  Keep the frames during which the fly is moving
+
+% We are going to decide whether a fly is moving or not based on the
+% forward velocity. If it's above 0.7 mm/s we will consider it is moving
+% We will work with the downsampled data
+
+downsampled.xPanelPos = downsample(data.xPanelPos,1000/25);
+dataMoving.xPanelPos = downsampled.xPanelPos(forwardVelocity>0.7);
+moving = smoothed.angularPosition(forwardVelocity>0.7);
+
 %% Output in degrees of the Panels position
 
 % Pos x=92 is 0 deg (ie facing the fly), I measured this empirically
 
 pxToDeg = 360/97; % There are 97 possible positions (the last one = first one) and this represents 360 deg
-posToDeg = zeros(1,length(data.xPanelPos));
+posToDeg = zeros(1,length(dataMoving.xPanelPos));
 
-
-% Convert from xpos to degrees, knowing that xpos 5 = 0 deg
-for i=1:length(data.xPanelPos)
-    if data.xPanelPos(i) ==93 | data.xPanelPos(i) ==94 | data.xPanelPos(i) ==95 | data.xPanelPos(i) ==96 | data.xPanelPos(i) ==97
-        posToDeg(i) = (data.xPanelPos(i)-92)*pxToDeg; % Correct the offset and multiply by factor to get deg
+% Convert from xpos to degrees, knowing that xpos 92 = 0 deg
+for i=1:length(dataMoving.xPanelPos)
+    if dataMoving.xPanelPos(i) ==93 | dataMoving.xPanelPos(i) ==94 | dataMoving.xPanelPos(i) ==95 | dataMoving.xPanelPos(i) ==96 | dataMoving.xPanelPos(i) ==97
+        posToDeg(i) = (dataMoving.xPanelPos(i)-92)*pxToDeg; % Correct the offset and multiply by factor to get deg
     else
-        posToDeg(i) = (data.xPanelPos(i)+4)*pxToDeg; % Correct the offset and multiply by factor to get deg
+        posToDeg(i) = (dataMoving.xPanelPos(i)+4)*pxToDeg; % Correct the offset and multiply by factor to get deg
     end
 end
 
-
 % Create a time vector in sec
-time = linspace(0,(size(rawData,1)/1000),size(rawData,1)); %1000 is our sampling rate
+time = linspace(0,(size(rawData,1)/1000),size(dataMoving.xPanelPos,1)); %1000 is our sampling rate
 
 % Plot the position of the stimulus in degrees for the trial
 figure,
@@ -89,7 +131,7 @@ degs = linspace(-180,180,length(counts));
 figure,
 subplot(1,2,1)
 histogram(remapPosToDeg,20,'Normalization','probability')
-xlim([-180 180]); ylim([0 max(probabilities)+0.05]);
+%xlim([-180, 180]); ylim([0 max(probabilities)+0.05]);
 title('Histogram of the stimulus position');
 ylabel('Probability'); xlabel('Stimulus position (deg)');
 
@@ -97,7 +139,7 @@ subplot(1,2,2),
 plot(degs,probabilities,'k')
 set(0, 'DefaulttextInterpreter', 'none')
 suptitle(typeOfStim);
-xlim([-180 180]); ylim([0 max(probabilities)+0.05]);
+%xlim([-180 180]); ylim([0 max(probabilities)+0.05]);
 title('Probability density of the stimulus position');
 ylabel('Probability density'); xlabel('Stimulus position (deg)');
 if contains(typeOfStim,'closed_loop')
@@ -131,7 +173,7 @@ end
 
 saveas(gcf,strcat(path,'ProbabilityDensityStimPosition_ExpNum', file(end-4), '.png'))
 
-%% Polar coordinates analysis
+%% Polar coordinates analysis of the stimulus position
 
 %Plot the histogram in polar coordinates
 posToRad = posToDeg.*pi/180;
@@ -146,72 +188,23 @@ saveas(gcf,strcat(path,'PolarHistogramStimPosition_ExpNum', file(end-4), '.png')
 % some statistics...
 
 CircularStats = circ_stats(posToRad);
-%circularError = circularStd/(sqrt(length(posToDeg)));
- %I'm not sure what the n should be for the error in this case.
 [pval,z] = circ_rtest(posToRad);
 
+%% Angular position of the stimulus in time
 
-%%  How much is the fly moving?
+figure,
+plot(time,wrapTo360(posToDeg),'k','HandleVisibility','off')
+ylabel('Heading angle (deg)'); xlabel('Time (s)');
+ylim([0 360]);
+title('Angular position of the stimulus as a function of time');;
+hline = refline([0 wrapTo360(rad2deg(CircularStats.median))]);
+set(hline,'Color',[1,0,0])
+legend('Median heading');
 
-[percentMoving, moving] = IsFlyWalking(rawData,0.002);
+saveas(gcf,strcat(path,'AngulaPosStimInTime_ExpNum', file(end-4), '.png'))
+%% Probability density of the fly heading
 
-%add a zero before moving start, for the frame 1 to have a "is not moving"
-%assigned
-moving = [0,moving];
-
-%change to boolean
-Moving = true(size(moving,1),size(moving,2));
-
-for i = 1:length(moving)
-    if moving(1,i) == 0
-        Moving(i) = false;
-    else
-        Moving(i) = true;
-    end
-end
-
-%% Probability density of the fly's position (for open loop trials we need it because the stimulus one is not informative of the fly's behavior)
-%There is something I have to check because the fly's position seems like a
-%mirror of that of the stimulus.
-
-
-% flyPosToDeg = data.ficTracAngularPosition.*36; %if 10 V = 360 deg, then xV = 36x deg
-% 
-% remapFlyPosToDeg = flyPosToDeg;
-% for i = 1:length(remapFlyPosToDeg)   
-%     if remapFlyPosToDeg(i) > 180
-%         remapFlyPosToDeg(i) = remapFlyPosToDeg(i) - 360;  
-%     end   
-% end
-% 
-% % Plot the histogram and probability density
-% [countsFly] = histcounts(remapFlyPosToDeg,20);
-% probabilitiesFly = countsFly./sum(countsFly);
-% degsFly = linspace(-180,180,length(countsFly));
-% 
-% figure,
-% subplot(1,2,1)
-% histogram(remapFlyPosToDeg,20,'Normalization','probability')
-% xlim([-180 180]); ylim([0 max(probabilitiesFly)+0.05]);
-% title('Histogram of the fly heading');
-% ylabel('Probability'); xlabel('Fly heading (deg)');
-% 
-% subplot(1,2,2),
-% plot(degsFly,probabilitiesFly,'k')
-% xlim([-180 180]); ylim([0 max(probabilitiesFly)+0.05]);
-% title('Probability density of the fly heading');
-% ylabel('Probability density'); xlabel('Fly heading (deg)');
-% %Add the starting pos of the bar if the stimulus was a closed-loop bar
-% if isequal(typeOfStim, 'closed_loop_bar') | isequal(typeOfStim, 'dark_closed_loop_bar') 
-%    hold on
-%    line([remapStartPos remapStartPos],[0 max(probabilitiesFly)+0.05],'Color',[1 0 0])
-% end
-
-
-
-%% Probability density keeping only those frames when the fly was moving
-
-flyPosToDegMoving = data.ficTracAngularPosition(Moving).*36; %if 10 V = 360 deg, then xV = 36x deg
+flyPosToDegMoving = moving.*36; %if 10 V = 360 deg, then xV = 36x deg
 
 remapFlyPosToDegMoving = flyPosToDegMoving;
 for i = 1:length(remapFlyPosToDegMoving)   
@@ -228,14 +221,14 @@ degsFlyMoving = linspace(-180,180,length(countsFlyMoving));
 figure,
 subplot(1,2,1)
 histogram(remapFlyPosToDegMoving,20,'Normalization','probability')
-xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving)+0.05]);
+%xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving)+0.05]);
 title('Histogram of the fly heading');
 ylabel('Probability'); xlabel('Fly heading (deg)');
 
 subplot(1,2,2),
 plot(degsFlyMoving,probabilitiesFlyMoving,'k')
 suptitle(typeOfStim)
-xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving)+0.05]);
+%xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving)+0.05]);
 title('Probability density of the fly heading');
 ylabel('Probability density'); xlabel('Fly heading (deg)');
 %Add the starting pos of the bar if the stimulus was a closed-loop bar
@@ -245,21 +238,38 @@ if contains(typeOfStim,'closed_loop')
    line([remapStartPos remapStartPos],[0 max(probabilitiesFlyMoving)+0.05],'Color',[1 0 0])
    patch([noPanelDeg(1) noPanelDeg(7) noPanelDeg(7) noPanelDeg(1)], [0 0 max(probabilitiesFlyMoving)+0.05 max(probabilitiesFlyMoving)+0.05],[.5 .5 .5],'FaceAlpha',0.3)
 end
-
 saveas(gcf,strcat(path,'ProbabilityDensityFlyHeading_ExpNum', file(end-4), '.png'))
-%% Forward velocity
 
-forwardVelocity = smoothed.xVel;
-meanVelocity = mean(forwardVelocity);
-time = linspace(0,(length(rawData)/1000),length(forwardVelocity));
+FlyPosToRad = flyPosToDegMoving.*pi/180;
+figure,
+polarhistogram(FlyPosToRad,20,'Normalization','pdf','FaceColor',[0.6,0.3,0.3]);
+title({'Probability density of the fly heading';typeOfStim});
+saveas(gcf,strcat(path,'PolarHistFlyHeading_ExpNum', file(end-4), '.png'))
+
+CircularStatsFly = circ_stats(FlyPosToRad);
+%% Angular position of the fly in time
 
 figure,
-plot(time,forwardVelocity,'k')
-hold on
-hline = refline([0 meanVelocity]);
-hline.Color = 'r'; hline.LineStyle = '--';
-title({'Forward velocity of the fly', typeOfStim}, 'Interpreter', 'none');
-xlabel('Time (s)')
-ylabel('Velocity (mm/s)')
+plot(time,wrapTo360(flyPosToDegMoving),'k','HandleVisibility','off')
+ylabel('Heading angle (deg)'); xlabel('Time (s)');
+title('Angular position of the Fly as a function of time');
+hline = refline([0 wrapTo360(rad2deg(CircularStatsFly.median))]);
+set(hline,'Color',[1,0,0])
+legend('Median heading');
 
-saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(end-4), '.png'))
+saveas(gcf,strcat(path,'AngulaPosFlyInTime_ExpNum', file(end-4), '.png'))
+
+
+%% Plot 2D virtual trajectory of the fly
+
+dataMoving.ficTracIntx = data.ficTracIntx(forwardVelocity>0.7);
+dataMoving.ficTracInty = data.ficTracInty(forwardVelocity>0.7);
+
+figure, plot(dataMoving.ficTracIntx,dataMoving.ficTracInty,'o')
+% 
+% z = zeros(size(dataMoving.ficTracIntx));
+% col = dataMoving.ficTracIntx;  % This is the color, vary with x in this case.
+% surface([dataMoving.ficTracIntx;dataMoving.ficTracIntx],[dataMoving.ficTracInty;dataMoving.ficTracInty],[z;z],[col;col],...
+%         'facecol','no',...
+%         'edgecol','interp',...
+%         'linew',2);

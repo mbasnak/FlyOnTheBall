@@ -1,6 +1,6 @@
 %% Setings 3 px, darker Open loop grating to the left
 
-startPos = [round(rand*96) 1];
+startPos = [(round(rand*96)+1) 1];
 niOI.DurationInSeconds = 1;
 
 Panel_com('set_pattern_id', 4); %the pattern 4 are the gratings

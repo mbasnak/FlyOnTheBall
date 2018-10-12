@@ -1,4 +1,4 @@
-%% Experiment analysis
+%% Experiment analysis for multi-trial stipe-fixation_
 % This code analyses multi-trial experiments
 
 close all; clear all;
@@ -41,6 +41,53 @@ end
 % I will use from now on, so that's how I'll leave it, but this could be
 % changed in case of need
 
+
+%% Forward velocity analysis
+
+% The forward velocity is a good indicative of whether the fly is walking
+% well in that trial or not
+
+forwardVelocity = smoothed.xVel;
+meanVelocity = cellfun(@mean,forwardVelocity);
+time = linspace(0,(length(rawData{1})/1000),length(forwardVelocity{i}));
+
+for i = 1:length(rawData)
+figure,
+subplot(2,1,1)
+plot(time,forwardVelocity{i},'k','HandleVisibility','off')
+xlim = ([0 time(end)]);
+hold on
+hline = refline([0 meanVelocity(i)]);
+hline.Color = 'r'; hline.LineStyle = '--';
+rline = refline([0 0]);
+rline.Color = [.5 .5 .5]; rline.LineWidth = 1.5;
+title('Forward velocity of the fly', 'Interpreter', 'none');
+xlabel('Time (s)')
+ylabel('Velocity (mm/s)')
+legend('Mean forward velocity');
+
+subplot(2,1,2)
+histogram(forwardVelocity{i},'FaceColor',[.4 .2 .6])
+title('Distribution of forward velocities');
+xlabel('Forward velocity (mm/s)');
+ylabel('Frequency');
+end
+
+%saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(end-4), '.png'))
+
+
+%%  Keep the frames during which the fly is moving
+
+% We are going to decide whether a fly is moving or not based on the
+% forward velocity. If it's above 0.7 mm/s we will consider it is moving
+% We will work with the downsampled data
+
+for i = 1:length(rawData)
+downsampled.xPanelPos{i} = downsample(data.xPanelPos{i},1000/25);
+dataMoving.xPanelPos{i} = downsampled.xPanelPos{i}(forwardVelocity{i}>0.7);
+moving{i} = smoothed.angularPosition{i}(forwardVelocity{i}>0.7);
+end
+
 %% Output in degrees of the Panels position
 
 % Pos x=92 is 0 deg (ie facing the fly), I measured this empirically
@@ -49,26 +96,22 @@ pxToDeg = 360/97; % There are 97 possible positions (the last one = first one) a
 
 for i = 1:size(rawData,2)
     
-posToDeg{i} = zeros(1,length(data.xPanelPos{i}));
+posToDeg{i} = zeros(1,length(dataMoving.xPanelPos{i}));
 
 % Convert from xpos to degrees, knowing that xpos 92 = 0 deg
-for j=1:length(data.xPanelPos{i})
-    if isequal(data.xPanelPos{i}(j),93) | isequal(data.xPanelPos{i}(j),94) | isequal(data.xPanelPos{i}(j),95) | isequal(data.xPanelPos{i}(j),96) | isequal(data.xPanelPos{i}(j),97)
-        posToDeg{i}(j) = (data.xPanelPos{i}(j)-92)*pxToDeg; % Correct the offset and multiply by factor to get deg
+for j=1:length(dataMoving.xPanelPos{i})
+    if isequal(dataMoving.xPanelPos{i}(j),93) | isequal(dataMoving.xPanelPos{i}(j),94) | isequal(dataMoving.xPanelPos{i}(j),95) | isequal(dataMoving.xPanelPos{i}(j),96) | isequal(dataMoving.xPanelPos{i}(j),97)
+        posToDeg{i}(j) = (dataMoving.xPanelPos{i}(j)-92)*pxToDeg; % Correct the offset and multiply by factor to get deg
     else
-        posToDeg{i}(j) = (data.xPanelPos{i}(j)+4)*pxToDeg; % Correct the offset and multiply by factor to get deg
+        posToDeg{i}(j) = (dataMoving.xPanelPos{i}(j)+4)*pxToDeg; % Correct the offset and multiply by factor to get deg
     end
 end
 
-% Create a time vector in sec
-time{i} = linspace(0,(size(rawData{i},1)/1000),size(rawData{i},1)); %1000 is our sampling rate
-
+figure, plot(posToDeg{i})
+title('Stimulus position (deg)')
 end
 
-%check to make sure that the output of the panles worked
-% for i = 1:length(posToDeg)
-% figure, plot(posToDeg{i})
-% end
+
 %% Probability density function of the stimulus position
 
 % Remapping the positions to span -180 to 180 deg

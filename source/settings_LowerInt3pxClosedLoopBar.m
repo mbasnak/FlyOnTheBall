@@ -1,6 +1,6 @@
 %% Settings light, lower intensity, 3 px, closed-loop bar
 
-startPos = [round(rand*97) 1];
+startPos = [(round(rand*96)+1) 1];
 niOI.DurationInSeconds = 40;
 
 Panel_com('set_pattern_id', 14); %load the light stripe pattern

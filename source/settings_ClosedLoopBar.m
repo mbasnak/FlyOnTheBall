@@ -1,6 +1,6 @@
 %% Settings closed-loop bar
 
-startPos = [round(rand*97) 1];
+startPos = [(round(rand*96)+1) 1];
 niOI.DurationInSeconds = 20;
 
 Panel_com('set_pattern_id', 11); %load the light stripe pattern

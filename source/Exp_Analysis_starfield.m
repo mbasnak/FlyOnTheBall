@@ -263,7 +263,7 @@ meanVelocity = mean(OpenLoopGratingVelocities,2);
 stdVelocity = std(OpenLoopGratingVelocities,[],2);
 steVelocity = stdVelocity/(sqrt(sum(OpenLoopGratingTrials)));
 time = Time(OpenLoopGratingTrials);
-[hl,hp]= boundedline(time{1},meanVelocity, steVelocity,'k','alpha')
+[hl,hp]= boundedline(time{1},meanVelocity, steVelocity,'k')
 ho = outlinebounds(hl,hp);
 set(ho, 'linestyle', ':', 'color', 'k');
 hline = refline([0 0]);
@@ -292,10 +292,48 @@ meanVelocityLeft = mean(OpenLoopGratingVelocitiesLeft,2);
 stdVelocityLeft = std(OpenLoopGratingVelocitiesLeft,[],2);
 steVelocityLeft = stdVelocityLeft/(sqrt(sum(OpenLoopGratingTrialsLeft)));
 time = Time(OpenLoopGratingTrialsLeft);
-[hl,hp]= boundedline(time{1},meanVelocityLeft, steVelocityLeft,'k','alpha')
+[hl,hp]= boundedline(time{1},meanVelocityLeft, steVelocityLeft,'k')
 ho = outlinebounds(hl,hp);
 set(ho, 'linestyle', ':', 'color', 'k');
 hline = refline([0 0]);
 hline.Color = 'r'; hline.LineStyle = '--';
 saveas(gcf,strcat(path,'AllLeftStarfieldTrials_PDHeading_ExpNum', file(end-4), '.png'));
 
+
+%% Plot individual optomotor trials, preceded by their surrounding trials.
+
+for i = 2:size(rawData,2)      
+    if isequal(trials{i}, 'RightStarfield')
+    figure, 
+    p1 = subplot(1,2,1)
+    plot(smoothed.angularVel{i-1},'r') %plotting the preceding trial's angular velocity
+    title(trials{i-1});
+    hline = refline([0 0]);
+    hline.Color = 'k'; hline.LineStyle = '--';
+    ylabel('Angular velocity of the fly (deg/s)');
+    p2 = subplot(1,2,2)
+    plot(smoothed.angularVel{i})
+    hline = refline([0 0]);
+    hline.Color = 'k'; hline.LineStyle = '--';
+    xlabel('Time');
+    title('Right Grating trial');
+    linkaxes([p1,p2],'y');
+    
+    elseif isequal(trials{i}, 'LeftStarfield')
+    figure,
+    p1 = subplot(1,2,1)
+    plot(smoothed.angularVel{i-1},'r') %plotting the preceding trial's angular velocity
+    title(trials{i-1});
+    hline = refline([0 0]);
+    hline.Color = 'k'; hline.LineStyle = '--';
+    ylabel('Angular velocity of the fly (deg/s)');
+    p2 = subplot(1,2,2)
+    plot(smoothed.angularVel{i})
+    hline = refline([0 0]);
+    hline.Color = 'k'; hline.LineStyle = '--';
+    xlabel('Time');
+    title('Left Grating trial');
+    linkaxes([p1,p2],'y');
+    
+    end
+end
