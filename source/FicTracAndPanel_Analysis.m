@@ -81,9 +81,9 @@ saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(end-4), '.png'))
 % forward velocity. If it's above 0.7 mm/s we will consider it is moving
 % We will work with the downsampled data
 
-downsampled.xPanelPos = downsample(data.xPanelPos,1000/25);
-dataMoving.xPanelPos = downsampled.xPanelPos(forwardVelocity>0.7);
-moving = smoothed.angularPosition(forwardVelocity>0.7);
+downsampled.xPanelPos = downsample(data.xPanelPos,1000/25); %downsample the panels position
+dataMoving.xPanelPos = downsampled.xPanelPos(forwardVelocity>0.7); %keep the position frames during which the fly moved
+moving = smoothed.angularPosition(forwardVelocity>0.7); %keep the angular position frames during which the fly moved
 
 %% Output in degrees of the Panels position
 
@@ -101,27 +101,10 @@ for i=1:length(dataMoving.xPanelPos)
     end
 end
 
-% Create a time vector in sec
-time = linspace(0,(size(rawData,1)/1000),size(dataMoving.xPanelPos,1)); %1000 is our sampling rate
-
-% Plot the position of the stimulus in degrees for the trial
-figure,
-plot(time,posToDeg)
-ylim([0 365]);
-ylabel('Position of the stimulus (deg)');
-xlabel('Time (s)');
-title({'Position of the stimulus in deg as a function of time', typeOfStim}, 'Interpreter', 'none');
-
-saveas(gcf,strcat(path,'PanelOutput_ExpNum', file(end-4), '.png'))
 %% Probability density function of the stimulus position
 
 % Remapping the positions to span -180 to 180 deg
-remapPosToDeg = posToDeg;
-for i = 1:length(remapPosToDeg)   
-    if remapPosToDeg(i) > 180
-        remapPosToDeg(i) = remapPosToDeg(i) - 360;  
-    end   
-end
+remapPosToDeg = wrapTo180(posToDeg);
 
 % Plot the histogram and probability density
 [counts] = histcounts(remapPosToDeg,20);
@@ -131,7 +114,7 @@ degs = linspace(-180,180,length(counts));
 figure,
 subplot(1,2,1)
 histogram(remapPosToDeg,20,'Normalization','probability')
-%xlim([-180, 180]); ylim([0 max(probabilities)+0.05]);
+%xlim([-180 180]); ylim([0 max(probabilities)+0.05]);
 title('Histogram of the stimulus position');
 ylabel('Probability'); xlabel('Stimulus position (deg)');
 
@@ -143,23 +126,15 @@ suptitle(typeOfStim);
 title('Probability density of the stimulus position');
 ylabel('Probability density'); xlabel('Stimulus position (deg)');
 if contains(typeOfStim,'closed_loop')
-%if isequal(typeOfStim, 'closed_loop_bar') | isequal(typeOfStim, 'dark_closed_loop_bar') 
    hold on 
-   %add line showing the start pos. of the stim. to see whether the fly
-   %just kept it there
-    remapStartPos = 0;
+   %add line showing the start pos. of the stim.
      if startPos(1) ==93 | startPos(1) ==94 | startPos(1) ==95 | startPos(1) ==96 | startPos(1) ==97
         startingPos = (startPos(1)-92)*pxToDeg; % Correct the offset and multiply by factor to get deg
     else
         startingPos = (startPos(1)+4)*pxToDeg; % Correct the offset and multiply by factor to get deg
-     end
-    
-    if startingPos > 180
-       remapStartPos = startingPos - 360;
-    else
-       remapStartPos = startingPos;
-    end 
-       line([remapStartPos remapStartPos],[0 max(probabilities)+0.05],'Color',[1 0 0])
+     end  
+    remapStartPos = wrapTo180(startingPos);
+    line([remapStartPos remapStartPos],[0 max(probabilities)+0.05],'Color',[1 0 0])
 
 %add rectangle showing where the panel is off (and the bar can't be seen)
 noPanel = [17:23]; %xpos where a 2 px bar can't be seen.
@@ -175,43 +150,50 @@ saveas(gcf,strcat(path,'ProbabilityDensityStimPosition_ExpNum', file(end-4), '.p
 
 %% Polar coordinates analysis of the stimulus position
 
-%Plot the histogram in polar coordinates
-posToRad = posToDeg.*pi/180;
-figure,
-polarhistogram(posToRad,20,'Normalization','pdf','FaceColor',[0.6,0.3,0.3]);
-title({'Probability density of the stimulus position';typeOfStim});
-% hold on
-% polarhistogram(deg2rad(noPanelDeg),20,'FaceColor','k');
-
-saveas(gcf,strcat(path,'PolarHistogramStimPosition_ExpNum', file(end-4), '.png'))
-
 % some statistics...
-
 CircularStats = circ_stats(posToRad);
 [pval,z] = circ_rtest(posToRad);
 
+
+%Plot the histogram in polar coordinates
+posToRad = deg2rad(posToDeg);
+figure,
+polarhistogram(posToRad,20,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
+title({'Probability density of the stimulus position';typeOfStim});
+ax = gca;
+d = ax.ThetaDir;
+ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
+hold on
+% Add the starting position
+points = linspace(0,max(probabilities),1000);
+starts = repelem(deg2rad(startingPos),1,1000);
+polarplot(starts,points,'r','LineWidth',1.5) %add a line that shows the startPos
+% Add the circular mean
+circMean = repelem(CircularStats.mean,1,1000);
+polarplot(circMean,points,'k','LineWidth',1.5)
+legend('Start position','Circular mean');
+
+saveas(gcf,strcat(path,'PolarHistogramStimPosition_ExpNum', file(end-4), '.png'))
+
+
 %% Angular position of the stimulus in time
+
+time = linspace(0,(length(rawData)/1000),length(posToDeg));
 
 figure,
 plot(time,wrapTo360(posToDeg),'k','HandleVisibility','off')
-ylabel('Heading angle (deg)'); xlabel('Time (s)');
+ylabel('Angular position of the stimulus (deg)'); xlabel('Time (s)');
 ylim([0 360]);
 title('Angular position of the stimulus as a function of time');;
 hline = refline([0 wrapTo360(rad2deg(CircularStats.median))]);
 set(hline,'Color',[1,0,0])
-legend('Median heading');
+legend('Median position');
 
 saveas(gcf,strcat(path,'AngulaPosStimInTime_ExpNum', file(end-4), '.png'))
 %% Probability density of the fly heading
 
-flyPosToDegMoving = moving.*36; %if 10 V = 360 deg, then xV = 36x deg
-
-remapFlyPosToDegMoving = flyPosToDegMoving;
-for i = 1:length(remapFlyPosToDegMoving)   
-    if remapFlyPosToDegMoving(i) > 180
-        remapFlyPosToDegMoving(i) = remapFlyPosToDegMoving(i) - 360;  
-    end   
-end
+flyPosToDegMoving = rad2deg(moving); 
+remapFlyPosToDegMoving = wrapTo180(flyPosToDegMoving);
 
 % Plot the histogram and probability density
 [countsFlyMoving] = histcounts(remapFlyPosToDegMoving,20);
@@ -240,19 +222,33 @@ if contains(typeOfStim,'closed_loop')
 end
 saveas(gcf,strcat(path,'ProbabilityDensityFlyHeading_ExpNum', file(end-4), '.png'))
 
-FlyPosToRad = flyPosToDegMoving.*pi/180;
-figure,
-polarhistogram(FlyPosToRad,20,'Normalization','pdf','FaceColor',[0.6,0.3,0.3]);
-title({'Probability density of the fly heading';typeOfStim});
-saveas(gcf,strcat(path,'PolarHistFlyHeading_ExpNum', file(end-4), '.png'))
+FlyPosToRad = deg2rad(flyPosToDegMoving);
 
 CircularStatsFly = circ_stats(FlyPosToRad);
+
+figure,
+polarhistogram(FlyPosToRad,20,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
+title({'Probability density of the fly heading';typeOfStim});
+ax = gca;
+d = ax.ThetaDir;
+ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
+hold on
+points = linspace(0,max(probabilitiesFlyMoving),1000);
+starts = repelem(deg2rad(startingPos),1,1000);
+polarplot(starts,points,'r','LineWidth',1.5) %add a line that shows the startPos
+circMean = repelem(CircularStatsFly.mean,1,1000);
+polarplot(circMean,points,'k','LineWidth',1.5)
+legend('Start position','Circular mean');
+
+saveas(gcf,strcat(path,'PolarHistFlyHeading_ExpNum', file(end-4), '.png'))
+
 %% Angular position of the fly in time
 
 figure,
 plot(time,wrapTo360(flyPosToDegMoving),'k','HandleVisibility','off')
 ylabel('Heading angle (deg)'); xlabel('Time (s)');
 title('Angular position of the Fly as a function of time');
+ylim([0 360]);
 hline = refline([0 wrapTo360(rad2deg(CircularStatsFly.median))]);
 set(hline,'Color',[1,0,0])
 legend('Median heading');
@@ -265,11 +261,18 @@ saveas(gcf,strcat(path,'AngulaPosFlyInTime_ExpNum', file(end-4), '.png'))
 dataMoving.ficTracIntx = data.ficTracIntx(forwardVelocity>0.7);
 dataMoving.ficTracInty = data.ficTracInty(forwardVelocity>0.7);
 
-figure, plot(dataMoving.ficTracIntx,dataMoving.ficTracInty,'o')
-% 
-% z = zeros(size(dataMoving.ficTracIntx));
-% col = dataMoving.ficTracIntx;  % This is the color, vary with x in this case.
-% surface([dataMoving.ficTracIntx;dataMoving.ficTracIntx],[dataMoving.ficTracInty;dataMoving.ficTracInty],[z;z],[col;col],...
-%         'facecol','no',...
-%         'edgecol','interp',...
-%         'linew',2);
+dataMoving.Intx = smoothed.Intx(forwardVelocity>0.7);
+dataMoving.Inty = smoothed.Inty(forwardVelocity>0.7);
+
+figure,
+c = linspace(1,10,length(smoothed.Intx));
+scatter(smoothed.Intx,smoothed.Inty,[],c)
+hold on
+plot(smoothed.Intx,smoothed.Inty,'k')
+title('2D trajectory of the fly');
+xlabel('x pos (mm)');
+ylabel('y pos (mm)');
+
+% If I plot the smoothed instead of the ficTrac output, it looks a lot more
+% straight. This is probably because of the unwrapping, and I need to think
+% which one of them actually makes sense.
