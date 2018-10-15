@@ -52,9 +52,9 @@ niOI.IsDone % will report 1
 
 delete(lh) % delete the listener handle
 
-[daq_data] = loadFromLogFile('log.dat',5); %load the data just saved to the dat file, using Stephen's function
+[daq_data] = loadFromLogFile('log.dat',5); %load the data just saved to the dat file, using Stephen's fu
 
-cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\' %move to our data directory
+cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\'
     
 if flyNum ==1 %if it's the first fly
    mkdir ([date]) %make a folder with today's date
@@ -70,6 +70,6 @@ else
    cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
 end
 
-save(strcat('dataExpNum',num2str(expNum),'.mat'),'daq_data','StartPosx'); %save daq data and starting positions as a .mat file
+save(strcat('dataExpNum',num2str(expNum),'.mat'),'daq_data','StartPosx'); %save as dataExpNum
 
 end
