@@ -36,14 +36,16 @@ StartPosx = (round(rand(TrialNum,1)*96)+1); %generate a vector of as many random
 Panel_com('set_pattern_id', 11); %set the bar
 Panel_com('set_mode', [3 0]); %set it to closed-loop mode
 
-for i = 1:TrialNum %for each trial
+for i = 1:TrialNum %for each trial     
 Panel_com('set_position',[StartPosx(i) 1]); %set the position to one of the random ones from the vector
+pause(1)
 Panel_com('start');
 pause(TrialLength) %go on for as long as your trials last
 Panel_com('stop');
 end
 
 Panel_com('all_off');
+
 % add a signal to make sure that the panels have stopped running
 
 niOI.IsDone % will report 0

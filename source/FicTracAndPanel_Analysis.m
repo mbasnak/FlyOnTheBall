@@ -149,14 +149,14 @@ end
 saveas(gcf,strcat(path,'ProbabilityDensityStimPosition_ExpNum', file(end-4), '.png'))
 
 %% Polar coordinates analysis of the stimulus position
-
+posToRad = deg2rad(posToDeg);
 % some statistics...
 CircularStats = circ_stats(posToRad);
 [pval,z] = circ_rtest(posToRad);
 
 
 %Plot the histogram in polar coordinates
-posToRad = deg2rad(posToDeg);
+
 figure,
 polarhistogram(posToRad,20,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
 title({'Probability density of the stimulus position';typeOfStim});
@@ -258,9 +258,6 @@ saveas(gcf,strcat(path,'AngulaPosFlyInTime_ExpNum', file(end-4), '.png'))
 
 %% Plot 2D virtual trajectory of the fly
 
-dataMoving.ficTracIntx = data.ficTracIntx(forwardVelocity>0.7);
-dataMoving.ficTracInty = data.ficTracInty(forwardVelocity>0.7);
-
 dataMoving.Intx = smoothed.Intx(forwardVelocity>0.7);
 dataMoving.Inty = smoothed.Inty(forwardVelocity>0.7);
 
@@ -272,7 +269,4 @@ plot(smoothed.Intx,smoothed.Inty,'k')
 title('2D trajectory of the fly');
 xlabel('x pos (mm)');
 ylabel('y pos (mm)');
-
-% If I plot the smoothed instead of the ficTrac output, it looks a lot more
-% straight. This is probably because of the unwrapping, and I need to think
-% which one of them actually makes sense.
+axis tight equal;
