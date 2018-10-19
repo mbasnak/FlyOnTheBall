@@ -32,10 +32,10 @@ niOI.startBackground(); %start acquiring
 startPos = round(rand*96)+1; % generate a random starting position
 
 %%%%%% Run the panels %%%%%%
-Panel_com('set_pattern_id', 11); %set the bar
+Panel_com('set_pattern_id', 12); %set the bar
 Panel_com('set_mode', [3 4]); %set it to closed-loop mode in the x dimension and to be controlled by a function in the y dimension 
 Panel_com('set_position',[startPos 1]);
-Panel_com('set_posfunc_id',[2 2]);
+Panel_com('set_posfunc_id',[2 4]); %set it to jump every 10 sec.
 Panel_com('set_AO',[3 32767]);
 Panel_com('start');
 pause(TrialNum*50) %record for the time it takes to span the number of trials requested
