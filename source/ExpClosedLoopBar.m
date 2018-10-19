@@ -12,18 +12,19 @@ niOI = daq.createSession('ni'); %create a session
 niOI.Rate = 1000;% set sample rate
 niOI.DurationInSeconds = time; %set duration in seconds
 % Determine the analog INPUT Channels
-aI = niOI.addAnalogInputChannel( devID , 1:5 , 'Voltage' );
+aI = niOI.addAnalogInputChannel( devID , 1:6 , 'Voltage' );
 % Set all channels to the correct inputType, likely 'SingleEnded'
-for i = 1:5
+for i = 1:6
     aI(i).InputType = 'SingleEnded';
 end
 
 %set a rendom starting point for the stim
 startPos = [(round(rand*96)+1) 1];
 
-Panel_com('set_pattern_id', 12); %load the light stripe pattern
+Panel_com('set_pattern_id', 11); %load the light stripe pattern
 Panel_com('set_mode', [3 0]); %set the x to be controlled by FicTrac and the Y to be open loop
 Panel_com('set_position',startPos); %we can also comment this out, or start at [5 1]
+Panel_com('set_AO',[3 32767]); %add output channel to show me when the panels are working
 Panel_com('start');
 
 %acquire data
@@ -31,6 +32,7 @@ rawData = niOI.startForeground(); %this will acquire the channels described abov
 
 pause(2);
 Panel_com('stop');
+Panel_com('set_AO',[3 0]); %change the value to 0 V to show me the panels stopped working
 Panel_com('all_off');
 
 

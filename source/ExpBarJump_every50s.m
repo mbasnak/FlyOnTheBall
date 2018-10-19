@@ -1,15 +1,12 @@
-function [daq_data] = acquireData(flyNum,expNum,TrialNum,TrialLength)
+function [daq_data] = ExpBarJump_every50s(flyNum,expNum,TrialNum)
 
-% This function acquires data from the NiDaq in the background, allowing
-% other matlab code to execute in the meantime.
-% It is for when you want to change the stimulation and record the signals
-% during those transitions
+% This function runs an experiment in which a bar is presented in closed-loop and
+% every 50 s, it jumps to a random position
 
 %INPUT
 %flyNum : which number of fly are you running
 %expNum : which experiment number are you running
 %TrialNum : how many closed-loop trials are you running
-%TrialLength : how long is each trial
 
 %OUTPUT
 %daq_data : matrix that returns the voltage data acquired in the NiDaq
@@ -19,12 +16,12 @@ daqreset %reset DAC object
 devID = 'Dev1';  % Set device ID (to know what the ID is, you can type "daq.getDevices"
 niOI = daq.createSession('ni'); %create a session
 niOI.Rate = 1000;% set sample rate
-aI = niOI.addAnalogInputChannel( devID , 1:5 , 'Voltage' );
+aI = niOI.addAnalogInputChannel( devID , 1:6 , 'Voltage' );
 % Set all channels to the correct inputType, likely 'SingleEnded'
-for i = 1:5
+for i = 1:6
     aI(i).InputType = 'SingleEnded';
 end
-niOI.DurationInSeconds = (TrialNum*TrialLength)+10; %set the duration to the total panel display time + 10 extra seconds
+niOI.DurationInSeconds = TrialNum*50 + 5; %set the duration to the total panel display time + 5 extra seconds
 
 fid = fopen('log.dat','w+'); %this opens a csv file named "log",creating it for writing (and overwriting existing filed) with the flag "w+"
 lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
@@ -32,21 +29,18 @@ lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
 
 niOI.startBackground(); %start acquiring
 
+startPos = round(rand*96)+1; % generate a random starting position
 
 %%%%%% Run the panels %%%%%%
-StartPosx = (round(rand(TrialNum,1)*96)+1); %generate a vector of as many random starting positions as trials we are running
-
 Panel_com('set_pattern_id', 11); %set the bar
-Panel_com('set_mode', [3 0]); %set it to closed-loop mode
-
-for i = 1:TrialNum %for each trial     
-Panel_com('set_position',[StartPosx(i) 1]); %set the position to one of the random ones from the vector
-pause(1)
+Panel_com('set_mode', [3 4]); %set it to closed-loop mode in the x dimension and to be controlled by a function in the y dimension 
+Panel_com('set_position',[startPos 1]);
+Panel_com('set_posfunc_id',[2 2]);
+Panel_com('set_AO',[3 32767]);
 Panel_com('start');
-pause(TrialLength) %go on for as long as your trials last
+pause(TrialNum*50) %record for the time it takes to span the number of trials requested
 Panel_com('stop');
-end
-
+Panel_com('set_AO',[3 0]);
 Panel_com('all_off');
 
 % add a signal to make sure that the panels have stopped running
@@ -57,7 +51,7 @@ niOI.IsDone % will report 1
 
 delete(lh) % delete the listener handle
 
-[daq_data] = loadFromLogFile('log.dat',5); %load the data just saved to the dat file, using Stephen's function
+[daq_data] = loadFromLogFile('log.dat',6); %load the data just saved to the dat file, using Stephen's function
 
 cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\' %move to our data directory
     
@@ -75,6 +69,7 @@ else
    cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
 end
 
-save(strcat('dataExpNum',num2str(expNum),'.mat'),'daq_data','StartPosx'); %save daq data and starting positions as a .mat file
+save(strcat('dataExpNum',num2str(expNum),'.mat'),'daq_data','startPos','TrialNum'); %save daq data and starting positions as a .mat file
+
 
 end

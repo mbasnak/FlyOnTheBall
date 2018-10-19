@@ -16,6 +16,7 @@ xFly = 3;
 xPanels = 4;
 yPanels = 5;
 
+
 %% Subset acquisition of x and y pos, as well as FicTrac data
 
 data.xPanelVolts =  rawData (:,xPanels); 
@@ -71,8 +72,35 @@ title('Distribution of forward velocities');
 xlabel('Forward velocity (mm/s)');
 ylabel('Frequency');
 
-saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(end-4), '.png'))
+saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(11:end-4), '.png'))
 
+%% Angular velocity analysis
+
+angularVelocity = smoothed.angularVel;
+meanAngVelocity = mean(angularVelocity);
+time = linspace(0,(length(rawData)/1000),length(angularVelocity));
+
+figure,
+subplot(2,1,1)
+plot(time,angularVelocity,'k','HandleVisibility','off')
+xlim = ([0 time(end)]);
+hold on
+hline = refline([0 meanAngVelocity]);
+hline.Color = 'r'; hline.LineStyle = '--';
+rline = refline([0 0]);
+rline.Color = [.5 .5 .5]; rline.LineWidth = 1.5;
+title({'Angular velocity of the fly', typeOfStim}, 'Interpreter', 'none');
+xlabel('Time (s)')
+ylabel('Velocity (deg/s)')
+legend('Mean angular velocity');
+
+subplot(2,1,2)
+histogram(angularVelocity,'FaceColor',[.2 .8 .6])
+title('Distribution of angular velocities');
+xlabel('Angular velocity (deg/s)');
+ylabel('Frequency');
+
+saveas(gcf,strcat(path,'AngularVelocity_ExpNum', file(11:end-4), '.png'))
 
 
 %%  Keep the frames during which the fly is moving
@@ -146,7 +174,7 @@ patch([noPanelDeg(1) noPanelDeg(7) noPanelDeg(7) noPanelDeg(1)], [0 0 max(probab
 
 end
 
-saveas(gcf,strcat(path,'ProbabilityDensityStimPosition_ExpNum', file(end-4), '.png'))
+saveas(gcf,strcat(path,'ProbabilityDensityStimPosition_ExpNum', file(11:end-4), '.png'))
 
 %% Polar coordinates analysis of the stimulus position
 posToRad = deg2rad(posToDeg);
@@ -173,7 +201,7 @@ circMean = repelem(CircularStats.mean,1,1000);
 polarplot(circMean,points,'k','LineWidth',1.5)
 legend('Start position','Circular mean');
 
-saveas(gcf,strcat(path,'PolarHistogramStimPosition_ExpNum', file(end-4), '.png'))
+saveas(gcf,strcat(path,'PolarHistogramStimPosition_ExpNum', file(11:end-4), '.png'))
 
 
 %% Angular position of the stimulus in time
@@ -189,7 +217,7 @@ hline = refline([0 wrapTo360(rad2deg(CircularStats.median))]);
 set(hline,'Color',[1,0,0])
 legend('Median position');
 
-saveas(gcf,strcat(path,'AngulaPosStimInTime_ExpNum', file(end-4), '.png'))
+saveas(gcf,strcat(path,'AngulaPosStimInTime_ExpNum', file(11:end-4), '.png'))
 %% Probability density of the fly heading
 
 flyPosToDegMoving = rad2deg(moving); 
@@ -220,7 +248,7 @@ if contains(typeOfStim,'closed_loop')
    line([remapStartPos remapStartPos],[0 max(probabilitiesFlyMoving)+0.05],'Color',[1 0 0])
    patch([noPanelDeg(1) noPanelDeg(7) noPanelDeg(7) noPanelDeg(1)], [0 0 max(probabilitiesFlyMoving)+0.05 max(probabilitiesFlyMoving)+0.05],[.5 .5 .5],'FaceAlpha',0.3)
 end
-saveas(gcf,strcat(path,'ProbabilityDensityFlyHeading_ExpNum', file(end-4), '.png'))
+saveas(gcf,strcat(path,'ProbabilityDensityFlyHeading_ExpNum', file(11:end-4), '.png'))
 
 FlyPosToRad = deg2rad(flyPosToDegMoving);
 
@@ -240,7 +268,32 @@ circMean = repelem(CircularStatsFly.mean,1,1000);
 polarplot(circMean,points,'k','LineWidth',1.5)
 legend('Start position','Circular mean');
 
-saveas(gcf,strcat(path,'PolarHistFlyHeading_ExpNum', file(end-4), '.png'))
+saveas(gcf,strcat(path,'PolarHistFlyHeading_ExpNum', file(11:end-4), '.png'))
+
+meanLength = circ_r(FlyPosToRad);
+% scaledMeanLength = meanLength*max();
+
+%% Polar analysis taking 60s windows to compute a vector of heading
+
+% Based on Jonathan's 2018 paper, I am taking 60s windows to compute the
+% mean of unit vectors, sliding it over the heading time series by 1 s
+% increments, and visualizing the distribution in a polar plot.
+
+% I'M NOT SURE IF WHAT I'M DOING IS CORRECT
+
+circMean60s = movmean(FlyPosToRad,1000);
+figure, subplot(1,2,1)
+polarhistogram(circMean60s,20,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
+title({'Probability density of the fly heading';typeOfStim});
+ax = gca;
+d = ax.ThetaDir;
+ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
+
+
+subplot(1,2,2), plot(360-rad2deg(circMean60s),'LineWidth',1.5)
+title('Mean heading over time');
+xlabel('Time');ylabel('Mean heading (deg)');
+ylim([0 360]);
 
 %% Angular position of the fly in time
 
@@ -253,7 +306,7 @@ hline = refline([0 wrapTo360(rad2deg(CircularStatsFly.median))]);
 set(hline,'Color',[1,0,0])
 legend('Median heading');
 
-saveas(gcf,strcat(path,'AngulaPosFlyInTime_ExpNum', file(end-4), '.png'))
+saveas(gcf,strcat(path,'AngulaPosFlyInTime_ExpNum', file(11:end-4), '.png'))
 
 
 %% Plot 2D virtual trajectory of the fly
@@ -262,11 +315,13 @@ dataMoving.Intx = smoothed.Intx(forwardVelocity>0.7);
 dataMoving.Inty = smoothed.Inty(forwardVelocity>0.7);
 
 figure,
-c = linspace(1,10,length(smoothed.Intx));
+c = linspace(1,(length(data.xPanelPos)/1000),length(smoothed.Intx)); %create a color vector with the time
 scatter(smoothed.Intx,smoothed.Inty,[],c)
 hold on
 plot(smoothed.Intx,smoothed.Inty,'k')
+c = colorbar; c.Label.String = 'Time (s)'; %add the colorbar
 title('2D trajectory of the fly');
-xlabel('x pos (mm)');
-ylabel('y pos (mm)');
-axis tight equal;
+xlabel('x pos (mm)'); ylabel('y pos (mm)');
+axis tight equal; %scale the axes with respect to one another
+
+saveas(gcf,strcat(path,'2DTrajectory_ExpNum', file(11:end-4), '.png'));
