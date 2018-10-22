@@ -55,7 +55,7 @@ time = linspace(0,(length(rawData)/1000),length(forwardVelocity));
 figure,
 subplot(2,1,1)
 plot(time,forwardVelocity,'k','HandleVisibility','off')
-xlim = ([0 time(end)]);
+xlim([0 time(end)]);
 hold on
 hline = refline([0 meanVelocity]);
 hline.Color = 'r'; hline.LineStyle = '--';
@@ -83,7 +83,7 @@ time = linspace(0,(length(rawData)/1000),length(angularVelocity));
 figure,
 subplot(2,1,1)
 plot(time,angularVelocity,'k','HandleVisibility','off')
-xlim = ([0 time(end)]);
+xlim([0 time(end)]);
 hold on
 hline = refline([0 meanAngVelocity]);
 hline.Color = 'r'; hline.LineStyle = '--';
@@ -135,14 +135,15 @@ end
 remapPosToDeg = wrapTo180(posToDeg);
 
 % Plot the histogram and probability density
-[counts] = histcounts(remapPosToDeg,20);
+edges = [-180:20:180];
+[counts] = histcounts(remapPosToDeg,edges);
 probabilities = counts./sum(counts);
 degs = linspace(-180,180,length(counts));
 
 figure,
 subplot(1,2,1)
-histogram(remapPosToDeg,20,'Normalization','probability')
-%xlim([-180 180]); ylim([0 max(probabilities)+0.05]);
+histogram(remapPosToDeg,edges,'Normalization','probability');
+xlim([-180 180]); ylim([0 max(probabilities)+0.05]);
 title('Histogram of the stimulus position');
 ylabel('Probability'); xlabel('Stimulus position (deg)');
 
@@ -150,7 +151,7 @@ subplot(1,2,2),
 plot(degs,probabilities,'k')
 set(0, 'DefaulttextInterpreter', 'none')
 suptitle(typeOfStim);
-%xlim([-180 180]); ylim([0 max(probabilities)+0.05]);
+xlim([-180 180]); ylim([0 max(probabilities)+0.05]);
 title('Probability density of the stimulus position');
 ylabel('Probability density'); xlabel('Stimulus position (deg)');
 if contains(typeOfStim,'closed_loop')
@@ -182,11 +183,13 @@ posToRad = deg2rad(posToDeg);
 CircularStats = circ_stats(posToRad);
 [pval,z] = circ_rtest(posToRad);
 
-
 %Plot the histogram in polar coordinates
 
+circedges = [0:20:360];
+circedges = deg2rad(circedges);
+
 figure,
-polarhistogram(posToRad,20,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
+polarhistogram(posToRad,circedges,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
 title({'Probability density of the stimulus position';typeOfStim});
 ax = gca;
 d = ax.ThetaDir;
@@ -224,21 +227,21 @@ flyPosToDegMoving = rad2deg(moving);
 remapFlyPosToDegMoving = wrapTo180(flyPosToDegMoving);
 
 % Plot the histogram and probability density
-[countsFlyMoving] = histcounts(remapFlyPosToDegMoving,20);
+[countsFlyMoving] = histcounts(remapFlyPosToDegMoving,edges);
 probabilitiesFlyMoving = countsFlyMoving./sum(countsFlyMoving);
 degsFlyMoving = linspace(-180,180,length(countsFlyMoving));
 
 figure,
 subplot(1,2,1)
-histogram(remapFlyPosToDegMoving,20,'Normalization','probability')
-%xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving)+0.05]);
+histogram(remapFlyPosToDegMoving,edges,'Normalization','probability')
+xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving)+0.05]);
 title('Histogram of the fly heading');
 ylabel('Probability'); xlabel('Fly heading (deg)');
 
 subplot(1,2,2),
 plot(degsFlyMoving,probabilitiesFlyMoving,'k')
 suptitle(typeOfStim)
-%xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving)+0.05]);
+xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving)+0.05]);
 title('Probability density of the fly heading');
 ylabel('Probability density'); xlabel('Fly heading (deg)');
 %Add the starting pos of the bar if the stimulus was a closed-loop bar
@@ -255,7 +258,7 @@ FlyPosToRad = deg2rad(flyPosToDegMoving);
 CircularStatsFly = circ_stats(FlyPosToRad);
 
 figure,
-polarhistogram(FlyPosToRad,20,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
+polarhistogram(FlyPosToRad,circedges,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
 title({'Probability density of the fly heading';typeOfStim});
 ax = gca;
 d = ax.ThetaDir;
@@ -281,19 +284,19 @@ meanLength = circ_r(FlyPosToRad);
 
 % I'M NOT SURE IF WHAT I'M DOING IS CORRECT
 
-circMean60s = movmean(FlyPosToRad,1000);
-figure, subplot(1,2,1)
-polarhistogram(circMean60s,20,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
-title({'Probability density of the fly heading';typeOfStim});
-ax = gca;
-d = ax.ThetaDir;
-ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
-
-
-subplot(1,2,2), plot(360-rad2deg(circMean60s),'LineWidth',1.5)
-title('Mean heading over time');
-xlabel('Time');ylabel('Mean heading (deg)');
-ylim([0 360]);
+% circMean60s = movmean(FlyPosToRad,1000);
+% figure, subplot(1,2,1)
+% polarhistogram(circMean60s,20,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
+% title({'Probability density of the fly heading';typeOfStim});
+% ax = gca;
+% d = ax.ThetaDir;
+% ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
+% 
+% 
+% subplot(1,2,2), plot(360-rad2deg(circMean60s),'LineWidth',1.5)
+% title('Mean heading over time');
+% xlabel('Time');ylabel('Mean heading (deg)');
+% ylim([0 360]);
 
 %% Angular position of the fly in time
 
