@@ -21,7 +21,7 @@ aI = niOI.addAnalogInputChannel( devID , 1:6 , 'Voltage' );
 for i = 1:6
     aI(i).InputType = 'SingleEnded';
 end
-niOI.DurationInSeconds = TrialNum*50 + 5; %set the duration to the total panel display time + 5 extra seconds
+niOI.DurationInSeconds = TrialNum*50 + 10; %set the duration to the total panel display time + 5 extra seconds
 
 fid = fopen('log.dat','w+'); %this opens a csv file named "log",creating it for writing (and overwriting existing filed) with the flag "w+"
 lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
@@ -29,13 +29,16 @@ lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
 
 niOI.startBackground(); %start acquiring
 
-startPos = round(rand*96)+1; % generate a random starting position
+%startPos = round(rand*96)+1; % generate a random starting position
+startPos = 48; %to match the starting position of the Y pattern.
 
 %%%%%% Run the panels %%%%%%
 Panel_com('set_pattern_id', 12); %set the bar
 Panel_com('set_mode', [3 4]); %set it to closed-loop mode in the x dimension and to be controlled by a function in the y dimension 
+Panel_com('send_gain_bias', [0 0 0 0]);
 Panel_com('set_position',[startPos 1]);
-Panel_com('set_posfunc_id',[2 4]); %set it to jump every 10 sec.
+Panel_com('set_funcy_freq', 50);
+Panel_com('set_posfunc_id',[2 4]); %set it to jump every 50 sec.
 Panel_com('set_AO',[3 32767]);
 Panel_com('start');
 pause(TrialNum*50) %record for the time it takes to span the number of trials requested
@@ -53,7 +56,7 @@ delete(lh) % delete the listener handle
 
 [daq_data] = loadFromLogFile('log.dat',6); %load the data just saved to the dat file, using Stephen's function
 
-cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\' %move to our data directory
+cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment2\' %move to our data directory
     
 if flyNum ==1 %if it's the first fly
    mkdir ([date]) %make a folder with today's date
@@ -61,12 +64,12 @@ end
 %For some reason this isn't working
 
 if expNum == 1 %if it's the first experiment for this fly
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\',date]); %move to today's folder
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment2\',date]); %move to today's folder
    mkdir (strcat('flyNum',num2str(flyNum))) %inside that folder make a folder for this fly
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\',date,'\flyNum',num2str(flyNum)])
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment2\',date,'\flyNum',num2str(flyNum)])
    getFlyInfo() %get fly's details
 else
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment2\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
 end
 
 save(strcat('dataExpNum',num2str(expNum),'.mat'),'daq_data','startPos','TrialNum'); %save daq data and starting positions as a .mat file

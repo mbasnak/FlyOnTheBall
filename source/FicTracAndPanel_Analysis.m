@@ -113,6 +113,23 @@ downsampled.xPanelPos = downsample(data.xPanelPos,1000/25); %downsample the pane
 dataMoving.xPanelPos = downsampled.xPanelPos(forwardVelocity>0.7); %keep the position frames during which the fly moved
 moving = smoothed.angularPosition(forwardVelocity>0.7); %keep the angular position frames during which the fly moved
 
+percentageActivity = 100*size(moving)/size(smoothed.angularPosition);
+
+
+activity = zeros(length(forwardVelocity),1);
+
+for i = 1:length(forwardVelocity)
+    if forwardVelocity(i,1) > 0.7
+        activity(i,1) = 1;
+    else
+        activity(i,1) = 0;
+    end
+end
+
+figure,plot(activity,'k');
+title('Activity raster plot');
+ylabel('Activity (all or nothing)');
+xlabel('Time');
 %% Output in degrees of the Panels position
 
 % Pos x=92 is 0 deg (ie facing the fly), I measured this empirically
@@ -142,7 +159,8 @@ degs = linspace(-180,180,length(counts));
 
 figure,
 subplot(1,2,1)
-histogram(remapPosToDeg,edges,'Normalization','probability');
+h = histogram(remapPosToDeg,edges,'Normalization','probability');
+h.FaceColor = [0.2,0.5,1];
 xlim([-180 180]); ylim([0 max(probabilities)+0.05]);
 title('Histogram of the stimulus position');
 ylabel('Probability'); xlabel('Stimulus position (deg)');
@@ -233,7 +251,8 @@ degsFlyMoving = linspace(-180,180,length(countsFlyMoving));
 
 figure,
 subplot(1,2,1)
-histogram(remapFlyPosToDegMoving,edges,'Normalization','probability')
+h = histogram(remapFlyPosToDegMoving,edges,'Normalization','probability')
+h.FaceColor = [1,0.2,0.7];
 xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving)+0.05]);
 title('Histogram of the fly heading');
 ylabel('Probability'); xlabel('Fly heading (deg)');
