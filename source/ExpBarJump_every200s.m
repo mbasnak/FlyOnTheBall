@@ -1,4 +1,4 @@
-function [daq_data] = ExpBarJump_every50s(flyNum,expNum,TrialNum)
+function [daq_data] = ExpBarJump_every200s(flyNum,expNum,TrialNum)
 
 % This function runs an experiment in which a bar is presented in closed-loop and
 % every 50 s, it jumps to a random position
@@ -33,12 +33,12 @@ niOI.startBackground(); %start acquiring
 startPos = 88; %to match the starting position of the Y pattern.
 
 %%%%%% Run the panels %%%%%%
-Panel_com('set_pattern_id', 12); %set the bar
+Panel_com('set_pattern_id', 1); %set the bar
 Panel_com('set_mode', [3 4]); %set it to closed-loop mode in the x dimension and to be controlled by a function in the y dimension 
 Panel_com('send_gain_bias', [0 0 0 0]);
 Panel_com('set_position',[startPos 1]);
 Panel_com('set_funcy_freq', 5);
-Panel_com('set_posfunc_id',[2 4]); %set it to jump every 50 sec.
+Panel_com('set_posfunc_id',[2 1]); %set it to jump every 50 sec.
 Panel_com('set_AO',[3 32767]);
 Panel_com('start');
 pause(TrialNum*200) %record for the time it takes to span the number of trials requested

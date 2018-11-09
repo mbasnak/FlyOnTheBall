@@ -1,12 +1,11 @@
-function [daq_data] = ExpBarJump_every50s(flyNum,expNum,TrialNum)
+function [daq_data] = ExpBarJump_180deg_every200s(flyNum,expNum)
 
 % This function runs an experiment in which a bar is presented in closed-loop and
-% every 50 s, it jumps to a random position
+% every 200 s it jumps by 180 deg.
 
 %INPUT
 %flyNum : which number of fly are you running
 %expNum : which experiment number are you running
-%TrialNum : how many closed-loop trials are you running
 
 %OUTPUT
 %daq_data : matrix that returns the voltage data acquired in the NiDaq
@@ -21,7 +20,8 @@ aI = niOI.addAnalogInputChannel( devID , 1:6 , 'Voltage' );
 for i = 1:6
     aI(i).InputType = 'SingleEnded';
 end
-niOI.DurationInSeconds = TrialNum*200 + 10; %set the duration to the total panel display time + 5 extra seconds
+% niOI.DurationInSeconds = 10*200 + 10; %set the duration to the total panel display time + 5 extra seconds
+niOI.DurationInSeconds = 2*20 + 10;
 
 fid = fopen('log.dat','w+'); %this opens a csv file named "log",creating it for writing (and overwriting existing filed) with the flag "w+"
 lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
@@ -33,15 +33,40 @@ niOI.startBackground(); %start acquiring
 startPos = 88; %to match the starting position of the Y pattern.
 
 %%%%%% Run the panels %%%%%%
-Panel_com('set_pattern_id', 12); %set the bar
-Panel_com('set_mode', [3 4]); %set it to closed-loop mode in the x dimension and to be controlled by a function in the y dimension 
+Panel_com('set_pattern_id', 6); %set the bar
+Panel_com('set_mode', [3 0]); %set it to closed-loop mode in the x dimension and to be controlled by a function in the y dimension 
 Panel_com('send_gain_bias', [0 0 0 0]);
 Panel_com('set_position',[startPos 1]);
-Panel_com('set_funcy_freq', 5);
-Panel_com('set_posfunc_id',[2 4]); %set it to jump every 50 sec.
 Panel_com('set_AO',[3 32767]);
 Panel_com('start');
-pause(TrialNum*200) %record for the time it takes to span the number of trials requested
+
+% run the 200 sec trials
+pause(20)
+Panel_com('stop')
+Panel_com('set_mode', [3 0]);
+Panel_com('send_gain_bias', [0 40 0 0]); %change the offset to make the bar jump
+Panel_com('set_position',[startPos 1]);
+Panel_com('start')
+pause(20)
+Panel_com('send_gain_bias', [10 0 0 0]);
+% pause(200)
+% Panel_com('send_gain_bias', [10 100 0 0]);
+% pause(200)
+% Panel_com('send_gain_bias', [10 0 0 0]);
+% pause(200)
+% Panel_com('send_gain_bias', [10 100 0 0]);
+% pause(200)
+% Panel_com('send_gain_bias', [10 0 0 0]);
+% pause(200)
+% Panel_com('send_gain_bias', [10 100 0 0]);
+% pause(200)
+% Panel_com('send_gain_bias', [10 0 0 0]);
+% pause(200)
+% Panel_com('send_gain_bias', [10 100 0 0]);
+% pause(200)
+% Panel_com('send_gain_bias', [10 0 0 0]);
+
+pause(10)
 Panel_com('stop');
 Panel_com('set_AO',[3 0]);
 Panel_com('all_off');

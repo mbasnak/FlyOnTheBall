@@ -61,7 +61,7 @@ hline = refline([0 meanVelocity]);
 hline.Color = 'r'; hline.LineStyle = '--';
 rline = refline([0 0]);
 rline.Color = [.5 .5 .5]; rline.LineWidth = 1.5;
-title({'Forward velocity of the fly', typeOfStim}, 'Interpreter', 'none');
+title('Forward velocity of the fly', 'Interpreter', 'none');
 xlabel('Time (s)')
 ylabel('Velocity (mm/s)')
 legend('Mean forward velocity');
@@ -89,7 +89,7 @@ hline = refline([0 meanAngVelocity]);
 hline.Color = 'r'; hline.LineStyle = '--';
 rline = refline([0 0]);
 rline.Color = [.5 .5 .5]; rline.LineWidth = 1.5;
-title({'Angular velocity of the fly', typeOfStim}, 'Interpreter', 'none');
+title('Angular velocity of the fly', 'Interpreter', 'none');
 xlabel('Time (s)')
 ylabel('Velocity (deg/s)')
 legend('Mean angular velocity');
@@ -114,8 +114,6 @@ dataMoving.xPanelPos = downsampled.xPanelPos(forwardVelocity>0.7); %keep the pos
 moving = smoothed.angularPosition(forwardVelocity>0.7); %keep the angular position frames during which the fly moved
 
 percentageActivity = 100*size(moving)/size(smoothed.angularPosition);
-
-
 activity = zeros(length(forwardVelocity),1);
 
 for i = 1:length(forwardVelocity)
@@ -126,10 +124,15 @@ for i = 1:length(forwardVelocity)
     end
 end
 
-figure,plot(activity,'k');
+figure,
+set(gcf, 'Position', [500, 500, 1000, 100])
+plot(time,activity,'k');
 title('Activity raster plot');
-ylabel('Activity (all or nothing)');
-xlabel('Time');
+ylabel('Activity');
+xlabel('Time (s)');
+
+saveas(gcf,strcat(path,'ActivityRP_ExpNum', file(11:end-4), '.png'))
+
 %% Output in degrees of the Panels position
 
 % Pos x=92 is 0 deg (ie facing the fly), I measured this empirically
@@ -168,7 +171,7 @@ ylabel('Probability'); xlabel('Stimulus position (deg)');
 subplot(1,2,2),
 plot(degs,probabilities,'k')
 set(0, 'DefaulttextInterpreter', 'none')
-suptitle(typeOfStim);
+%suptitle(typeOfStim);
 xlim([-180 180]); ylim([0 max(probabilities)+0.05]);
 title('Probability density of the stimulus position');
 ylabel('Probability density'); xlabel('Stimulus position (deg)');
@@ -190,6 +193,7 @@ l1 = line([noPanelDeg(1) noPanelDeg(1)],[0 max(probabilities)+0.05]);
 l2 = line([noPanelDeg(7) noPanelDeg(7)],[0 max(probabilities)+0.05]);
 set([l1 l2],'Color',[.5 .5 .5]);
 patch([noPanelDeg(1) noPanelDeg(7) noPanelDeg(7) noPanelDeg(1)], [0 0 max(probabilities)+0.05 max(probabilities)+0.05],[.5 .5 .5],'FaceAlpha',0.3)
+legend('Starting position', 'No panel');
 
 end
 
@@ -200,6 +204,7 @@ posToRad = deg2rad(posToDeg);
 % some statistics...
 CircularStats = circ_stats(posToRad);
 [pval,z] = circ_rtest(posToRad);
+circLength = circ_r(posToRad,[],[],2);
 
 %Plot the histogram in polar coordinates
 
@@ -208,7 +213,7 @@ circedges = deg2rad(circedges);
 
 figure,
 polarhistogram(posToRad,circedges,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
-title({'Probability density of the stimulus position';typeOfStim});
+title('Probability density of the stimulus position');
 ax = gca;
 d = ax.ThetaDir;
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
@@ -219,7 +224,8 @@ starts = repelem(deg2rad(startingPos),1,1000);
 polarplot(starts,points,'r','LineWidth',1.5) %add a line that shows the startPos
 % Add the circular mean
 circMean = repelem(CircularStats.mean,1,1000);
-polarplot(circMean,points,'k','LineWidth',1.5)
+points2 = linspace(0,max(probabilities)*circLength,1000);
+polarplot(circMean,points2,'k','LineWidth',2)
 legend('Start position','Circular mean');
 
 saveas(gcf,strcat(path,'PolarHistogramStimPosition_ExpNum', file(11:end-4), '.png'))
@@ -259,7 +265,7 @@ ylabel('Probability'); xlabel('Fly heading (deg)');
 
 subplot(1,2,2),
 plot(degsFlyMoving,probabilitiesFlyMoving,'k')
-suptitle(typeOfStim)
+%suptitle(typeOfStim)
 xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving)+0.05]);
 title('Probability density of the fly heading');
 ylabel('Probability density'); xlabel('Fly heading (deg)');
