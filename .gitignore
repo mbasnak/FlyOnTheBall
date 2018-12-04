@@ -5,3 +5,12 @@
 
 # Ignore Data
 data/
+Experiment 1.docx
+source/log.dat
+source/suptitle.m
+source/mtit.m
+source/license.txt
+log.dat
+source/CircStat2012a/
+source/.gitignore
+Thumbs.db
