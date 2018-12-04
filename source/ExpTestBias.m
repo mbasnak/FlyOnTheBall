@@ -1,6 +1,6 @@
 % run the NiDaq and a closed-loop bar
 
-function ExpClosedLoopBar(flyNum,expNum,time)
+function ExpTestBias(flyNum,expNum,time,bias)
 
 cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment2';
 
@@ -19,15 +19,17 @@ for i = 1:6
 end
 
 %set a rendom starting point for the stim
-startPos = [(round(rand*96)+1) 2];
+startPos = [45 2];
 pause(0.01)
 Panel_com('set_pattern_id', 12); %load the light stripe pattern
 pause(0.01)
 Panel_com('set_position',startPos); %we can also comment this out, or start at [5 1]
 pause(0.01)
-Panel_com('send_gain_bias', [10 0 0 0]);
+Panel_com('send_gain_bias', [10 bias 0 0]);
 pause(0.01)
-Panel_com('set_mode', [3 0]); %set the x to be controlled by FicTrac and the Y to be open loop
+Panel_com('set_mode', [4 0]); %set the x to be controlled by FicTrac and the Y to be open loop
+pause(0.03)
+Panel_com('set_posfunc_id',[1 2]);
 Panel_com('start');
 
 
@@ -57,7 +59,7 @@ end
 
 typeOfStim = 'closed_loop_bar';
 
-save(strcat('dataExpNum',num2str(expNum),'.mat'),'rawData','typeOfStim','startPos'); %save as dataExpNum
+save(strcat('dataExpNum',num2str(expNum),'.mat'),'rawData','bias'); %save as dataExpNum
 
 
 end

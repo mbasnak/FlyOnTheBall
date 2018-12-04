@@ -1,17 +1,7 @@
-function [daq_data] = ExpBarJump_every200s(flyNum,expNum,TrialNum)
-
-% This function runs an experiment in which a bar is presented in closed-loop and
-% every 50 s, it jumps to a random position
-
-%INPUT
-%flyNum : which number of fly are you running
-%expNum : which experiment number are you running
-%TrialNum : how many closed-loop trials are you running
-
-%OUTPUT
-%daq_data : matrix that returns the voltage data acquired in the NiDaq
+function fixedBarJumpExp(flyNum,expNum)
 
 
+%%%%%%%%  Initialize the DAC session %%%%%%%%
 daqreset %reset DAC object
 devID = 'Dev1';  % Set device ID (to know what the ID is, you can type "daq.getDevices"
 niOI = daq.createSession('ni'); %create a session
@@ -21,7 +11,8 @@ aI = niOI.addAnalogInputChannel( devID , 1:6 , 'Voltage' );
 for i = 1:6
     aI(i).InputType = 'SingleEnded';
 end
-niOI.DurationInSeconds = TrialNum*200 + 10; %set the duration to the total panel display time + 5 extra seconds
+% niOI.DurationInSeconds = 10*200 + 10; %set the duration to the total panel display time + 5 extra seconds
+niOI.DurationInSeconds = 270; %the duration of 12 trials of 200 sec plus 10 extra sec
 
 fid = fopen('log.dat','w+'); %this opens a csv file named "log",creating it for writing (and overwriting existing filed) with the flag "w+"
 lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
@@ -29,28 +20,36 @@ lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
 
 niOI.startBackground(); %start acquiring
 
-startPos = 32; %to match the starting position of the Y pattern.
+
 
 %%%%%% Run the panels %%%%%%
-Panel_com('set_pattern_id', 13); %set the bar
-Panel_com('set_mode', [3 4]); %set it to closed-loop mode in the x dimension and to be controlled by a function in the y dimension 
-pause(0.03)
-Panel_com('send_gain_bias', [0 0 0 0]);
-pause(0.03)
+
+jumps = repelem([-90,90,180],4);
+jumps = jumps(randperm(length(jumps))); %randomize the order of the 3 possible jumps
+bias = jumps/1.8; %assign the bias applying the proper transformation to the jumps vector
+bias = [0,bias]; %add a 0 at the beginning so that the first time, there is no offset
+
+% Initialize the pattern
+Panel_com('set_pattern_id', 6); %set the bar
+Panel_com('set_mode', [3 0]); %set it to closed-loop mode in the x dimension and to be controlled by a function in the y dimension 
+startPos = round(rand*96);
 Panel_com('set_position',[startPos 1]);
-pause(0.03)
-Panel_com('set_funcy_freq', 5);
-pause(0.03)
-Panel_com('set_posfunc_id',[2 1]); %set it to jump every 50 sec.
-pause(0.03)
 Panel_com('set_AO',[3 32767]);
-Panel_com('start');
-pause(TrialNum*200) %record for the time it takes to span the number of trials requested
-Panel_com('stop');
+
+% run in a for loop the 'trials'
+for i = 1:13
+    Panel_com('send_gain_bias', [10 bias(i) 0 0]);
+    pause(0.03)
+    Panel_com('start');
+    pause(20);
+    %pause(200)
+    Panel_com('stop');
+end
+
+% Stop the panels
 Panel_com('set_AO',[3 0]);
 Panel_com('all_off');
 
-% add a signal to make sure that the panels have stopped running
 
 niOI.IsDone % will report 0
 niOI.wait() % wait and keep acquiring until the acquisition time is over
@@ -58,6 +57,9 @@ niOI.IsDone % will report 1
 
 delete(lh) % delete the listener handle
 
+
+
+%%%%%%%%% Recover and save the data in the right folders %%%%%%%%%%%
 [daq_data] = loadFromLogFile('log.dat',6); %load the data just saved to the dat file, using Stephen's function
 
 cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment2\' %move to our data directory
@@ -65,7 +67,7 @@ cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment2\' %move to our data director
 if flyNum ==1 %if it's the first fly
    mkdir ([date]) %make a folder with today's date
 end
-%For some reason this isn't working
+
 
 if expNum == 1 %if it's the first experiment for this fly
    cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment2\',date]); %move to today's folder
@@ -76,7 +78,6 @@ else
    cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment2\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
 end
 
-save(strcat('dataExpNum',num2str(expNum),'.mat'),'daq_data','startPos','TrialNum'); %save daq data and starting positions as a .mat file
-
+save(strcat('dataExpNum',num2str(expNum),'.mat'),'daq_data','startPos','jumps'); %save daq data and starting positions as a .mat file
 
 end

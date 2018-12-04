@@ -51,8 +51,8 @@ function [smoothed] = singleTrialVelocityAnalysis(data, sampleRate)
     
 %% Transform to useful systems 
     
-    deg.Intx = smoothed.Intx * 4.75; % wer tranform the pos to mm by scaling the value by the sphere's radius
-    deg.Inty = smoothed.Inty * 4.75;
+    deg.Intx = smoothed.Intx * 3; % wer tranform the pos to mm by scaling the value by the sphere's radius
+    deg.Inty = smoothed.Inty * 3;
     deg.angularPosition = (smoothed.angularPosition / (2*pi)) * 360; % we transform the angular position to degrees
 
     

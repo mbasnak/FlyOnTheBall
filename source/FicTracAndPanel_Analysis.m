@@ -32,6 +32,7 @@ data.yPanelPos = round ((data.yPanelVolts  * maxValY) /VOLTAGE_RANGE);
 %FicTrac data
 data.ficTracAngularPosition = rawData ( : , headingFly); 
 data.ficTracIntx = rawData ( : , xFly); 
+%data.ficTracIntx = -(rawData ( : , xFly)); 
 data.ficTracInty = rawData ( : , yFly); 
 
 
@@ -73,6 +74,8 @@ xlabel('Forward velocity (mm/s)');
 ylabel('Frequency');
 
 saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(11:end-4), '.png'))
+saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(11:end-4), '.svg'))
+
 
 %% Angular velocity analysis
 
@@ -101,23 +104,23 @@ xlabel('Angular velocity (deg/s)');
 ylabel('Frequency');
 
 saveas(gcf,strcat(path,'AngularVelocity_ExpNum', file(11:end-4), '.png'))
-
+saveas(gcf,strcat(path,'AngularVelocity_ExpNum', file(11:end-4), '.svg'))
 
 %%  Keep the frames during which the fly is moving
 
 % We are going to decide whether a fly is moving or not based on the
-% forward velocity. If it's above 0.7 mm/s we will consider it is moving
+% forward velocity. If it's above 1 mm/s we will consider it is moving
 % We will work with the downsampled data
 
 downsampled.xPanelPos = downsample(data.xPanelPos,1000/25); %downsample the panels position
-dataMoving.xPanelPos = downsampled.xPanelPos(forwardVelocity>0.7); %keep the position frames during which the fly moved
-moving = smoothed.angularPosition(forwardVelocity>0.7); %keep the angular position frames during which the fly moved
+dataMoving.xPanelPos = downsampled.xPanelPos(forwardVelocity>1); %keep the position frames during which the fly moved
+moving = smoothed.angularPosition(forwardVelocity>1); %keep the angular position frames during which the fly moved
 
 percentageActivity = 100*size(moving)/size(smoothed.angularPosition);
 activity = zeros(length(forwardVelocity),1);
 
 for i = 1:length(forwardVelocity)
-    if forwardVelocity(i,1) > 0.7
+    if forwardVelocity(i,1) > 1
         activity(i,1) = 1;
     else
         activity(i,1) = 0;
@@ -138,16 +141,7 @@ saveas(gcf,strcat(path,'ActivityRP_ExpNum', file(11:end-4), '.png'))
 % Pos x=92 is 0 deg (ie facing the fly), I measured this empirically
 
 pxToDeg = 360/97; % There are 97 possible positions (the last one = first one) and this represents 360 deg
-posToDeg = zeros(1,length(dataMoving.xPanelPos));
-
-% Convert from xpos to degrees, knowing that xpos 92 = 0 deg
-for i=1:length(dataMoving.xPanelPos)
-    if dataMoving.xPanelPos(i) ==93 | dataMoving.xPanelPos(i) ==94 | dataMoving.xPanelPos(i) ==95 | dataMoving.xPanelPos(i) ==96 | dataMoving.xPanelPos(i) ==97
-        posToDeg(i) = (dataMoving.xPanelPos(i)-92)*pxToDeg; % Correct the offset and multiply by factor to get deg
-    else
-        posToDeg(i) = (dataMoving.xPanelPos(i)+4)*pxToDeg; % Correct the offset and multiply by factor to get deg
-    end
-end
+posToDeg = dataMoving.xPanelPos*pxToDeg;
 
 %% Probability density function of the stimulus position
 
@@ -171,29 +165,29 @@ ylabel('Probability'); xlabel('Stimulus position (deg)');
 subplot(1,2,2),
 plot(degs,probabilities,'k')
 set(0, 'DefaulttextInterpreter', 'none')
-%suptitle(typeOfStim);
+
 xlim([-180 180]); ylim([0 max(probabilities)+0.05]);
 title('Probability density of the stimulus position');
 ylabel('Probability density'); xlabel('Stimulus position (deg)');
 if contains(typeOfStim,'closed_loop')
    hold on 
    %add line showing the start pos. of the stim.
-     if startPos(1) ==93 | startPos(1) ==94 | startPos(1) ==95 | startPos(1) ==96 | startPos(1) ==97
-        startingPos = (startPos(1)-92)*pxToDeg; % Correct the offset and multiply by factor to get deg
+     if startPos(1)~=1 
+        startingPos = (98-startPos(1))*pxToDeg; % Correct the offset and multiply by factor to get deg
     else
-        startingPos = (startPos(1)+4)*pxToDeg; % Correct the offset and multiply by factor to get deg
+        startingPos = startPos(1)*pxToDeg; % Correct the offset and multiply by factor to get deg
      end  
     remapStartPos = wrapTo180(startingPos);
     line([remapStartPos remapStartPos],[0 max(probabilities)+0.05],'Color',[1 0 0])
 
 %add rectangle showing where the panel is off (and the bar can't be seen)
-noPanel = [17:23]; %xpos where a 2 px bar can't be seen.
-noPanelDeg = (noPanel+4)*pxToDeg;
+noPanel = [71:77]; %xpos where a 2 px bar is partially seen
+noPanelDeg = -wrapTo180((noPanel)*pxToDeg);
 l1 = line([noPanelDeg(1) noPanelDeg(1)],[0 max(probabilities)+0.05]);
 l2 = line([noPanelDeg(7) noPanelDeg(7)],[0 max(probabilities)+0.05]);
 set([l1 l2],'Color',[.5 .5 .5]);
 patch([noPanelDeg(1) noPanelDeg(7) noPanelDeg(7) noPanelDeg(1)], [0 0 max(probabilities)+0.05 max(probabilities)+0.05],[.5 .5 .5],'FaceAlpha',0.3)
-legend('Starting position', 'No panel');
+legend('Missing panel','Starting position');
 
 end
 
@@ -204,7 +198,7 @@ posToRad = deg2rad(posToDeg);
 % some statistics...
 CircularStats = circ_stats(posToRad);
 [pval,z] = circ_rtest(posToRad);
-circLength = circ_r(posToRad,[],[],2);
+circLength = circ_r(posToRad,[],2);
 
 %Plot the histogram in polar coordinates
 
@@ -220,7 +214,11 @@ ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 hold on
 % Add the starting position
 points = linspace(0,max(probabilities),1000);
-starts = repelem(deg2rad(startingPos),1,1000);
+if remapStartPos<0
+    starts = repelem(deg2rad(startingPos),1,1000);
+else
+    starts = repelem(((2*pi)-deg2rad(startingPos)),1,1000);
+end
 polarplot(starts,points,'r','LineWidth',1.5) %add a line that shows the startPos
 % Add the circular mean
 circMean = repelem(CircularStats.mean,1,1000);
@@ -278,6 +276,8 @@ if contains(typeOfStim,'closed_loop')
 end
 saveas(gcf,strcat(path,'ProbabilityDensityFlyHeading_ExpNum', file(11:end-4), '.png'))
 
+%% In polar coordinates
+
 FlyPosToRad = deg2rad(flyPosToDegMoving);
 
 CircularStatsFly = circ_stats(FlyPosToRad);
@@ -291,15 +291,21 @@ ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 hold on
 points = linspace(0,max(probabilitiesFlyMoving),1000);
 starts = repelem(deg2rad(startingPos),1,1000);
-polarplot(starts,points,'r','LineWidth',1.5) %add a line that shows the startPos
+polarplot(starts,points,'b','LineWidth',1.5) %add a line that shows the startPos
 circMean = repelem(CircularStatsFly.mean,1,1000);
+circMeanMinErr = repelem(CircularStatsFly.mean-CircularStatsFly.std,1,1000);
+circMeanMaxErr = repelem(CircularStatsFly.mean+CircularStatsFly.std,1,1000);
+meanLength = circ_r(FlyPosToRad);
+scaledMeanLength = meanLength*max(probabilitiesFlyMoving);
+points = linspace(0,scaledMeanLength,1000);
 polarplot(circMean,points,'k','LineWidth',1.5)
+% polarplot(circMeanMinErr,points,'k','LineWidth',1)
+% polarplot(circMeanMaxErr,points,'k','LineWidth',1)
 legend('Start position','Circular mean');
 
 saveas(gcf,strcat(path,'PolarHistFlyHeading_ExpNum', file(11:end-4), '.png'))
+saveas(gcf,strcat(path,'PolarHistFlyHeading_ExpNum', file(11:end-4), '.svg'))
 
-meanLength = circ_r(FlyPosToRad);
-% scaledMeanLength = meanLength*max();
 
 %% Polar analysis taking 60s windows to compute a vector of heading
 
@@ -335,12 +341,12 @@ set(hline,'Color',[1,0,0])
 legend('Median heading');
 
 saveas(gcf,strcat(path,'AngulaPosFlyInTime_ExpNum', file(11:end-4), '.png'))
-
+saveas(gcf,strcat(path,'AngulaPosFlyInTime_ExpNum', file(11:end-4), '.svg'))
 
 %% Plot 2D virtual trajectory of the fly
 
-dataMoving.Intx = smoothed.Intx(forwardVelocity>0.7);
-dataMoving.Inty = smoothed.Inty(forwardVelocity>0.7);
+dataMoving.Intx = smoothed.Intx(forwardVelocity>1);
+dataMoving.Inty = smoothed.Inty(forwardVelocity>1);
 
 figure,
 c = linspace(1,(length(data.xPanelPos)/1000),length(smoothed.Intx)); %create a color vector with the time
