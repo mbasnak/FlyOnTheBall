@@ -1,8 +1,8 @@
-function [daq_data] = ExpBarJump_every200s(flyNum,expNum,TrialNum)
+function [daq_data] = ExpYawStabilization_grating(flyNum,expNum,TrialNum)
 
-% This function runs an experiment in which a bar is presented in closed-loop and
-% every 200 s, it jumps to a position at either 45,-45,90 or -90 deg from the
-% current one.
+% This function runs an experiment in which a grating is presented in closed-loop and
+% every 200 s, the loop opens for 1 sec and the grating rotates in one of
+% the other direction
 
 %INPUT
 %flyNum : which number of fly are you running
@@ -31,31 +31,20 @@ lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
 niOI.startBackground(); %start acquiring
 
 startPos = 2; %to match the starting position of the Y pattern.
-jumpFunction = randperm(5,1)+5 %get a random number from 1 to 5 to determine the pos function
-
-if jumpFunction == 6
-    jumps = [45,90,90,90,-90,-45,-45,45,-90,-45,45,-90];
-elseif jumpFunction == 7
-    jumps = [45,-90,-45,45,-45,90,90,90,45,-90,-45,-90];
-elseif jumpFunction == 8
-    jumps = [-90,45,90,45,-45,-90,-45,-45,90,90,45,-90];
-elseif jumpFunction == 9
-    jumps = [-90,-45,45,45,-45,90,45,-90,-45,90,-90,90];
-else jumpFunction == 10
-    jumps = [90,45,-90,90,45,-90,90,-45,-90,-45,45,-45];
-
+rotateFunction = 11;
 
 %%%%%% Run the panels %%%%%%
-Panel_com('set_pattern_id', 1); %set the bar
+Panel_com('set_pattern_id', 15); %set the starfield
 Panel_com('set_mode', [3 4]); %set it to closed-loop mode in the x dimension and to be controlled by a function in the y dimension 
 pause(0.03)
 Panel_com('send_gain_bias', [0 0 0 0]);
 pause(0.03)
 Panel_com('set_position',[startPos 1]);
 pause(0.03)
-Panel_com('set_funcy_freq', 5);
+Panel_com('set_funcy_freq', 20);
 pause(0.03)
-Panel_com('set_posfunc_id',[2 jumpFunction]); %set it to jump every 200 sec, to one of the 5 jumping functions created.
+Panel_com('set_posfunc_id',[2 rotateFunction]);
+%this rotateFunction will make the starfield rotate for 1 sec every 200 sec
 pause(0.03)
 Panel_com('set_AO',[3 32767]);
 Panel_com('start');
@@ -64,7 +53,6 @@ Panel_com('stop');
 Panel_com('set_AO',[3 0]);
 Panel_com('all_off');
 
-% add a signal to make sure that the panels have stopped running
 
 niOI.IsDone % will report 0
 niOI.wait() % wait and keep acquiring until the acquisition time is over
@@ -74,7 +62,7 @@ delete(lh) % delete the listener handle
 
 [daq_data] = loadFromLogFile('log.dat',6); %load the data just saved to the dat file, using Stephen's function
 
-cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\' %move to our data directory
+cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\' %move to our data directory
     
 if flyNum ==1 %if it's the first fly
    mkdir ([date]) %make a folder with today's date
@@ -82,15 +70,15 @@ end
 %For some reason this isn't working
 
 if expNum == 1 %if it's the first experiment for this fly
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\',date]); %move to today's folder
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\',date]); %move to today's folder
    mkdir (strcat('flyNum',num2str(flyNum))) %inside that folder make a folder for this fly
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\',date,'\flyNum',num2str(flyNum)])
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\',date,'\flyNum',num2str(flyNum)])
    getFlyInfo() %get fly's details
 else
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
 end
 
-save(strcat('dataExpNum',num2str(expNum),'.mat'),'daq_data','startPos','TrialNum','jumps'); %save daq data and starting positions as a .mat file
+save(strcat('dataExpNum',num2str(expNum),'.mat'),'daq_data','startPos','TrialNum'); %save daq data and starting positions as a .mat file
 
 
 end
