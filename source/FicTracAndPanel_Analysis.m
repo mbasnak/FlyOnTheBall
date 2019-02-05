@@ -73,8 +73,8 @@ title('Distribution of forward velocities');
 xlabel('Forward velocity (mm/s)');
 ylabel('Frequency');
 
-saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(11:end-4), '.png'))
-saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(11:end-4), '.svg'))
+%saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(11:end-4), '.png'))
+%saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(11:end-4), '.svg'))
 
 
 %% Angular velocity analysis
@@ -103,8 +103,8 @@ title('Distribution of angular velocities');
 xlabel('Angular velocity (deg/s)');
 ylabel('Frequency');
 
-saveas(gcf,strcat(path,'AngularVelocity_ExpNum', file(11:end-4), '.png'))
-saveas(gcf,strcat(path,'AngularVelocity_ExpNum', file(11:end-4), '.svg'))
+%saveas(gcf,strcat(path,'AngularVelocity_ExpNum', file(11:end-4), '.png'))
+%saveas(gcf,strcat(path,'AngularVelocity_ExpNum', file(11:end-4), '.svg'))
 
 %%  Keep the frames during which the fly is moving
 
@@ -134,7 +134,7 @@ title('Activity raster plot');
 ylabel('Activity');
 xlabel('Time (s)');
 
-saveas(gcf,strcat(path,'ActivityRP_ExpNum', file(11:end-4), '.png'))
+%saveas(gcf,strcat(path,'ActivityRP_ExpNum', file(11:end-4), '.png'))
 
 %% Output in degrees of the Panels position
 
@@ -191,7 +191,7 @@ legend('Missing panel','Starting position');
 
 end
 
-saveas(gcf,strcat(path,'ProbabilityDensityStimPosition_ExpNum', file(11:end-4), '.png'))
+%saveas(gcf,strcat(path,'ProbabilityDensityStimPosition_ExpNum', file(11:end-4), '.png'))
 
 %% Polar coordinates analysis of the stimulus position
 posToRad = deg2rad(posToDeg);
@@ -226,7 +226,7 @@ points2 = linspace(0,max(probabilities)*circLength,1000);
 polarplot(circMean,points2,'k','LineWidth',2)
 legend('Start position','Circular mean');
 
-saveas(gcf,strcat(path,'PolarHistogramStimPosition_ExpNum', file(11:end-4), '.png'))
+%saveas(gcf,strcat(path,'PolarHistogramStimPosition_ExpNum', file(11:end-4), '.png'))
 
 
 %% Angular position of the stimulus in time
@@ -242,7 +242,7 @@ hline = refline([0 wrapTo360(rad2deg(CircularStats.median))]);
 set(hline,'Color',[1,0,0])
 legend('Median position');
 
-saveas(gcf,strcat(path,'AngulaPosStimInTime_ExpNum', file(11:end-4), '.png'))
+%saveas(gcf,strcat(path,'AngulaPosStimInTime_ExpNum', file(11:end-4), '.png'))
 %% Probability density of the fly heading
 
 flyPosToDegMoving = rad2deg(moving); 
@@ -274,7 +274,7 @@ if contains(typeOfStim,'closed_loop')
    line([remapStartPos remapStartPos],[0 max(probabilitiesFlyMoving)+0.05],'Color',[1 0 0])
    patch([noPanelDeg(1) noPanelDeg(7) noPanelDeg(7) noPanelDeg(1)], [0 0 max(probabilitiesFlyMoving)+0.05 max(probabilitiesFlyMoving)+0.05],[.5 .5 .5],'FaceAlpha',0.3)
 end
-saveas(gcf,strcat(path,'ProbabilityDensityFlyHeading_ExpNum', file(11:end-4), '.png'))
+%saveas(gcf,strcat(path,'ProbabilityDensityFlyHeading_ExpNum', file(11:end-4), '.png'))
 
 %% In polar coordinates
 
@@ -303,8 +303,8 @@ polarplot(circMean,points,'k','LineWidth',1.5)
 % polarplot(circMeanMaxErr,points,'k','LineWidth',1)
 legend('Start position','Circular mean');
 
-saveas(gcf,strcat(path,'PolarHistFlyHeading_ExpNum', file(11:end-4), '.png'))
-saveas(gcf,strcat(path,'PolarHistFlyHeading_ExpNum', file(11:end-4), '.svg'))
+%saveas(gcf,strcat(path,'PolarHistFlyHeading_ExpNum', file(11:end-4), '.png'))
+%saveas(gcf,strcat(path,'PolarHistFlyHeading_ExpNum', file(11:end-4), '.svg'))
 
 
 %% Polar analysis taking 60s windows to compute a vector of heading
@@ -340,8 +340,8 @@ hline = refline([0 wrapTo360(rad2deg(CircularStatsFly.median))]);
 set(hline,'Color',[1,0,0])
 legend('Median heading');
 
-saveas(gcf,strcat(path,'AngulaPosFlyInTime_ExpNum', file(11:end-4), '.png'))
-saveas(gcf,strcat(path,'AngulaPosFlyInTime_ExpNum', file(11:end-4), '.svg'))
+%saveas(gcf,strcat(path,'AngulaPosFlyInTime_ExpNum', file(11:end-4), '.png'))
+%saveas(gcf,strcat(path,'AngulaPosFlyInTime_ExpNum', file(11:end-4), '.svg'))
 
 %% Plot 2D virtual trajectory of the fly
 
@@ -358,4 +358,4 @@ title('2D trajectory of the fly');
 xlabel('x pos (mm)'); ylabel('y pos (mm)');
 axis tight equal; %scale the axes with respect to one another
 
-saveas(gcf,strcat(path,'2DTrajectory_ExpNum', file(11:end-4), '.png'));
+%saveas(gcf,strcat(path,'2DTrajectory_ExpNum', file(11:end-4), '.png'));

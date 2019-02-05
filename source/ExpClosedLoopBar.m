@@ -2,7 +2,7 @@
 
 function ExpClosedLoopBar(flyNum,expNum,time)
 
-cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment2';
+cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3';
 
 daqreset %reset DAC object
 devID = 'Dev1';  % Set device ID (to know what the ID is, you can type "daq.getDevices"
@@ -19,11 +19,7 @@ for i = 1:6
 end
 
 %set a rendom starting point for the stim
-startPos = [(round(rand*96)+1) 2];
-pause(0.01)
-Panel_com('set_pattern_id', 12); %load the light stripe pattern
-pause(0.01)
-Panel_com('set_position',startPos); %we can also comment this out, or start at [5 1]
+Panel_com('set_pattern_id', 1); %load the light stripe pattern
 pause(0.01)
 Panel_com('send_gain_bias', [10 0 0 0]);
 pause(0.01)
@@ -46,18 +42,16 @@ end
 
 
 if expNum == 1 %if it's the first experiment for this fly
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment2\',date]); %move to today's folder
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\',date]); %move to today's folder
    mkdir (strcat('flyNum',num2str(flyNum))) %inside that folder make a folder for this fly
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment2\',date,'\flyNum',num2str(flyNum)])
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\',date,'\flyNum',num2str(flyNum)])
    getFlyInfo() %get fly's details
 else
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment2\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
 end
 
 
-typeOfStim = 'closed_loop_bar';
-
-save(strcat('dataExpNum',num2str(expNum),'.mat'),'rawData','typeOfStim','startPos'); %save as dataExpNum
+save(strcat('dataCloseLoopBar',num2str(expNum),'.mat'),'rawData'); %save as 
 
 
 end

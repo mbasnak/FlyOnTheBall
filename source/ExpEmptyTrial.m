@@ -2,7 +2,7 @@
 % this is to record the fly's behavior in the absense of visual stim.
 
 
-function ExpEmptyTrial(flyNum,expNum,time)
+function ExpEmptyTrial(flyNum,expNum)
 
 cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3';
 
@@ -12,11 +12,11 @@ devID = 'Dev1';  % Set device ID (to know what the ID is, you can type "daq.getD
 % Configure session: national instruments output/input
 niOI = daq.createSession('ni'); %create a session
 niOI.Rate = 1000;% set sample rate
-niOI.DurationInSeconds = time; %set duration in seconds
+niOI.DurationInSeconds = 200; %set duration in seconds
 % Determine the analog INPUT Channels
-aI = niOI.addAnalogInputChannel( devID , 1:5 , 'Voltage' );
+aI = niOI.addAnalogInputChannel( devID , 1:6 , 'Voltage' );
 % Set all channels to the correct inputType, likely 'SingleEnded'
-for i = 1:5
+for i = 1:6
     aI(i).InputType = 'SingleEnded';
 end
 
@@ -40,9 +40,7 @@ else
 end
 
 
-typeOfStim = 'empty_trial';
-
-save(strcat('dataExpNum',num2str(expNum),'.mat'),'rawData','typeOfStim'); %save as dataExpNum
+save(strcat('EmptyTrialExpNum',num2str(expNum),'.mat'),'rawData'); %save
 
 
 end

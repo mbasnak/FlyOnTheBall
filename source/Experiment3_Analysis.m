@@ -490,6 +490,11 @@ axis tight equal; %scale the axes with respect to one another
 sec = 10; %how many sec before and after the jump I want to look at
 perTrialData = getDataAroundJump(rawData,j,sec);
 
+%apend jump data and save for using in the pooled flies analysis
+perTrialData.jumpMag = jumps;
+
+save(strcat(path,'perTrialData.mat'),'perTrialData');
+
 %% Velocity around the jumps
 
 time = linspace(-sec,sec,length(perTrialData.forwardVel));
@@ -636,15 +641,17 @@ ylabel('Angular velocity (deg/s)'); xlabel('Time from bar jump (s)');
 
 % Pos x=73 is 0 deg (ie facing the fly), I measured this empirically
 
-pxToDeg = 360/97; % There are 97 possible positions (the last one = first one) and this represents 360 deg
+pxToDeg = 360/96; % There are 97 possible positions (the last one = first one) and this represents 360 deg
 posToDeg = zeros(1,length(data.xPanelPos));
 
-% Convert from xpos to degrees, knowing that xpos 73 = 0 deg
+% Convert from xpos to degrees, knowing that xpos 70 = 0 deg
 for i=1:length(data.xPanelPos)
-    if data.xPanelPos(i) >=73 
-        posToDeg(i) = (data.xPanelPos(i)-73)*pxToDeg; % Correct the offset and multiply by factor to get deg
+    if data.xPanelPos(i) == 70
+        posToDeg(i) = 0;
+    elseif data.xPanelPos(i) >70 
+        posToDeg(i) = (data.xPanelPos(i)-70)*pxToDeg; % Correct the offset and multiply by factor to get deg
     else
-        posToDeg(i) = (data.xPanelPos(i)+14)*pxToDeg; % Correct the offset and multiply by factor to get deg
+        posToDeg(i) = (data.xPanelPos(i)+27)*pxToDeg; % Correct the offset and multiply by factor to get deg
     end
 end
 
@@ -689,7 +696,7 @@ subplot(1,3,3)
 plot(fliplr(wrapTo180(posToDeg)),fliplr(time),'k','HandleVisibility','off')
 xlabel('Angular position of the stimulus (deg)'); ylabel('Time (s)');
 xlim([-180 180]); ylim([0 max(time)]);
-title('Angular position of the stimulus as a function of time');;
+title('Angular position of the stimulus as a function of time');
 hold on 
 for i = 1:length(j)
      plot([jsec(i) jsec(i)],[0 360],'g');
