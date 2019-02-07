@@ -110,7 +110,7 @@ plot(Jumps);
 ylabel('Voltage difference (V)');xlabel('Time');
 
 j = find(Jumps); %indices of the actual bar jumps, taken from the y signal
-j = j(2:end); %I leave out the 1st cause it's taking the on signal
+%j = j(2:end); %I leave out the 1st cause it's taking the on signal
 jsec = j/1000;
 
 %plot the data from the yPanels and add lines of the previously determined
@@ -233,7 +233,16 @@ plot(jumps(1:TrialNum),'b')
 
 %% Downsample, unwrap and smooth position data, then get velocity and smooth
 
-[smoothed] = singleTrialVelocityAnalysis(data,1000);
+%ask what size is the ball
+sizeBall = input('What size is the ball in mm?: ','s');
+sizeBall = str2num(sizeBall);
+
+%calculate the velocity accordingly
+if sizeBall == 6,
+    [smoothed] = singleTrialVelocityAnalysis(data,1000);
+elseif sizeBall == 9,
+    [smoothed] = singleTrialVelocityAnalysis9mm(data,1000);
+end
 % for most experiments I have used 1000 Hz as a sample rate, and it is what
 % I will use from now on, so that's how I'll leave it, but this could be
 % changed in case of need
@@ -368,12 +377,12 @@ figure('Position', [100 100 1200 900]),
 % Heading in time, with every frame
 flyPos180 = wrapTo180(rad2deg(smoothed.angularPosition));
 time = linspace(0,(length(rawData)/1000),length(flyPos180));
-subplot(3,2,1)
+subplot(2,4,[1,5])
 scatter(flyPos180, time, [], forwardVelocity); %add the forward velocity as a color
 hold on
 plot(flyPos180, time,'k','HandleVisibility','off')
 xlabel('Heading angle (deg)'); ylabel('Time (s)');
-title('Angular position of the Fly as a function of time');
+title('Angular position of the Fly');
 xlim([-180 180]); ylim([0 max(time)]);
 hold on
 for i = 1:length(j)
@@ -384,10 +393,10 @@ ax.YDir = 'reverse';
 
  % Heading in time, with only moving frames.
 %time = linspace(0,(length(rawData)/1000),length(flyPos180(forwardVelocity>1)));
-subplot(3,2,2)
+subplot(2,4,[4,8])
 scatter(flyPos180(forwardVelocity>1), time(forwardVelocity>1));
 xlabel('Heading angle (deg)'); ylabel('Time (s)');
-title('Angular position of the Fly as a function of time');
+title('Angular position of the Fly');
 xlim([-180 180]); ylim([0 max(time)]);
 hold on
 for i = 1:length(j)
@@ -406,17 +415,17 @@ probabilitiesFlyMoving = countsFlyMoving./sum(countsFlyMoving);
 degsFly = linspace(-180,180,length(countsFly));
 degsFlyMoving = linspace(-180,180,length(countsFlyMoving));
 
-subplot(3,2,3) %with every frame
+subplot(2,4,2) %with every frame
 plot(degsFly,probabilitiesFly,'k')
 xlim([-180 180]); ylim([0 max(probabilitiesFly)+0.05]);
-title('Probability density of the fly heading with every frame');
+title('Fly heading with every frame');
 ylabel('Probability density'); xlabel('Fly heading (deg)');
 %hold on
 %patch([noPanelDeg(1) noPanelDeg(7) noPanelDeg(7) noPanelDeg(1)], [0 0 max(probabilitiesFlyMoving)+0.05 max(probabilitiesFlyMoving)+0.05],[.5 .5 .5],'FaceAlpha',0.3)
-subplot(3,2,4) %with moving frames only
+subplot(2,4,3) %with moving frames only
 plot(degsFlyMoving,probabilitiesFlyMoving,'k')
 xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving)+0.05]);
-title('Probability density of the fly heading with moving frames');
+title('Fly heading with moving frames');
 ylabel('Probability density'); xlabel('Fly heading (deg)');
 
 % In polar coordinates...
@@ -424,7 +433,7 @@ ylabel('Probability density'); xlabel('Fly heading (deg)');
 CircularStatsFly = circ_stats(smoothed.angularPosition);
 circedges = [0:20:360];
 circedges = deg2rad(circedges);
-subplot(3,2,5)
+subplot(2,4,6)
 polarhistogram(smoothed.angularPosition,circedges,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
 ax = gca;
 d = ax.ThetaDir;
@@ -432,7 +441,7 @@ ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
 %with only moving frames
 CircularStatsFlyMoving = circ_stats(smoothed.angularPosition(forwardVelocity>1));
-subplot(3,2,6)
+subplot(2,4,7)
 polarhistogram(smoothed.angularPosition(forwardVelocity>1),circedges,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
 ax = gca;
 d = ax.ThetaDir;
@@ -488,14 +497,15 @@ axis tight equal; %scale the axes with respect to one another
 
 %I'm using a function to get and smooth data around the jumps
 sec = 10; %how many sec before and after the jump I want to look at
-perTrialData = getDataAroundJump(rawData,j,sec);
+perTrialData = getDataAroundJump(rawData,j,sec,sizeBall);
 
 %apend jump data and save for using in the pooled flies analysis
 perTrialData.jumpMag = jumps;
+perTrialData.angPos = getPosAroundJump(data.ficTracAngularPosition,j,sec);
 
 save(strcat(path,'perTrialData.mat'),'perTrialData');
 
-%% Velocity around the jumps
+%% Velocity and around the jumps
 
 time = linspace(-sec,sec,length(perTrialData.forwardVel));
 
@@ -503,28 +513,47 @@ time = linspace(-sec,sec,length(perTrialData.forwardVel));
 
 for i = 1:length(j)
     figure,
-    subplot(1,2,1)
+    subplot(1,3,1)
     plot(time,perTrialData.forwardVel(:,i),'.')
     hold on
     plot(time,perTrialData.forwardVel(:,i))
+    line([0,0],[min(perTrialData.forwardVel(:,i)), max(perTrialData.forwardVel(:,i))],'Color','black');
+    ylim([min(perTrialData.forwardVel(:,i)), max(perTrialData.forwardVel(:,i))]);
     title('Forward velocity around the bar jumps');
     xlabel('Time(s)');
     ylabel('Velocity (mm/s)');
     
-    subplot(1,2,2)
+    subplot(1,3,2)
     plot(time,perTrialData.angVel(:,i),'.')
     hold on
     plot(time,perTrialData.angVel(:,i))
+    line([0,0],[min(perTrialData.angVel(:,i)), max(perTrialData.angVel(:,i))],'Color','black');
+    ylim([min(perTrialData.angVel(:,i)), max(perTrialData.angVel(:,i))]);
     title('Angular velocity around the bar jumps');
     xlabel('Time(s)');
     ylabel('Velocity (mm/s)');
+
+    % Position around the jumps
+%for ths, I need to use the corrected angular position of the fly in time
+
+    time2 = linspace(-sec,sec,length(perTrialData.angPos));
+    subplot(1,3,3)
+    plot(time2,wrapTo360(perTrialData.angPos(:,i)),'.')
+    hold on
+    plot(time2,wrapTo360(perTrialData.angPos(:,i)))
+    line([0,0],[0, 360],'Color','black');
+    title('Angular Position around the bar jumps');
+    xlabel('Time(s)');
+    ylabel('Angular Position');
+    ylim([0 360]);      
+
 end
 
 
 %Pooling results from similar magnitude jumps
 %1) make a jump vector using the preloaded jump vector from the experiment
 %and taking only as many elements as trials there were
-trials = jumps(1:TrialNum);
+trials = jumps(1:size(j,1));
 %2) identify elements in that vector belonging to the 4 different groups,
 %and put the perTrialData into those groups
 Data45.forwardVel = perTrialData.forwardVel(:,trials == 45);
@@ -636,7 +665,6 @@ legend({'45','-45','90','-90'});
 ylabel('Angular velocity (deg/s)'); xlabel('Time from bar jump (s)');
 
 
-
 %% Output in degrees of the Panels position
 
 % Pos x=73 is 0 deg (ie facing the fly), I measured this empirically
@@ -659,6 +687,8 @@ end
 
 % Remapping the positions to span -180 to 180 deg
 remapPosToDeg = wrapTo180(posToDeg);
+%remapPosToDeg = wrapTo180(data.xPanelPos*pxToDeg);
+
 
 % Plot the histogram and probability density
 edges = [-180:20:180];

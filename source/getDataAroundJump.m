@@ -1,4 +1,4 @@
-function [DATA] = getDataAroundJump(data,jumpFrames,aroundJumpSec)
+function [DATA] = getDataAroundJump(data,jumpFrames,aroundJumpSec,sizeBall)
 
 %This function outputs a data structure for position and velocity around
 %the bar jumps
@@ -16,18 +16,18 @@ for i = 1:length(jumpFrames)
     downsRad.aJ(:,i) = downsampled.aJ(:,i) .* 2 .* pi ./ 10;
     unwrapped.aJ(:,i) = unwrap(downsRad.aJ(:,i));
     smoothed.aJ(:,i) = smoothdata(unwrapped.aJ(:,i),10); 
-    deg.aJ(:,i) = smoothed.aJ(:,i) * 3;
+    deg.aJ(:,i) = smoothed.aJ(:,i) * (sizeBall/2);
     diff.aJ(:,i) = gradient(deg.aJ(:,i)).* 25;
     DATA.forwardVel(:,i) = smoothdata(diff.aJ(:,i),10);
     
-    %angular position and angular velocity
+    %angular velocity
     aroundJumpa(:,i) = data(jumpFrames(i)-aroundJumpSec*1000:jumpFrames(i)+aroundJumpSec*1000,1);
     downsampled.aJa(:,i) = downsample(aroundJumpa(:,i),1000/25);
     downsRad.aJa(:,i) = downsampled.aJa(:,i) .* 2 .* pi ./ 10;
     unwrapped.aJa(:,i) = unwrap(downsRad.aJa(:,i));
     smoothed.aJa(:,i) = smoothdata(unwrapped.aJa(:,i),10); 
-    DATA.angPos(:,i) = (smoothed.aJa(:,i) / (2*pi)) * 360;
-    diff.aJa(:,i) = gradient(DATA.angPos(:,i)).* 25;
+    smoothed.angPos(:,i) = (smoothed.aJa(:,i) / (2*pi)) * 360;
+    diff.aJa(:,i) = gradient(smoothed.angPos(:,i)).* 25;
     DATA.angVel(:,i) = smoothdata(diff.aJa(:,i),10);
 
 end

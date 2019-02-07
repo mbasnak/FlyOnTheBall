@@ -1,0 +1,20 @@
+function [angPos] = getPosAroundJump(data,jumpFrames,aroundJumpSec)
+
+%This function outputs a data structure for position and velocity around
+%the bar jumps
+
+%data is the original data you get in voltage
+%jumpFrames will contain the frames when the jumps occurred
+%aroundJumpSec is how many seconds before and after the jump you're
+%interested in getting.
+
+for i = 1:length(jumpFrames)
+      
+    %angular position
+    aroundJumpa(:,i) = data(jumpFrames(i)-aroundJumpSec*1000:jumpFrames(i)+aroundJumpSec*1000,1);
+    downsampled.aJa(:,i) = downsample(aroundJumpa(:,i),1000/25);
+    downsRad.aJa(:,i) = downsampled.aJa(:,i) .* 2 .* pi ./ 10;
+    unwrapped.aJa(:,i) = unwrap(downsRad.aJa(:,i));
+    smoothed.aJa(:,i) = smoothdata(unwrapped.aJa(:,i),10); 
+    angPos(:,i) = (smoothed.aJa(:,i) / (2*pi)) * 360;
+end
