@@ -7,6 +7,8 @@ function [DATA] = getDataAroundJump(data,jumpFrames,aroundJumpSec,sizeBall)
 %jumpFrames will contain the frames when the jumps occurred
 %aroundJumpSec is how many seconds before and after the jump you're
 %interested in getting.
+%sizeBall is the size of the ball I used, in mm, to calculate the movement
+%in metrix units aproprietaly
 
 for i = 1:length(jumpFrames)
     
