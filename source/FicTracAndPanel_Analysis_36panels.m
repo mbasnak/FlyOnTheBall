@@ -244,7 +244,7 @@ FlyPosDeg = zeros(1,length(smoothed.angularPosition));
 for i=1:length(smoothed.angularPosition)
     if flyPosPx(i) == 70
         FlyPosDeg(i) = 0;
-    elseif downsampled.xPanelPos(i) >70 
+    elseif flyPosPx(i) >70 
         FlyPosDeg(i) = (flyPosPx(i)-70)*pxToDeg; % Correct the offset and multiply by factor to get deg
     else
         FlyPosDeg(i) = (flyPosPx(i)+27)*pxToDeg; % Correct the offset and multiply by factor to get deg

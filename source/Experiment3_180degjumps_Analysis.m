@@ -1,4 +1,4 @@
-% Experiment 3 analysis
+% Experiment 3 analysis for the 180 deg jumps
 
 %%% This code analyses the output of the panels and the FicTrac data
 %for experiment 3, in which a bar jumps every 200 sec by a predetermined
@@ -198,25 +198,19 @@ ylim([0 max(data.ficTracAngularPositionUW)]);
 figure,
 
 jumpPos = data.yPanelPos(j+1)-data.yPanelPos(j-1);
-degJumps = wrapTo180(jumpPos*(360/96));
+degJumps = jumpPos*(360/97);
 subplot(1,3,1), plot(degJumps,'ro')
 ylim([-180 180]);
 title('Jump magnitude, taken from yPanels');
 ylabel('deg');xlabel('Trial #');
-% compare that to the jump function we have stored
-hold on
-plot(jumps(1:TrialNum),'b')
 
 %Check if the jump magnitude appears ok in the x panel data
 jumpMag = data.xPanelPos(j+1)-data.xPanelPos(j-1); 
-degMag = wrapTo180(jumpMag*(360/96));
+degMag = wrapTo180(jumpMag*(360/97));
 subplot(1,3,2), plot(degMag,'ro')
 ylim([-180 180]);
 title('Jump magnitude, taken from xPanels');
 ylabel('deg');xlabel('Trial #');
-% compare that to the jump function we have stored
-hold on
-plot(jumps(1:TrialNum),'b')
 
 
 %check if the jump magnitude appears ok in the angular position data
@@ -227,9 +221,7 @@ subplot(1,3,3), plot(degMag2,'ro')
 ylim([-180 180]);
 title('Jump magnitude, taken from angular position');
 ylabel('deg');xlabel('Trial #');
-% compare that to the jump function we have stored
-hold on
-plot(jumps(1:TrialNum),'b')
+
 
 %% Downsample, unwrap and smooth position data, then get velocity and smooth
 
@@ -669,117 +661,19 @@ for i = 1:length(j)
 end
 
 
-%Pooling results from similar magnitude jumps
-%1) make a jump vector using the preloaded jump vector from the experiment
-%and taking only as many elements as trials there were
-trials = jumps(1:size(j,1));
-%2) identify elements in that vector belonging to the 4 different groups,
-%and put the perTrialData into those groups
-Data45.forwardVel = perTrialData.forwardVel(:,trials == 45);
-Data45.angVel = perTrialData.angVel(:,trials == 45);
-DataNeg45.forwardVel = perTrialData.forwardVel(:,trials == -45);
-DataNeg45.angVel = perTrialData.angVel(:,trials == -45);
-Data90.forwardVel = perTrialData.forwardVel(:,trials == 90);
-Data90.angVel = perTrialData.angVel(:,trials == 90);
-DataNeg90.forwardVel = perTrialData.forwardVel(:,trials == -90);
-DataNeg90.angVel = perTrialData.angVel(:,trials == -90);
-
-%plot forward and angular velocity for every group
-figure,
-subplot(1,2,1)
-plot(time,Data45.forwardVel,'.')
-hold on
-plot(time,Data45.forwardVel)
-title('Forward velocity for 45 deg jumps');
-xlabel('Time(s)');
-ylabel('Velocity (mm/s)');    
-subplot(1,2,2)
-plot(time,Data45.angVel,'.')
-hold on
-plot(time,Data45.angVel)
-title('Angular velocity for 45 deg jumps');
-xlabel('Time(s)');
-ylabel('Velocity (mm/s)');
-
-figure,
-subplot(1,2,1)
-plot(time,DataNeg45.forwardVel,'.')
-hold on
-plot(time,DataNeg45.forwardVel)
-title('Forward velocity for -45 deg jumps');
-xlabel('Time(s)');
-ylabel('Velocity (mm/s)');    
-subplot(1,2,2)
-plot(time,DataNeg45.angVel,'.')
-hold on
-plot(time,DataNeg45.angVel)
-title('Angular velocity for -45 deg jumps');
-xlabel('Time(s)');
-ylabel('Velocity (mm/s)');
-
-
-figure,
-subplot(1,2,1)
-plot(time,Data90.forwardVel,'.')
-hold on
-plot(time,Data90.forwardVel)
-title('Forward velocity for 90 deg jumps');
-xlabel('Time(s)');
-ylabel('Velocity (mm/s)');    
-subplot(1,2,2)
-plot(time,Data90.angVel,'.')
-hold on
-plot(time,Data90.angVel)
-title('Angular velocity for 90 deg jumps');
-xlabel('Time(s)');
-ylabel('Velocity (mm/s)');
-
-
-figure,
-subplot(1,2,1)
-plot(time,DataNeg90.forwardVel,'.')
-hold on
-plot(time,DataNeg90.forwardVel)
-title('Forward velocity for -90 deg jumps');
-xlabel('Time(s)');
-ylabel('Velocity (mm/s)');    
-subplot(1,2,2)
-plot(time,DataNeg90.angVel,'.')
-hold on
-plot(time,DataNeg90.angVel)
-title('Angular velocity for -90 deg jumps');
-xlabel('Time(s)');
-ylabel('Velocity (mm/s)');
-
 
 %plot mean forward and angular velocity per group
-meanForwardVel45 = mean(Data45.forwardVel,2);
-meanForwardVelNeg45 = mean(DataNeg45.forwardVel,2);
-meanForwardVel90 = mean(Data90.forwardVel,2);
-meanForwardVelNeg90 = mean(DataNeg90.forwardVel,2);
+meanForwardVel = mean(perTrialData.forwardVel,2);
+meanAngVel = mean(perTrialData.angVel,2);
 
-meanAngVel45 = mean(Data45.angVel,2);
-meanAngVelNeg45 = mean(DataNeg45.angVel,2);
-meanAngVel90 = mean(Data90.angVel,2);
-meanAngVelNeg90 = mean(DataNeg90.angVel,2);
 
 figure,
 subplot(1,2,1)
-plot(time,meanForwardVel45)
-hold on
-plot(time,meanForwardVelNeg45)
-plot(time,meanForwardVel90)
-plot(time,meanForwardVelNeg90)
+plot(time,meanForwardVel)
 title('Mean forward velocity');
-legend({'45','-45','90','-90'});
 ylabel('Forward velocity (mm/s)'); xlabel('Time from bar jump (s)');
 subplot(1,2,2)
-plot(time,meanAngVel45)
-hold on
-plot(time,meanAngVelNeg45)
-plot(time,meanAngVel90)
-plot(time,meanAngVelNeg90)
+plot(time,meanAngVel)
 title('Mean angular velocity');
-legend({'45','-45','90','-90'});
 ylabel('Angular velocity (deg/s)'); xlabel('Time from bar jump (s)');
 

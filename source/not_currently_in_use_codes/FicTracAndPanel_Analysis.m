@@ -31,7 +31,7 @@ data.yPanelPos = round ((data.yPanelVolts  * maxValY) /VOLTAGE_RANGE);
 
 %FicTrac data
 data.ficTracAngularPosition = rawData ( : , headingFly); 
-data.ficTracIntx = rawData ( : , xFly); 
+data.ficTracIntx = -rawData ( : , xFly); 
 %data.ficTracIntx = -(rawData ( : , xFly)); 
 data.ficTracInty = rawData ( : , yFly); 
 

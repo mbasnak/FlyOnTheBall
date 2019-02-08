@@ -16,5 +16,21 @@ for i = 1:length(jumpFrames)
     downsRad.aJa(:,i) = downsampled.aJa(:,i) .* 2 .* pi ./ 10;
     unwrapped.aJa(:,i) = unwrap(downsRad.aJa(:,i));
     smoothed.aJa(:,i) = smoothdata(unwrapped.aJa(:,i),10); 
-    angPos(:,i) = (smoothed.aJa(:,i) / (2*pi)) * 360;
+    angPosition(:,i) = (smoothed.aJa(:,i) / (2*pi)) * 360;
+    
+     %remap the angular position acording to our set-up
+ flyPosPixels = angPosition/3.75;
+ angPos = zeros(size(flyPosPixels,1),size(flyPosPixels,2));
+
+% Convert from xpos to degrees, knowing that xpos 70 = 0 deg
+for j = 1:numel(angPos)
+        if flyPosPixels(j) == 70
+        angPos(j) = 0;
+        elseif flyPosPixels(i) >70 
+        angPos(j) = (flyPosPixels(j)-70)*3.75; % Correct the offset and multiply by factor to get deg
+        else
+        angPos(j) = (flyPosPixels(j)+27)*3.75; % Correct the offset and multiply by factor to get deg
+        end
+end
+           
 end
