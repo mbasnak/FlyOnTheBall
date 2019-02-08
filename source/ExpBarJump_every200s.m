@@ -41,8 +41,9 @@ elseif jumpFunction == 8
     jumps = [-90,45,90,45,-45,-90,-45,-45,90,90,45,-90];
 elseif jumpFunction == 9
     jumps = [-90,-45,45,45,-45,90,45,-90,-45,90,-90,90];
-else jumpFunction == 10
+elseif jumpFunction == 10
     jumps = [90,45,-90,90,45,-90,90,-45,-90,-45,45,-45];
+end
 
 
 %%%%%% Run the panels %%%%%%
