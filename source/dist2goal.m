@@ -27,9 +27,6 @@ stdAllFlies = std(Distance,[],2);
 Allprobabilities = allcounts./sum(allcounts);
 alldegs = linspace(-180,180,length(allcounts));
 
-allFliesprob = [probabilities{1,1};probabilities{1,2};probabilities{1,3};probabilities{1,4};probabilities{1,5};probabilities{1,6};probabilities{1,7};probabilities{1,8};probabilities{1,9};probabilities{1,10};probabilities{1,11};probabilities{1,12}];
-error = std(allFliesprob);
-
 figure,   
 for i = 1:length(Goals)
     [counts{i}] = histcounts(dist{i},edges);
@@ -38,6 +35,10 @@ for i = 1:length(Goals)
     hold on
     plot(degs{i},probabilities{i})
 end
+
+allFliesprob = [probabilities{1,1};probabilities{1,2};probabilities{1,3};probabilities{1,4};probabilities{1,5};probabilities{1,6};probabilities{1,7};probabilities{1,8};probabilities{1,9};probabilities{1,10};probabilities{1,11};probabilities{1,12}];
+error = std(allFliesprob);
+
 hold on
 %plot(alldegs,Allprobabilities,'k','LineWidth',3)
 boundedline(alldegs,Allprobabilities,error,'k','alpha')

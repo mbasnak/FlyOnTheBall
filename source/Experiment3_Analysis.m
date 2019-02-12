@@ -110,7 +110,7 @@ plot(Jumps);
 ylabel('Voltage difference (V)');xlabel('Time');
 
 j = find(Jumps); %indices of the actual bar jumps, taken from the y signal
-%j = j(2:end); %I leave out the 1st cause it's taking the on signal
+j = j(2:end); %I leave out the 1st cause it's taking the on signal
 jsec = j/1000;
 
 %plot the data from the yPanels and add lines of the previously determined
@@ -570,12 +570,12 @@ ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
 %% Look at the goal and calculate the distance to it...
 
-
 %Taking all the experiment
 figure,
 %with every frame
-goal = mean(flyPos180);
-dist2goal = flyPos180-goal;
+goal = circ_mean(posToRadFly,[],2);
+dist2goal2 = circ_dist(posToRadFly,goal);
+dist2goal = wrapTo180(rad2deg(dist2goal2));
 [countsDist] = histcounts(dist2goal,edges);
 probabilitiesDist = countsDist./sum(countsDist);
 degsFlyDist = linspace(-180,180,length(countsDist));
@@ -585,8 +585,9 @@ xlim([-180, 180]); xlabel('Distance to the goal (deg)');
 ylabel('Probability');
 
 %taking only 'moving frames'
-goalMoving = mean(flyPos180(forwardVelocity>1));
-dist2goalMoving = flyPos180(forwardVelocity>1)-goalMoving;
+goalMoving = circ_mean(posToRadFly(forwardVelocity>1),[],2);
+dist2goalMoving2 = circ_dist(posToRadFly(forwardVelocity>1),goalMoving);
+dist2goalMoving = wrapTo180(rad2deg(dist2goalMoving2));
 [countsDistMoving] = histcounts(dist2goalMoving,edges);
 probabilitiesDistMoving = countsDistMoving./sum(countsDistMoving);
 degsFlyDistMoving = linspace(-180,180,length(countsDistMoving));
@@ -595,8 +596,52 @@ title('Distance to the goal with moving frames');
 xlim([-180, 180]); xlabel('Distance to the goal (deg)');
 ylabel('Probability');
 
+save(strcat(path,'goals.mat'),'goal','goalMoving','dist2goal','dist2goalMoving');
 
-% Moving window for the goal
+
+% Moving window for the goal, following Jonathan's paper
+%He defines an analysis window (for instance 60 s ) and slides it over the
+%heading time series by 1 s increments, calculating the mean-heading vector
+%at each position.
+
+posWindow = posToRadFly;
+posWindow(forwardVelocity<=1)= NaN;
+
+for i = 751:1:length(posToRadFly)-750 
+window = posWindow(i-750:i+750); %define window
+window2 = rmmissing(window); % remove NaNs
+movingWindowHeading(i) = circ_mean(window2,[],2); % compute mean
+end
+
+figure, polarhistogram(movingWindowHeading)
+ax = gca;
+ax.ThetaDir = 'clockwise';
+ax.ThetaZeroLocation = 'top';
+title('Heading distribution with 60 s sliding window')
+
+test = wrapTo180(rad2deg(movingWindowHeading));
+figure, plot(test)
+
+%If I try to slide it every 1 s (25 frames), then the result is very clearly
+%wrong, so I'm doing it every frame. This is equivalent to using
+%smoothdata, which I have already used, but I did it only with 10 frames,
+%and this is much larger. I also didn't take away nos moving frames in that
+%computation.
+
+
+
+
+%repeating Fig 2B from Jonathan's paper:
+%He operationally defined the goal as the mean heading averaged across the
+%10 s window immediately prior the bar jump
+
+%I have to identify the jumps
+%take 10 s before them and average the heading to define the jumps
+%then calculate the distance to that goal at any given time and plot it.
+%to recreate his plot, I should average across flies.
+
+
+
 
 
 %% 2D trajectories
@@ -609,9 +654,27 @@ plot(smoothed.Intx,smoothed.Inty,'k')
 c = colorbar; c.Label.String = 'Time (s)'; %add the colorbar
 title('2D trajectory of the fly');
 xlabel('x pos (mm)'); ylabel('y pos (mm)');
-axis tight equal; %scale the axes with respect to one another
+axis equal; %scale the axes with respect to one another
 
 %why does this have so few loops? It's weird...
+%I think somehow it's not taking into account changes in the heading, that
+%would mean the animal rotated.
+
+% for i = 2:length(smoothed.Intx)
+%     deltaX(i-1) = smoothed.Intx(i)*4.75-smoothed.Intx(i-1)*4.75;
+%     deltaY(i-1) = smoothed.Inty(i)*4.75-smoothed.Inty(i-1)*4.75;
+% xPos(i-1) = (cos(smoothed.angularPosition(i)))*(sqrt(deltaX(i-1)*deltaX(i-1)+deltaY(i-1)*deltaY(i-1)));
+% yPos(i-1) = (sin(smoothed.angularPosition(i)))*(sqrt(deltaX(i-1)*deltaX(i-1)+deltaY(i-1)*deltaY(i-1)));
+% end
+% 
+% figure,
+% scatter(xPos,yPos)
+% hold on
+% plot(xPos,yPos,'k')
+% title('2D trajectory of the fly');
+% xlabel('x pos (mm)'); ylabel('y pos (mm)');
+% axis equal; %scale the axes with respect to one another
+
 %% Per 'trial'
 
 %I'm using a function to get and smooth data around the jumps
@@ -622,7 +685,7 @@ perTrialData = getDataAroundJump(rawData,j,sec,sizeBall);
 perTrialData.jumpMag = jumps;
 perTrialData.angPos = getPosAroundJump(data.ficTracAngularPosition,j,sec);
 
-%save(strcat(path,'perTrialData.mat'),'perTrialData');
+save(strcat(path,'perTrialData.mat'),'perTrialData');
 
 %% Velocity and around the jumps
 
@@ -650,7 +713,7 @@ for i = 1:length(j)
     ylim([min(perTrialData.angVel(:,i)), max(perTrialData.angVel(:,i))]);
     title('Angular velocity around the bar jumps');
     xlabel('Time(s)');
-    ylabel('Velocity (mm/s)');
+    ylabel('Velocity (deg/s)');
 
     % Position around the jumps
 %for ths, I need to use the corrected angular position of the fly in time
