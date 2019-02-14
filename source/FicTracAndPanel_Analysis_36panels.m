@@ -318,6 +318,24 @@ ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
 
+%% Heading with sliding window
+
+posToRadFlyMoving = posToRadFly(forwardVelocity>1);
+
+%figure out roughly how many frames of my vector represent 1 sec
+frames = round(size(posToRadFlyMoving,2)/200);
+
+for i = frames*30:frames:length(posToRadFlyMoving)-frames*30
+posWindow(i) = mean(posToRadFlyMoving(1,i-frames*29:i+frames*30));
+end
+
+figure, polarhistogram(posWindow)
+ax = gca;
+ax.ThetaDir = 'clockwise';
+ax.ThetaZeroLocation = 'top';
+title('Heading distribution with 60 s sliding window')
+
+
 %% Plot 2D virtual trajectory of the fly
 
 figure,

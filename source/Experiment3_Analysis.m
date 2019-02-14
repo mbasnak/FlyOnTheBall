@@ -110,7 +110,7 @@ plot(Jumps);
 ylabel('Voltage difference (V)');xlabel('Time');
 
 j = find(Jumps); %indices of the actual bar jumps, taken from the y signal
-j = j(2:end); %I leave out the 1st cause it's taking the on signal
+%j = j(2:end); %I leave out the 1st cause it's taking the on signal
 jsec = j/1000;
 
 %plot the data from the yPanels and add lines of the previously determined
@@ -173,7 +173,7 @@ data.xPanelPos = round ((data.xPanelVolts  * maxValX ) /VOLTAGE_RANGE_x); % Conv
 data.yPanelPos = round ((data.yPanelVolts  * maxValY) /VOLTAGE_RANGE_y);
 
 %check the wrapping graphically
-figure,
+figure('Position', [100 100 1200 900]),
 subplot(2,1,1),
 plot(data.yPanelVolts,'r')
 hold on
@@ -182,6 +182,7 @@ plot(data.xPanelVolts,'g')
 ylabel('Voltage (V)');
 title('x panels voltage signals before and after wrapping');
 ylim([0 max(data.xPanelVoltsUW)]);
+legend({'yPanels','Unwrapped xPanels', 'Wrapped xPanels'});
 
 subplot(2,1,2),
 plot(data.yPanelVolts,'r')
@@ -191,21 +192,23 @@ plot(data.ficTracAngularPosition,'g')
 xlabel('Time (frame)');ylabel('Voltage (V)');
 title('angular position voltage signals before and after wrapping');
 ylim([0 max(data.ficTracAngularPositionUW)]);
+legend({'yPanels','Unwrapped angular position', 'Wrapped angular position'});
+
 
 % Getting the degrees that each jump represents and checking they are
 % correct
-
-figure,
+figure('Position', [100 100 1200 900]),
 
 jumpPos = data.yPanelPos(j+1)-data.yPanelPos(j-1);
 degJumps = wrapTo180(jumpPos*(360/96));
 subplot(1,3,1), plot(degJumps,'ro')
 ylim([-180 180]);
 title('Jump magnitude, taken from yPanels');
-ylabel('deg');xlabel('Trial #');
+ylabel('deg');xlabel('Trial #');xlim([1 TrialNum]);
 % compare that to the jump function we have stored
 hold on
 plot(jumps(1:TrialNum),'b')
+legend({'Jumps from Y data','Jump function used'});
 
 %Check if the jump magnitude appears ok in the x panel data
 jumpMag = data.xPanelPos(j+1)-data.xPanelPos(j-1); 
@@ -213,10 +216,11 @@ degMag = wrapTo180(jumpMag*(360/96));
 subplot(1,3,2), plot(degMag,'ro')
 ylim([-180 180]);
 title('Jump magnitude, taken from xPanels');
-ylabel('deg');xlabel('Trial #');
+ylabel('deg');xlabel('Trial #'); xlim([1 TrialNum]);
 % compare that to the jump function we have stored
 hold on
 plot(jumps(1:TrialNum),'b')
+legend({'Jumps from X data','Jump function used'});
 
 
 %check if the jump magnitude appears ok in the angular position data
@@ -226,10 +230,11 @@ degMag2 = wrapTo180(rad2deg(radMag2)); %convert from radians to degrees and wrap
 subplot(1,3,3), plot(degMag2,'ro')
 ylim([-180 180]);
 title('Jump magnitude, taken from angular position');
-ylabel('deg');xlabel('Trial #');
+ylabel('deg');xlabel('Trial #');xlim([1 TrialNum]);
 % compare that to the jump function we have stored
 hold on
 plot(jumps(1:TrialNum),'b')
+legend({'Jumps from angular position','Jump function used'});
 
 %% Downsample, unwrap and smooth position data, then get velocity and smooth
 
@@ -248,7 +253,6 @@ end
 % changed in case of need
 
 
-%% global analysis
 %% Forward velocity analysis
 
 % The forward velocity is a good indicative of whether the fly is walking
@@ -265,11 +269,11 @@ meanVelocity = mean(forwardVelocity);
 time = linspace(0,(length(rawData)/1000),length(forwardVelocity));
 
 %Global forward velocity analysis
-figure,
+figure ('Position', [100 100 1200 900]),
 subplot(2,1,1)
 plot(time,forwardVelocity,'k','HandleVisibility','off')
 xlim([0 time(end)]);
-ylim([min(forwardVelocity)-10 max(forwardVelocity)+10]);
+ylim([-20 40]);
 hold on
 for i = 1:length(jsec)
      plot([jsec(i) jsec(i)],[min(forwardVelocity)-10 max(forwardVelocity)+10],'g');
@@ -287,8 +291,9 @@ histogram(forwardVelocity,'FaceColor',[.4 .2 .6])
 title('Distribution of forward velocities');
 xlabel('Forward velocity (mm/s)');
 ylabel('Frequency');
+xlim([-10, 20]);
 
-%saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(11:end-4), '.png'))
+saveas(gcf,strcat(path,'ForwardVelocity.png'))
 
 %% Angular velocity
 
@@ -304,11 +309,11 @@ angularVelocity = getAngVel(AngularPosition);
 meanAngVelocity = mean(angularVelocity);
 time = linspace(0,(length(rawData)/1000),length(angularVelocity));
 
-figure,
+figure('Position', [100 100 1200 900]),
 subplot(2,1,1)
 plot(time,angularVelocity,'k','HandleVisibility','off')
 xlim([0 time(end)]);
-ylim([min(angularVelocity)-50 max(angularVelocity)+50]);
+ylim([-400 400]);
 hold on
 for i = 1:length(j) %add the bar jumps
      plot([jsec(i) jsec(i)],[min(angularVelocity)-50 max(angularVelocity)+50],'g');
@@ -326,8 +331,9 @@ histogram(angularVelocity,'FaceColor',[.2 .8 .6])
 title('Distribution of angular velocities');
 xlabel('Angular velocity (deg/s)');
 ylabel('Frequency');
+xlim([-300, 300]);
 
-%saveas(gcf,strcat(path,'AngularVelocity_ExpNum', file(11:end-4), '.png'))
+saveas(gcf,strcat(path,'AngularVelocity.png'))
 
 
 %%  Activity levels
@@ -364,6 +370,8 @@ ylabel('Activity');
 xlabel('Time (s)');
 xlim([0 time(end)]);
 
+saveas(gcf,strcat(path,'ActivityRP.png'))
+
 %% Output in degrees of the Panels position
 
 pxToDeg = 360/96; % There are 96 possible positions and this represents 360 deg
@@ -385,7 +393,7 @@ end
 % Remapping the positions to span -180 to 180 deg
 remapPosToDeg = wrapTo180(posToDeg);
 
-figure('Position', [100 100 1200 900]),
+figure('Position', [100 100 1600 900]),
 
 % Stimulus position in time, with every frame
 time = linspace(0,(length(rawData)/1000),length(remapPosToDeg));
@@ -394,7 +402,6 @@ scatter(remapPosToDeg, time, [], forwardVelocity); %add the forward velocity as 
 hold on
 plot(remapPosToDeg, time,'k','HandleVisibility','off')
 xlabel('Heading angle (deg)'); ylabel('Time (s)');
-title('Angular position of the stimulus');
 xlim([-180 180]); ylim([0 max(time)]);
 hold on
 for i = 1:length(j)
@@ -404,11 +411,9 @@ ax = gca;
 ax.YDir = 'reverse';
 
  % Heading in time, with only moving frames.
-%time = linspace(0,(length(rawData)/1000),length(flyPos180(forwardVelocity>1)));
 subplot(2,4,[4,8])
 scatter(remapPosToDeg(forwardVelocity>1), time(forwardVelocity>1));
 xlabel('Heading angle (deg)'); ylabel('Time (s)');
-title('Angular position of the stimulus');
 xlim([-180 180]); ylim([0 max(time)]);
 hold on
 for i = 1:length(j)
@@ -429,7 +434,7 @@ subplot(2,4,2)
 plot(degs,probabilities,'k')
 set(0, 'DefaulttextInterpreter', 'none')
 xlim([-180 180]); ylim([0 max(probabilities)+0.05]);
-title('Probability density of the stimulus position');
+title('Stimulus position, all frames');
 ylabel('Probability density'); xlabel('Stimulus position (deg)');
 
 %With only frames with velocity>1
@@ -441,7 +446,7 @@ subplot(2,4,3)
 plot(degsMoving,probabilitiesMoving,'k')
 set(0, 'DefaulttextInterpreter', 'none')
 xlim([-180 180]); ylim([0 max(probabilitiesMoving)+0.05]);
-title('Probability density of the stimulus position with only moving frames');
+title('Stimulus position, only moving frames');
 ylabel('Probability density'); xlabel('Stimulus position (deg)');
 
 
@@ -457,18 +462,18 @@ circedges = [0:20:360];
 circedges = deg2rad(circedges);
 subplot(2,4,6)
 polarhistogram(posToRad,circedges,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
-title('Probability density of the stimulus position, every frame');
 ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
 subplot(2,4,7)
 polarhistogram(posToRad(forwardVelocity>1),circedges,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
-title('Probability density of the stimulus position, moving frames');
 ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top';
 
+
+saveas(gcf,strcat(path,'BarPosition.png'))
 
 %% Fly's heading thoughout the experiment
 
@@ -492,7 +497,7 @@ end
 FlyPos360 = wrapTo360(FlyPosDeg);
 flyPos180 = wrapTo180(FlyPos360);
 
-figure('Position', [100 100 1200 900]),
+figure('Position', [100 100 1600 900]),
 
 % Heading in time, with every frame
 time = linspace(0,(length(rawData)/1000),length(flyPos180));
@@ -501,7 +506,6 @@ scatter(flyPos180, time, [], forwardVelocity); %add the forward velocity as a co
 hold on
 plot(flyPos180, time,'k','HandleVisibility','off')
 xlabel('Heading angle (deg)'); ylabel('Time (s)');
-title('Angular position of the Fly');
 xlim([-180 180]); ylim([0 max(time)]);
 hold on
 for i = 1:length(j)
@@ -515,7 +519,6 @@ ax.YDir = 'reverse';
 subplot(2,4,[4,8])
 scatter(flyPos180(forwardVelocity>1), time(forwardVelocity>1));
 xlabel('Heading angle (deg)'); ylabel('Time (s)');
-title('Angular position of the Fly');
 xlim([-180 180]); ylim([0 max(time)]);
 hold on
 for i = 1:length(j)
@@ -537,14 +540,12 @@ degsFlyMoving = linspace(-180,180,length(countsFlyMoving));
 subplot(2,4,2) %with every frame
 plot(degsFly,probabilitiesFly,'k')
 xlim([-180 180]); ylim([0 max(probabilitiesFly)+0.05]);
-title('Fly heading with every frame');
+title('Fly heading, every frame');
 ylabel('Probability density'); xlabel('Fly heading (deg)');
-%hold on
-%patch([noPanelDeg(1) noPanelDeg(7) noPanelDeg(7) noPanelDeg(1)], [0 0 max(probabilitiesFlyMoving)+0.05 max(probabilitiesFlyMoving)+0.05],[.5 .5 .5],'FaceAlpha',0.3)
 subplot(2,4,3) %with moving frames only
 plot(degsFlyMoving,probabilitiesFlyMoving,'k')
 xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving)+0.05]);
-title('Fly heading with moving frames');
+title('Fly heading. only moving frames');
 ylabel('Probability density'); xlabel('Fly heading (deg)');
 
 % In polar coordinates...
@@ -568,6 +569,7 @@ ax.ThetaDir='clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
 
+saveas(gcf,strcat(path,'FlyPosition.png'))
 %% Look at the goal and calculate the distance to it...
 
 %Taking all the experiment
@@ -596,7 +598,30 @@ title('Distance to the goal with moving frames');
 xlim([-180, 180]); xlabel('Distance to the goal (deg)');
 ylabel('Probability');
 
-save(strcat(path,'goals.mat'),'goal','goalMoving','dist2goal','dist2goalMoving');
+
+%Look at first 300 sec (5 min) to see if they are good predictors of
+%overall fixation
+posToRadFlyMoving = posToRadFly(forwardVelocity>1);
+aproxFrameNum300sec = round((300*size(posToRadFlyMoving,2))/2420);
+posToRadFlyMoving300sec = posToRadFlyMoving(1:aproxFrameNum300sec);
+
+goalMoving300sec = circ_mean(posToRadFlyMoving300sec,[],2);
+dist2goalMoving2300sec = circ_dist(posToRadFlyMoving300sec,goalMoving300sec);
+dist2goalMoving300sec = wrapTo180(rad2deg(dist2goalMoving2300sec));
+[countsDistMoving300sec] = histcounts(dist2goalMoving300sec,edges);
+probabilitiesDistMoving300sec = countsDistMoving300sec./sum(countsDistMoving300sec);
+degsFlyDistMoving300sec = linspace(-180,180,length(countsDistMoving300sec));
+subplot(1,2,1), plot(degsFlyDistMoving,probabilitiesDistMoving,'r')
+title('Distance to the goal with moving frames');
+xlim([-180, 180]); xlabel('Distance to the goal (deg)');
+ylabel('Probability');
+subplot(1,2,2), plot(degsFlyDistMoving300sec,probabilitiesDistMoving300sec,'r')
+title('Distance to the goal with moving frames first 300 sec');
+xlim([-180, 180]); xlabel('Distance to the goal (deg)');
+ylabel('Probability');
+
+save(strcat(path,'goals.mat'),'goal','goalMoving','dist2goal','dist2goalMoving','goalMoving300sec','dist2goalMoving300sec');
+
 
 
 % Moving window for the goal, following Jonathan's paper
@@ -604,23 +629,35 @@ save(strcat(path,'goals.mat'),'goal','goalMoving','dist2goal','dist2goalMoving')
 %heading time series by 1 s increments, calculating the mean-heading vector
 %at each position.
 
-posWindow = posToRadFly;
-posWindow(forwardVelocity<=1)= NaN;
+% posWindow = posToRadFly;
+% posWindow(forwardVelocity<=1)= NaN;
+% 
+% for i = 751:1:length(posToRadFly)-750 
+% window = posWindow(i-750:i+750); %define window
+% window2 = rmmissing(window); % remove NaNs
+% movingWindowHeading(i) = circ_mean(window2,[],2); % compute mean
+% end
+% 
+% figure,
+% subplot(1,2,1)
+% polarhistogram(movingWindowHeading)
+% ax = gca;
+% ax.ThetaDir = 'clockwise';
+% ax.ThetaZeroLocation = 'top';
+% title('Heading distribution with 60 s sliding window')
+% 
+% %distance to goal calculates using this new goal
+% windowMovingGoal = circ_mean(movingWindowHeading,[],2);
+% dist2goalMovingWindow2 = circ_dist(movingWindowHeading,windowMovingGoal);
+% dist2goalMovingWindow = wrapTo180(rad2deg(dist2goalMovingWindow2));
+% [countsDistMovingWindow] = histcounts(dist2goalMovingWindow,edges);
+% probabilitiesDistMovingWindow = countsDistMovingWindow./sum(countsDistMovingWindow);
+% degsFlyDistMovingWindow = linspace(-180,180,length(countsDistMovingWindow));
+% subplot(1,2,2), plot(degsFlyDistMovingWindow,probabilitiesDistMovingWindow,'r')
+% title('Distance to the goal, sliding window, moving frames');
+% xlim([-180, 180]); xlabel('Distance to the goal (deg)');
+% ylabel('Probability');
 
-for i = 751:1:length(posToRadFly)-750 
-window = posWindow(i-750:i+750); %define window
-window2 = rmmissing(window); % remove NaNs
-movingWindowHeading(i) = circ_mean(window2,[],2); % compute mean
-end
-
-figure, polarhistogram(movingWindowHeading)
-ax = gca;
-ax.ThetaDir = 'clockwise';
-ax.ThetaZeroLocation = 'top';
-title('Heading distribution with 60 s sliding window')
-
-test = wrapTo180(rad2deg(movingWindowHeading));
-figure, plot(test)
 
 %If I try to slide it every 1 s (25 frames), then the result is very clearly
 %wrong, so I'm doing it every frame. This is equivalent to using
@@ -628,33 +665,77 @@ figure, plot(test)
 %and this is much larger. I also didn't take away nos moving frames in that
 %computation.
 
+%% Using the 100 sec before and after each jump to compute several goal distributions
+%per experiment...
+
+%I get the 100 sec before and after the jump for every jump except for the
+%last
+sec = 100;
+shortData = getDataAroundJump(rawData,j(1:end-1),sec,sizeBall);
+%apend jump data and save for using in the pooled flies analysis
+shortData.jumpMag = jumps(1:end-1);
+shortData.angPos = getPosAroundJump(data.ficTracAngularPosition,j(1:end-1),sec);
 
 
+%Calculate and plot distribution of dist2goal around every jump
+%with every frame
+figure('Position', [100 100 1600 900]),
+for i = 1:length(j)-1
+    %For every frame
+    goal100sec = circ_mean(deg2rad(shortData.angPos));
+    dist2goal2100sec{i} = circ_dist(deg2rad(shortData.angPos(:,i)),goal100sec(i));
+    dist2goal100sec{i} = wrapTo180(rad2deg(dist2goal2100sec{i}));
+    [countsDist100sec{i}] = histcounts(dist2goal100sec{i},edges);
+    probabilitiesDist100sec{i} = countsDist100sec{i}./sum(countsDist100sec{i});
+    degsFlyDist100sec{i} = linspace(-180,180,length(countsDist100sec{i}));
+    
+    %For moving frames only
+    dataMoving{i} = shortData.angPos(:,i);
+    dataMoving{i}(shortData.forwardVel(:,i)>1) = NaN;
+    dataMoving{i} = dataMoving{i}(~isnan(dataMoving{i}))';
+    goal100secMoving{i} = circ_mean(deg2rad(dataMoving{i}),[],2);
+    dist2goal2100secMoving{i} = circ_dist(deg2rad(dataMoving{i}),goal100secMoving{i});
+    dist2goal100secMoving{i} = wrapTo180(rad2deg(dist2goal2100secMoving{i}));
+    [countsDist100secMoving{i}] = histcounts(dist2goal100secMoving{i},edges);
+    probabilitiesDist100secMoving{i} = countsDist100secMoving{i}./sum(countsDist100secMoving{i});
+    degsFlyDist100secMoving{i} = linspace(-180,180,length(countsDist100secMoving{i}));
+    
+    %plot
+    subplot(3,4,i),
+    plot(degsFlyDist100sec{i},probabilitiesDist100sec{i},'r')
+    hold on
+    plot(degsFlyDist100secMoving{i},probabilitiesDist100secMoving{i},'k')
+    xlim([-180, 180]); xlabel('Distance to the goal (deg)');
+    ylabel('Probability');
+end
+    suptitle('Distance to the goal 100 sec around the jumps');
+    
+    
+%Plot them using colorscales
+probaDist100sec = cell2mat(probabilitiesDist100sec);
+probaDist100sec = reshape(probaDist100sec,length(probaDist100sec)/length(probabilitiesDist100sec),length(probabilitiesDist100sec));
+probaDist100secMoving = cell2mat(probabilitiesDist100secMoving);
+probaDist100secMoving = reshape(probaDist100secMoving,length(probaDist100secMoving)/length(probabilitiesDist100secMoving),length(probabilitiesDist100secMoving));
 
-%repeating Fig 2B from Jonathan's paper:
-%He operationally defined the goal as the mean heading averaged across the
-%10 s window immediately prior the bar jump
+%create new colormap
+newMap = flipud(gray);
+figure, imagesc(probaDist100secMoving')
+colormap(newMap)
+colorbar
 
-%I have to identify the jumps
-%take 10 s before them and average the heading to define the jumps
-%then calculate the distance to that goal at any given time and plot it.
-%to recreate his plot, I should average across flies.
-
-
-
-
-
+%save data
+save(strcat(path,'shortData.mat'),'shortData','probaDist100secMoving');
 %% 2D trajectories
 
-figure,
-c = linspace(1,(length(data.xPanelPos)/1000),length(smoothed.Intx)); %create a color vector with the time
-scatter(smoothed.Intx,smoothed.Inty,[],c)
-hold on
-plot(smoothed.Intx,smoothed.Inty,'k')
-c = colorbar; c.Label.String = 'Time (s)'; %add the colorbar
-title('2D trajectory of the fly');
-xlabel('x pos (mm)'); ylabel('y pos (mm)');
-axis equal; %scale the axes with respect to one another
+% figure,
+% c = linspace(1,(length(data.xPanelPos)/1000),length(smoothed.Intx)); %create a color vector with the time
+% scatter(smoothed.Intx,smoothed.Inty,[],c)
+% hold on
+% plot(smoothed.Intx,smoothed.Inty,'k')
+% c = colorbar; c.Label.String = 'Time (s)'; %add the colorbar
+% title('2D trajectory of the fly');
+% xlabel('x pos (mm)'); ylabel('y pos (mm)');
+% axis equal; %scale the axes with respect to one another
 
 %why does this have so few loops? It's weird...
 %I think somehow it's not taking into account changes in the heading, that
@@ -678,7 +759,7 @@ axis equal; %scale the axes with respect to one another
 %% Per 'trial'
 
 %I'm using a function to get and smooth data around the jumps
-sec = 10; %how many sec before and after the jump I want to look at
+sec = 15; %how many sec before and after the jump I want to look at
 perTrialData = getDataAroundJump(rawData,j,sec,sizeBall);
 
 %apend jump data and save for using in the pooled flies analysis
@@ -686,6 +767,7 @@ perTrialData.jumpMag = jumps;
 perTrialData.angPos = getPosAroundJump(data.ficTracAngularPosition,j,sec);
 
 save(strcat(path,'perTrialData.mat'),'perTrialData');
+
 
 %% Velocity and around the jumps
 

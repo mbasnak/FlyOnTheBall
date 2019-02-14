@@ -23,13 +23,13 @@ FlyData.line = input('Line: ','s');
 FlyData.eclosionDate = input('Ecclosion date: ','s');
 
 % Get starvation time
-FlyData.sex = input('Starved since: ','s');
+FlyData.starved = input('Starved since: ','s');
 
 % Get head status
-FlyData.sex = input('Glued head?: ','s');
+FlyData.head = input('Glued head?: ','s');
 
 % Get state of the wings
-FlyData.sex = input('Wings state?: ','s');
+FlyData.wings = input('Wings state?: ','s');
 
 % Save
 save('flyData','FlyData')
