@@ -252,6 +252,10 @@ end
 % I will use from now on, so that's how I'll leave it, but this could be
 % changed in case of need
 
+%% Alternative smoothing using 'smooth_diff' function
+
+[alternativeSmoothed] = alternativeSmoothing(data, 1000);
+
 
 %% Forward velocity analysis
 
