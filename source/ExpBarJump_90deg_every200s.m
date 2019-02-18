@@ -1,18 +1,16 @@
-function [daq_data] = ExpBarJump180deg_every200s(flyNum,expNum,TrialNum)
+function [daq_data] = ExpBarJump_90deg_every200s(flyNum,expNum,TrialNum)
 
 % This function runs an experiment in which a bar is presented in closed-loop and
-% every 200 s, it jumps to a position at 180 deg from the
+% every 200 s, it jumps to a position at either 90 or -90 deg from the
 % current one.
 
 %INPUT
 %flyNum : which number of fly are you running
 %expNum : which experiment number are you running
 %TrialNum : how many closed-loop trials are you running
-%gain: choose between 'normal' and 'half'
 
 %OUTPUT
 %daq_data : matrix that returns the voltage data acquired in the NiDaq
-
 
 daqreset %reset DAC object
 devID = 'Dev1';  % Set device ID (to know what the ID is, you can type "daq.getDevices"
@@ -32,12 +30,23 @@ lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
 niOI.startBackground(); %start acquiring
 
 startPos = 2; %to match the starting position of the Y pattern.
+jumpFunction = randperm(5,1)+11 %get a random number from 1 to 5 to determine the pos function
+
+if jumpFunction == 12
+    jumps = [-90,90,90,90,-90,90,90,-90,-90,90,-90,-90];
+elseif jumpFunction == 13
+    jumps = [-90,-90,90,-90,90,90,90,90,-90,-90,90,-90];
+elseif jumpFunction == 14
+    jumps = [-90,-90,90,-90,90,-90,90,90,90,90,-90,-90];
+elseif jumpFunction == 15
+    jumps = [-90,90,-90,-90,90,90,-90,-90,90,90,-90,90];
+elseif jumpFunction == 16
+    jumps = [90,-90,-90,90,-90,-90,90,90,-90,90,-90,90];
+end
+
 
 %%%%%% Run the panels %%%%%%
-%if gain == 'normal'
-    Panel_com('set_pattern_id', 1); %set the bar
-%elseif gain == 'half'
-    %Panel_com('set_pattern_id', 16); %set the bar at half gain
+Panel_com('set_pattern_id', 1); %set the bar
 Panel_com('set_mode', [3 4]); %set it to closed-loop mode in the x dimension and to be controlled by a function in the y dimension 
 pause(0.03)
 Panel_com('send_gain_bias', [0 0 0 0]);
@@ -46,11 +55,11 @@ Panel_com('set_position',[startPos 1]);
 pause(0.03)
 Panel_com('set_funcy_freq', 5);
 pause(0.03)
-Panel_com('set_posfunc_id',[2 12]); %set it to jump 180 deg every 200 sec
+Panel_com('set_posfunc_id',[2 jumpFunction]); %set it to jump every 200 sec, to one of the 5 jumping functions created.
 pause(0.03)
 Panel_com('set_AO',[3 32767]);
 Panel_com('start');
-pause(TrialNum*200+8) %record for the time it takes to span the number of trials requested
+pause(TrialNum*200+4) %record for the time it takes to span the number of trials requested
 Panel_com('stop');
 Panel_com('set_AO',[3 0]);
 Panel_com('all_off');
@@ -65,7 +74,7 @@ delete(lh) % delete the listener handle
 
 [daq_data] = loadFromLogFile('log.dat',6); %load the data just saved to the dat file, using Stephen's function
 
-cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\' %move to our data directory
+cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\' %move to our data directory
     
 if flyNum ==1 %if it's the first fly
    mkdir ([date]) %make a folder with today's date
@@ -73,15 +82,15 @@ end
 %For some reason this isn't working
 
 if expNum == 1 %if it's the first experiment for this fly
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\',date]); %move to today's folder
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\',date]); %move to today's folder
    mkdir (strcat('flyNum',num2str(flyNum))) %inside that folder make a folder for this fly
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\',date,'\flyNum',num2str(flyNum)])
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\',date,'\flyNum',num2str(flyNum)])
    getFlyInfo() %get fly's details
 else
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
 end
 
-save(strcat('dataExpNum',num2str(expNum),'.mat'),'daq_data','startPos','TrialNum'); %save daq data and starting positions as a .mat file
+save(strcat('dataExpNum',num2str(expNum),'.mat'),'daq_data','startPos','TrialNum','jumps'); %save daq data and starting positions as a .mat file
 
 
 end

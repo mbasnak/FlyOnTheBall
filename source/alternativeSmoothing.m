@@ -10,11 +10,11 @@ downsRad.angularPosition = downsampled.angularPosition .* 2 .* pi ./ 10;
 
 unwrapped.Intx = unwrap(downsRad.Intx);
 unwrapped.Inty = unwrap(downsRad.Inty);
-unwrapped.angularPosition = unwrap(downsRad.angularPosition);
+alternativeSmoothed.angularPosition = unwrap(downsRad.angularPosition);
 
 deg.Intx = unwrapped.Intx * 4.75; % wer tranform the pos to mm by scaling the value by the sphere's radius
 deg.Inty = unwrapped.Inty * 4.75;
-deg.angularPosition = (unwrapped.angularPosition / (2*pi)) * 360;
+deg.angularPosition = (alternativeSmoothed.angularPosition / (2*pi)) * 360;
 
 alternativeSmoothed.xVel = filter(-smooth_diff(10),1,deg.Intx)/0.04;
 alternativeSmoothed.yVel = filter(-smooth_diff(10),1,deg.Inty)/0.04;

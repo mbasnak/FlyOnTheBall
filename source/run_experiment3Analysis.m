@@ -1,14 +1,11 @@
-% Experiment 3 analysis
+%Code to go over the full Experiment 3 folder and run the analysis for
+%every fly
 
-%%% This code analyses the output of the panels and the FicTrac data
-%for experiment 3, in which a bar jumps every 200 sec by a predetermined
-%magnitude
-close all; clear all;
+for p = 1:27
 
-% prompt the user to select the file to open and load it.
-cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3'
-[file,path] = uigetfile();
-load([path,file]);
+files = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\*\*\dataExpNum*.mat');
+
+load(strcat(files(p).folder,'\',files(p).name));
 
 rawData = daq_data'; %transpose matrix for future use
 
@@ -293,7 +290,7 @@ xlabel('Forward velocity (mm/s)');
 ylabel('Frequency');
 xlim([-10, 20]);
 
-saveas(gcf,strcat(path,'ForwardVelocity.png'))
+saveas(gcf,strcat(files(p).folder,'\ForwardVelocity.png'))
 
 %% Angular velocity
 
@@ -334,7 +331,7 @@ xlabel('Angular velocity (deg/s)');
 ylabel('Frequency');
 xlim([-300, 300]);
 
-saveas(gcf,strcat(path,'AngularVelocity.png'))
+saveas(gcf,strcat(files(p).folder,'\AngularVelocity.png'))
 
 
 %%  Activity levels
@@ -371,7 +368,7 @@ ylabel('Activity');
 xlabel('Time (s)');
 xlim([0 time(end)]);
 
-saveas(gcf,strcat(path,'ActivityRP.png'))
+saveas(gcf,strcat(files(p).folder,'\ActivityRP.png'))
 
 %% Output in degrees of the Panels position
 
@@ -474,7 +471,7 @@ ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top';
 
 
-saveas(gcf,strcat(path,'BarPosition.png'))
+saveas(gcf,strcat(files(p).folder,'\BarPosition.png'))
 
 %% Fly's heading thoughout the experiment
 
@@ -570,7 +567,7 @@ ax.ThetaDir='clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
 
-saveas(gcf,strcat(path,'FlyPosition.png'))
+saveas(gcf,strcat(files(p).folder,'\FlyPosition.png'))
 %% Look at the goal and calculate the distance to it...
 
 %Taking all the experiment
@@ -621,7 +618,7 @@ title('Distance to the goal with moving frames first 300 sec');
 xlim([-180, 180]); xlabel('Distance to the goal (deg)');
 ylabel('Probability');
 
-save(strcat(path,'goals.mat'),'goal','goalMoving','dist2goal','dist2goalMoving','goalMoving300sec','dist2goalMoving300sec');
+save(strcat(files(p).folder,'\goals.mat'),'goal','goalMoving','dist2goal','dist2goalMoving','goalMoving300sec','dist2goalMoving300sec');
 
 
 
@@ -712,8 +709,8 @@ for i = 1:length(j)-1
     ylabel('Probability');
 end
     suptitle('Distance to the goal 100 sec around the jumps');
-    
-    saveas(gcf,strcat(path,'Dist2goal100sec.png'))
+ 
+    saveas(gcf,strcat(files(p).folder,'\Dist2goal100sec.png'))
 
     
 %Plot them using colorscales
@@ -727,11 +724,11 @@ newMap = flipud(gray);
 figure, imagesc(probaDist100secMoving')
 colormap(newMap)
 colorbar
-saveas(gcf,strcat(path,'HeatMapDist2goal100sec.png'))
+saveas(gcf,strcat(files(p).folder,'\HeatMapDist2goal100sec.png'))
 
 
 %save data
-save(strcat(path,'shortData.mat'),'shortData','probaDist100secMoving');
+save(strcat(files(p).folder,'\shortData.mat'),'shortData','probaDist100secMoving');
 %% 2D trajectories
 
 % figure,
@@ -773,7 +770,7 @@ perTrialData = getDataAroundJump(rawData,j,sec,sizeBall);
 perTrialData.jumpMag = jumps;
 perTrialData.angPos = getPosAroundJump(data.ficTracAngularPosition,j,sec);
 
-save(strcat(path,'perTrialData.mat'),'perTrialData');
+save(strcat(files(p).folder,'\perTrialData.mat'),'perTrialData');
 
 
 %% Velocity and around the jumps
@@ -935,3 +932,7 @@ title('Mean angular velocity');
 legend({'45','-45','90','-90'});
 ylabel('Angular velocity (deg/s)'); xlabel('Time from bar jump (s)');
 
+
+close all; clear all;
+
+end

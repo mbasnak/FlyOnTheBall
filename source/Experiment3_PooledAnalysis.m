@@ -268,6 +268,38 @@ set(gca,'xticklabel',{[]})
 %I see an effect for the angular velocity in 90 and -90 if I compare every
 %individual trial BJ and AJ, but not if I take the mean for each fly...
 
+
+%Using mixed models statistics
+%random factor: fly, fixed factors: time (BJ/AJ), jump magnitude
+
+FlyID = zeros(0,0);
+BJVelocity = zeros(0,0);
+AJVelocity = zeros(0,0);
+JumpMagnitude = zeros(0,0);
+
+for i = 1:length(data)
+    FlyID = [FlyID, repelem(i,size(data{1,i}.perTrialData.forwardVel,2))]; %we repeat the fly's idea for double the number of trials, since we will compute the velocity on a given trial before and after the jump
+    BJVelocity = [BJVelocity,mean(data{1,i}.perTrialData.angVel(jumpFrame-50:jumpFrame,:))];
+    AJVelocity = [AJVelocity,mean(data{1,i}.perTrialData.angVel(jumpFrame:jumpFrame+50,:))];
+    JumpMagnitude = [JumpMagnitude,data{1,i}.perTrialData.jumpMag];
+end
+
+FlyID = [FlyID,FlyID];
+FlyID = sprintfc('%d',FlyID);
+Velocity = [BJVelocity,AJVelocity];
+JumpMagnitude = [JumpMagnitude,JumpMagnitude];
+Time = {};
+Time(1:length(BJVelocity)) = {'BJ'};
+Time(length(BJVelocity)+1:length(BJVelocity)+length(AJVelocity)) = {'AJ'};
+
+factorsVel = table(Velocity',FlyID',Time',JumpMagnitude');
+factorsVel.Properties.VariableNames = {'Velocity','FlyID','Time','JumpMagnitude'};
+
+%run a mixed-effects model
+glme0 = fitglme(factorsVel,'Velocity ~ 1 + Time*JumpMagnitude +(1|FlyID)');
+disp(glme0)
+stats = anova(glme0)
+
 %% distance to the goal
 
 Files = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\*\*\goals.mat');
@@ -483,6 +515,30 @@ ylabel('Menotaxis during all experiment');
 
 saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\menotacticCorr.png'))
 saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\menotacticCorr.svg'))
+
+%% Distance to the goal in the 100 sec around the jumps
+
+Files = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\*\*\shortData.mat');
+
+%load every file with name %perTrialData, adding to the name the date and
+%fly, reading the folder it came from
+
+for i = 1:length(Files)
+shortData{i} = load(strcat(Files(i).folder,'\',Files(i).name));
+end
+
+proba100secAll = zeros(0,0);
+
+for i = 1:length(files)
+    proba100secAll = [proba100secAll,shortData{1,i}.probaDist100secMoving];
+end
+
+newMap = flipud(gray);
+figure, imagesc(proba100secAll')
+colormap(newMap)
+colorbar
+title('Distribution of the distance to the goal 100 sec before to 100 sec after jumps')
+xlabel('Distance to the goal (deg)'); ylabel('Trial #');
 
 
 
