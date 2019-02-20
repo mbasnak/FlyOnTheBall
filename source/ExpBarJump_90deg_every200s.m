@@ -30,17 +30,17 @@ lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
 niOI.startBackground(); %start acquiring
 
 startPos = 2; %to match the starting position of the Y pattern.
-jumpFunction = randperm(5,1)+11 %get a random number from 1 to 5 to determine the pos function
+jumpFunction = randperm(5,1)+12 %get a random number from 1 to 5 to determine the pos function
 
-if jumpFunction == 12
+if jumpFunction == 13
     jumps = [-90,90,90,90,-90,90,90,-90,-90,90,-90,-90];
-elseif jumpFunction == 13
-    jumps = [-90,-90,90,-90,90,90,90,90,-90,-90,90,-90];
 elseif jumpFunction == 14
-    jumps = [-90,-90,90,-90,90,-90,90,90,90,90,-90,-90];
+    jumps = [-90,-90,90,-90,90,90,90,90,-90,-90,90,-90];
 elseif jumpFunction == 15
-    jumps = [-90,90,-90,-90,90,90,-90,-90,90,90,-90,90];
+    jumps = [-90,-90,90,-90,90,-90,90,90,90,90,-90,-90];
 elseif jumpFunction == 16
+    jumps = [-90,90,-90,-90,90,90,-90,-90,90,90,-90,90];
+elseif jumpFunction == 17
     jumps = [90,-90,-90,90,-90,-90,90,90,-90,90,-90,90];
 end
 
@@ -76,10 +76,9 @@ delete(lh) % delete the listener handle
 
 cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\' %move to our data directory
     
-if flyNum ==1 %if it's the first fly
-   mkdir ([date]) %make a folder with today's date
-end
-%For some reason this isn't working
+% if flyNum ==1 %if it's the first fly
+%    mkdir ([date]) %make a folder with today's date
+% end
 
 if expNum == 1 %if it's the first experiment for this fly
    cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\',date]); %move to today's folder

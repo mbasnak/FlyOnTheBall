@@ -1,4 +1,4 @@
-%% Analysis of the panel/FicTrac data
+%% Analysis of the panel/FicTrac data for empty trials
 % To run it, you should be standing inside the folder of the fly whose data
 % you're trying to analyze.
 
@@ -72,8 +72,7 @@ title('Distribution of forward velocities');
 xlabel('Forward velocity (mm/s)');
 ylabel('Frequency');
 
-%saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(11:end-4), '.png'))
-%saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(11:end-4), '.svg'))
+saveas(gcf,strcat(path,'ForwardVelocity_EmptyTrial.png'))
 
 
 %% Angular velocity analysis
@@ -101,6 +100,8 @@ histogram(angularVelocity,'FaceColor',[.2 .8 .6])
 title('Distribution of angular velocities');
 xlabel('Angular velocity (deg/s)');
 ylabel('Frequency');
+
+saveas(gcf,strcat(path,'AngularVelocity_EmptyTrial.png'))
 
 
 %%  Keep the frames during which the fly is moving
@@ -131,6 +132,8 @@ title('Activity raster plot');
 ylabel('Activity');
 xlabel('Time (s)');
 
+saveas(gcf,strcat(path,'AR_EmptyTrial.png'))
+
 %% Output in degrees of the Panels position
 
 pxToDeg = 360/96; % There are 96 possible positions and this represents 360 deg
@@ -146,88 +149,6 @@ for i=1:length(downsampled.xPanelPos)
         posToDeg(i) = (downsampled.xPanelPos(i)+27)*pxToDeg; % Correct the offset and multiply by factor to get deg
     end
 end
-
-%% Probability density function of the stimulus position
-
-% Remapping the positions to span -180 to 180 deg
-remapPosToDeg = wrapTo180(posToDeg);
-
-figure('Position', [100 100 1200 900]),
-
-% Stimulus position in time, with every frame
-time = linspace(0,(length(rawData)/1000),length(remapPosToDeg));
-subplot(2,4,[1,5])
-scatter(remapPosToDeg, time, [], forwardVelocity); %add the forward velocity as a color
-hold on
-plot(remapPosToDeg, time,'k','HandleVisibility','off')
-xlabel('Heading angle (deg)'); ylabel('Time (s)');
-title('Angular position of the stimulus');
-xlim([-180 180]); ylim([0 max(time)]);
-ax = gca;
-ax.YDir = 'reverse';
-
- % Heading in time, with only moving frames.
-%time = linspace(0,(length(rawData)/1000),length(flyPos180(forwardVelocity>1)));
-subplot(2,4,[4,8])
-scatter(remapPosToDeg(forwardVelocity>1), time(forwardVelocity>1));
-xlabel('Heading angle (deg)'); ylabel('Time (s)');
-title('Angular position of the stimulus');
-xlim([-180 180]); ylim([0 max(time)]);
-ax = gca;
-ax.YDir = 'reverse'; 
-
-
-% Plot the histogram and probability density
-%With every frame
-edges = [-180:20:180];
-[counts] = histcounts(remapPosToDeg,edges);
-probabilities = counts./sum(counts);
-degs = linspace(-180,180,length(counts));
-
-subplot(2,4,2)
-plot(degs,probabilities,'k')
-set(0, 'DefaulttextInterpreter', 'none')
-xlim([-180 180]); ylim([0 max(probabilities)+0.05]);
-title('Probability density of the stimulus position');
-ylabel('Probability density'); xlabel('Stimulus position (deg)');
-
-%With only frames with velocity>1
-[countsMoving] = histcounts(remapPosToDeg(forwardVelocity>1),edges);
-probabilitiesMoving = countsMoving./sum(countsMoving);
-degsMoving = linspace(-180,180,length(countsMoving));
-
-subplot(2,4,3)
-plot(degsMoving,probabilitiesMoving,'k')
-set(0, 'DefaulttextInterpreter', 'none')
-xlim([-180 180]); ylim([0 max(probabilitiesMoving)+0.05]);
-title('Probability density of the stimulus position with only moving frames');
-ylabel('Probability density'); xlabel('Stimulus position (deg)');
-
-
-% Polar coordinates analysis of the stimulus position
-posToRad = deg2rad(posToDeg);
-% some statistics...
-CircularStats = circ_stats(posToRad);
-[pval,z] = circ_rtest(posToRad);
-circLength = circ_r(posToRad,[],2);
-
-%Plot the histogram in polar coordinates
-circedges = [0:20:360];
-circedges = deg2rad(circedges);
-subplot(2,4,6)
-polarhistogram(posToRad,circedges,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
-title('Probability density of the stimulus position, every frame');
-ax = gca;
-ax.ThetaDir = 'clockwise';
-ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
-
-subplot(2,4,7)
-polarhistogram(posToRad(forwardVelocity>1),circedges,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
-title('Probability density of the stimulus position, moving frames');
-ax = gca;
-ax.ThetaDir = 'clockwise';
-ax.ThetaZeroLocation = 'top';
-
 
 %% Fly's heading thoughout the experiment
 
@@ -317,8 +238,7 @@ ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
-saveas(gcf,strcat(path,'FlyPosition_ClosedLoopBar.png'))
-
+saveas(gcf,strcat(path,'FlyPosition_EmptyTrial.png'))
 
 %% Distance to the goal
 
@@ -348,17 +268,4 @@ title('Distance to the goal with moving frames');
 xlim([-180, 180]); xlabel('Distance to the goal (deg)');
 ylabel('Probability');
 
-saveas(gcf,strcat(path,'Dist2goal_ClosedLoopBar.png'))
-
-% 
-% %% Plot 2D virtual trajectory of the fly
-% 
-% figure,
-% c = linspace(1,(length(data.xPanelPos)/1000),length(smoothed.Intx)); %create a color vector with the time
-% scatter(smoothed.Intx,smoothed.Inty,[],c)
-% hold on
-% plot(smoothed.Intx,smoothed.Inty,'k')
-% c = colorbar; c.Label.String = 'Time (s)'; %add the colorbar
-% title('2D trajectory of the fly');
-% xlabel('x pos (mm)'); ylabel('y pos (mm)');
-% axis tight equal; %scale the axes with respect to one another
+saveas(gcf,strcat(path,'Dist2goal_EmptyTrial.png'))

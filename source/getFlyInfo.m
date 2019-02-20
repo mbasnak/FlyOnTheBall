@@ -31,5 +31,11 @@ FlyData.head = input('Glued head?: ','s');
 % Get state of the wings
 FlyData.wings = input('Wings state?: ','s');
 
+% Get temperature
+FlyData.temperature = input('Temperature?: ','s');
+
+% Get humidity
+FlyData.humidity = input('Humidity?: ','s');
+
 % Save
 save('flyData','FlyData')

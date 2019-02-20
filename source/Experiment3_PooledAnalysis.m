@@ -264,7 +264,7 @@ for i = 1:length(aroundNeg90Ang)
 end
 text(1,max(max(aroundNeg90Ang)),strcat('p = ',num2str(p8)))
 set(gca,'xticklabel',{[]})
-
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\QuantVelChange.png'))
 %I see an effect for the angular velocity in 90 and -90 if I compare every
 %individual trial BJ and AJ, but not if I take the mean for each fly...
 
@@ -540,6 +540,8 @@ colorbar
 title('Distribution of the distance to the goal 100 sec before to 100 sec after jumps')
 xlabel('Distance to the goal (deg)'); ylabel('Trial #');
 
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\Dist2Goal100sec.png'))
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\Dist2Goal100sec.svg'))
 
 
 %% Dist to the goal 10 sec before jump in time

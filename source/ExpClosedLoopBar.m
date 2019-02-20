@@ -2,7 +2,7 @@
 
 function ExpClosedLoopBar(flyNum,expNum,time)
 
-cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3';
+cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\';
 
 daqreset %reset DAC object
 devID = 'Dev1';  % Set device ID (to know what the ID is, you can type "daq.getDevices"
@@ -36,22 +36,22 @@ Panel_com('all_off');
 Panel_com('set_AO',[3 0]);
 
 
-if flyNum ==1 %if it's the first fly
-   mkdir ([date]) %make a folder with today's date
-end
+% if flyNum ==1 %if it's the first fly
+%    mkdir ([date]) %make a folder with today's date
+% end
 
 
 if expNum == 1 %if it's the first experiment for this fly
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\',date]); %move to today's folder
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\',date]); %move to today's folder
    mkdir (strcat('flyNum',num2str(flyNum))) %inside that folder make a folder for this fly
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\',date,'\flyNum',num2str(flyNum)])
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\',date,'\flyNum',num2str(flyNum)])
    getFlyInfo() %get fly's details
 else
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment3\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
 end
 
 
-save(strcat('dataCloseLoopBar',num2str(expNum),'.mat'),'rawData'); %save as 
+save(strcat('dataClosedLoopBar',num2str(expNum),'.mat'),'rawData'); %save as 
 
 
 end
