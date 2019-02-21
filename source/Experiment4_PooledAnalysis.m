@@ -377,9 +377,9 @@ end
 factors = table(height',Hours',Day',Genotype',circTime');
 factors.Properties.VariableNames = {'Height' 'Hours' 'Day' 'Genotype' 'circTime'};
 
-%run a mixed-effects model
-glme = fitglme(factors,'Height ~ 1 + circTime + Hours + Day + Genotype');
-disp(glme)
+% %run a mixed-effects model
+% glme = fitglme(factors,'Height ~ 1 + circTime + Hours + Day + Genotype');
+% disp(glme)
 
 
 
@@ -414,7 +414,9 @@ for i = 1:length(files)
 end
 
 newMap = flipud(gray);
-figure, imagesc(proba100secAll')
+xaxis = [-180:360/17:180];
+trials = [1:110];
+figure, imagesc(xaxis,trials,proba100secAll')
 colormap(newMap)
 colorbar
 title('Distribution of the distance to the goal 100 sec before to 100 sec after jumps')

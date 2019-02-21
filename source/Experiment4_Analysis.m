@@ -110,7 +110,7 @@ plot(Jumps);
 ylabel('Voltage difference (V)');xlabel('Time');
 
 j = find(Jumps); %indices of the actual bar jumps, taken from the y signal
-j = j(2:end); %I leave out the 1st cause it's taking the on signal
+%j = j(2:end); %I leave out the 1st cause it's taking the on signal
 jsec = j/1000;
 
 %plot the data from the yPanels and add lines of the previously determined
@@ -704,7 +704,9 @@ probaDist100secMoving = reshape(probaDist100secMoving,length(probaDist100secMovi
 
 %create new colormap
 newMap = flipud(gray);
-figure, imagesc(probaDist100secMoving')
+xaxis = [-180:360/17:180];
+trials = [1:110];
+figure, imagesc(xaxis,trials,probaDist100secMoving')
 colormap(newMap)
 colorbar
 saveas(gcf,strcat(path,'HeatMapDist2goal100secExp.png'))
@@ -854,18 +856,25 @@ meanForwardVelNeg90 = mean(DataNeg90.forwardVel,2);
 meanAngVel90 = mean(Data90.angVel,2);
 meanAngVelNeg90 = mean(DataNeg90.angVel,2);
 
-figure,
+figure('Position', [100 100 1600 900]),
 subplot(1,2,1)
-plot(time,meanForwardVel90)
+plot(time,meanForwardVel90,'r')
 hold on
-plot(time,meanForwardVelNeg90)
+plot(time,meanForwardVelNeg90,'k')
 title('Mean forward velocity');
 legend({'90','-90'});
 ylabel('Forward velocity (mm/s)'); xlabel('Time from bar jump (s)');
+xlim([-15,15]);
+plot([-15,15],[0,0],'-.k','HandleVisibility','off');
 subplot(1,2,2)
-plot(time,meanAngVel90)
+plot(time,meanAngVel90,'r')
 hold on
-plot(time,meanAngVelNeg90)
+plot(time,meanAngVelNeg90,'k')
 title('Mean angular velocity');
 legend({'90','-90'});
 ylabel('Angular velocity (deg/s)'); xlabel('Time from bar jump (s)');
+xlim([-5, 5]); ylim([min(meanAngVel90)-10, max(meanAngVelNeg90)+10]);
+plot([0,0],[min(meanAngVel90)-10, max(meanAngVelNeg90)+10],'k','HandleVisibility','off');
+plot([-5,5],[0,0],'-.k','HandleVisibility','off');
+
+saveas(gcf,strcat(path,'MeanAJvelocities.png'))
