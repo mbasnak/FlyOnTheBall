@@ -416,7 +416,7 @@ end
 newMap = flipud(gray);
 xaxis = [-180:360/17:180];
 trials = [1:110];
-figure, imagesc(xaxis,trials,proba100secAll')
+figure('Position', [300 100 1000 900]), imagesc(xaxis,trials,proba100secAll')
 colormap(newMap)
 colorbar
 title('Distribution of the distance to the goal 100 sec before to 100 sec after jumps')
@@ -424,4 +424,118 @@ xlabel('Distance to the goal (deg)'); ylabel('Trial #');
 
 saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\Dist2Goal100sec.png'))
 saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\Dist2Goal100sec.svg'))
+
+
+%% Distance to the goal distribution for empty trials
+
+
+Files = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\*\experimental flies\*\EmptyTrialGoals.mat');
+
+%load every file with name %perTrialData, adding to the name the date and
+%fly, reading the folder it came from
+for i = 1:length(Files)
+data{i} = load(strcat(Files(i).folder,'\',Files(i).name));
+end
+
+%concatenate as columns the arrays for all the variables
+
+goalAll = zeros(0,0);
+goalMovingAll = zeros(0,0);
+dist2goalAll = {};
+dist2goalMovingAll = {};
+
+
+for i = 1:length(Files)
+    goalAll = [goalAll;data{1,i}.goal];
+    goalMovingAll = [goalMovingAll;data{1,i}.goalMoving];
+    dist2goalAll{i} = data{1,i}.dist2goal;
+    dist2goalMovingAll{i} = data{1,i}.dist2goalMoving;
+end
+
+%Look at goal distribution
+figure('Position', [100 100 1600 900]),
+subplot(2,2,1)
+plot(rad2deg(goalAll),'ko')
+ylim([-180,180]);
+xlabel('Fly #');ylabel('Heading goadl (deg)');
+title('Heading goal with every frame');
+subplot(2,2,2)
+plot(rad2deg(goalMovingAll),'ro')
+ylim([-180,180]);
+xlabel('Fly #');ylabel('Heading goadl (deg)');
+title('Heading goal with only moving frames');
+subplot(2,2,3)
+polarhistogram(goalAll,10,'FaceColor','black')
+ax = gca;
+ax.ThetaDir='clockwise';
+ax.ThetaZeroLocation = 'top';
+subplot(2,2,4)
+polarhistogram(goalMovingAll,10,'FaceColor','red')
+ax = gca;
+ax.ThetaDir='clockwise';
+ax.ThetaZeroLocation = 'top';
+
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\GoalDistributionEmptyTrial.png'))
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\GoalDistributionEmptyTrial.svg'))
+
+
+%Looks at the distribution of the variable 'Distance to the goal'
+figure('Position', [100 100 1600 900]),
+edges = [-180:20:180];
+for i = 1:length(dist2goalAll)
+    [countsDist{i}] = histcounts(dist2goalAll{i},edges);
+    probabilitiesDist{i} = countsDist{i}./sum(countsDist{i});
+    degsFlyDist{i} = linspace(-180,180,length(countsDist{i}));
+    subplot(1,2,1), plot(degsFlyDist{i},probabilitiesDist{i})
+    hold on
+end
+title('Distance to the goal with every frame');
+xlim([-180, 180]); xlabel('Distance to the goal (deg)');
+ylabel('Probability');
+
+%add mean and error
+Distance = zeros(0,0);
+allFliesprob = zeros(0,0);
+for i = 1:length(dist2goalAll)
+    Distance = [Distance,dist2goalAll{i}];
+    allFliesprob = [allFliesprob;probabilitiesDist{1,i}];
+end
+[allcounts] = histcounts(Distance,edges);
+Allprobabilities = allcounts./sum(allcounts);
+alldegs = linspace(-180,180,length(allcounts));
+error = std(allFliesprob);
+h1 = boundedline(alldegs,Allprobabilities,error,'k','alpha')
+set(h1, 'linewidth', 3); ylim([0,0.25]); 
+
+%For moving frames only
+for i = 1:length(dist2goalMovingAll)
+    [countsDistMoving{i}] = histcounts(dist2goalMovingAll{i},edges);
+    probabilitiesDistMoving{i} = countsDistMoving{i}./sum(countsDistMoving{i});
+    degsFlyDistMoving{i} = linspace(-180,180,length(countsDistMoving{i}));
+    subplot(1,2,2), plot(degsFlyDistMoving{i},probabilitiesDistMoving{i})
+    hold on
+end
+title('Distance to the goal with moving frames');
+xlim([-180, 180]); xlabel('Distance to the goal (deg)');
+ylabel('Probability');
+
+
+%add mean and error
+DistanceMoving = zeros(0,0);
+allFliesprobMoving = zeros(0,0);
+for i = 1:length(dist2goalMovingAll)
+    DistanceMoving = [DistanceMoving,dist2goalMovingAll{i}];
+    allFliesprobMoving = [allFliesprobMoving;probabilitiesDistMoving{1,i}];
+end
+[allcountsMoving] = histcounts(DistanceMoving,edges);
+AllprobabilitiesMoving = allcountsMoving./sum(allcountsMoving);
+alldegsMoving = linspace(-180,180,length(allcountsMoving));
+errorMoving = std(allFliesprobMoving);
+h2 = boundedline(alldegsMoving,AllprobabilitiesMoving,errorMoving,'k','alpha')
+set(h2, 'linewidth', 3);
+ylim([0,0.25]);
+
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\Dist2goalEmmptyTrial.png'))
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\Dist2goalEmptyTrial.svg'))
+
 

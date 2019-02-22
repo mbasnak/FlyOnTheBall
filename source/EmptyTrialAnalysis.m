@@ -268,4 +268,5 @@ title('Distance to the goal with moving frames');
 xlim([-180, 180]); xlabel('Distance to the goal (deg)');
 ylabel('Probability');
 
+save(strcat(path,'EmptyTrialGoals.mat'),'goal','goalMoving','dist2goal','dist2goalMoving');
 saveas(gcf,strcat(path,'Dist2goal_EmptyTrial.png'))
