@@ -7,7 +7,9 @@ clear all; close all;
 
 %% Around jump velocities
 
-files = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\*\experimental flies\*\perTrialData.mat');
+%files = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\*\experimental flies\*\perTrialData.mat');
+
+files = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\*\experimental flies\*\Smoothed50perTrialData.mat');
 
 %load every file with name %perTrialData, adding to the name the date and
 %fly, reading the folder it came from
@@ -76,8 +78,11 @@ plot([-8,8],[0, 0],'k','HandleVisibility','off');
 legend([,p32,p42], '90','-90');
 ylabel('Angular velocity (deg/s)'); xlabel('Time from bar jump (s)');
 
-saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\AverageVelocityChange.png'))
-saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\AverageVelocityChange.svg'))
+%saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\AverageVelocityChange.png'))
+%saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\AverageVelocityChange.svg'))
+
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\Smoothed50AverageVelocityChange.png'))
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\Smoothed50AverageVelocityChange.svg'))
 
 %% Add Jonathan's quantitative analysis:
 %he takes the mean velocity from -2 to 0 and compares it with the one from
@@ -181,8 +186,9 @@ for i = 1:length(aroundNeg90Ang)
 end
 text(1,max(max(aroundNeg90Ang)),strcat('p = ',num2str(p8)))
 set(gca,'xticklabel',{[]})
-saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\QuantVelChange.png'))
+%saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\QuantVelChange.png'))
 
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\Smoothed50QuantVelChange.png'))
 
 %% 
 
@@ -219,7 +225,8 @@ stats = anova(glme0)
 
 %% distance to the goal
 
-Files = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\*\experimental flies\*\goals.mat');
+%Files = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\*\experimental flies\*\goals.mat');
+Files = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\*\experimental flies\*\Smoothedgoals.mat');
 
 %load every file with name %perTrialData, adding to the name the date and
 %fly, reading the folder it came from
@@ -266,8 +273,11 @@ ax = gca;
 ax.ThetaDir='clockwise';
 ax.ThetaZeroLocation = 'top';
 
-saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\GoalDistribution.png'))
-saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\GoalDistribution.svg'))
+%saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\GoalDistribution.png'))
+%saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\GoalDistribution.svg'))
+
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\SmoothedGoalDistribution.png'))
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\SmoothedGoalDistribution.svg'))
 
 
 %Looks at the distribution of the variable 'Distance to the goal'
@@ -324,9 +334,11 @@ errorMoving = std(allFliesprobMoving);
 h2 = boundedline(alldegsMoving,AllprobabilitiesMoving,errorMoving,'k','alpha')
 set(h2, 'linewidth', 3);
 
-saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\Dist2goal.png'))
-saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\Dist2goal.svg'))
+%saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\Dist2goal.png'))
+%saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\Dist2goal.svg'))
 
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\SmoothedDist2goal.png'))
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\SmoothedDist2goal.svg'))
 
 
 %% Regress distance to goal using several variables
@@ -398,7 +410,9 @@ saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\FactorEffects
 
 %% Distance to the goal in the 100 sec around the jumps
 
-Files = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\*\experimental flies\*\shortData.mat');
+%Files = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\*\experimental flies\*\shortData.mat');
+Files = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\*\experimental flies\*\SmoothedshortData.mat');
+
 
 %load every file with name %perTrialData, adding to the name the date and
 %fly, reading the folder it came from
@@ -422,9 +436,11 @@ colorbar
 title('Distribution of the distance to the goal 100 sec before to 100 sec after jumps')
 xlabel('Distance to the goal (deg)'); ylabel('Trial #');
 
-saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\Dist2Goal100sec.png'))
-saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\Dist2Goal100sec.svg'))
+%saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\Dist2Goal100sec.png'))
+%saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\Dist2Goal100sec.svg'))
 
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\SmoothedDist2Goal100sec.png'))
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\SmoothedDist2Goal100sec.svg'))
 
 %% Distance to the goal distribution for empty trials
 

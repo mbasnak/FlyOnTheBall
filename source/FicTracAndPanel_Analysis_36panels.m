@@ -350,15 +350,3 @@ ylabel('Probability');
 
 saveas(gcf,strcat(path,'Dist2goal_ClosedLoopBar.png'))
 
-% 
-% %% Plot 2D virtual trajectory of the fly
-% 
-% figure,
-% c = linspace(1,(length(data.xPanelPos)/1000),length(smoothed.Intx)); %create a color vector with the time
-% scatter(smoothed.Intx,smoothed.Inty,[],c)
-% hold on
-% plot(smoothed.Intx,smoothed.Inty,'k')
-% c = colorbar; c.Label.String = 'Time (s)'; %add the colorbar
-% title('2D trajectory of the fly');
-% xlabel('x pos (mm)'); ylabel('y pos (mm)');
-% axis tight equal; %scale the axes with respect to one another

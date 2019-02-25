@@ -38,17 +38,11 @@ function [smoothed] = singleTrialVelocityAnalysis(data, sampleRate)
 
 %% Smooth the data
 
-    smoothed.Intx = smoothdata(unwrapped.Intx,10); %smooth using a 10 number window
+    smoothed.Intx = smoothdata(unwrapped.Intx,10); 
     smoothed.Inty = smoothdata(unwrapped.Inty,10);
-    smoothed.angularPosition = smoothdata(unwrapped.angularPosition,10);
+    smoothed.angularPosition = smoothdata(unwrapped.angularPosition,'rlowess',25);
     
-%     smoothed.Intx = smooth(unwrapped.Intx,10); %smooth using a 10 number window
-%     smoothed.Inty = smooth(unwrapped.Inty,10);
-%     smoothed.angularPosition = smooth(unwrapped.angularPosition,10);
-%     
-    
-    
-    
+  
 %% Transform to useful systems 
     
     deg.Intx = smoothed.Intx * 4.75; % wer tranform the pos to mm by scaling the value by the sphere's radius
@@ -62,15 +56,24 @@ function [smoothed] = singleTrialVelocityAnalysis(data, sampleRate)
     diff.Inty = gradient(deg.Inty).* 25;
     diff.angularPosition = gradient(deg.angularPosition).* 25;
 
+%% Calculate the distribution and take values that are below 5% and above 95%
+    
+    percentile25 = prctile(diff.angularPosition,2.5);
+    percentile975 = prctile(diff.angularPosition,97.5);
 
+    boundedDiffAngularPos = diff.angularPosition;
+    boundedDiffAngularPos(boundedDiffAngularPos<percentile25 | boundedDiffAngularPos>percentile975) = NaN;
+    
+       
+    
     %%  Smooth again
  
     smoothed.xVel = smoothdata(diff.Intx,10);
     smoothed.yVel = smoothdata(diff.Inty,10);
-    smoothed.angularVel = smoothdata(diff.angularPosition,5);
+    %smoothed.angularVel = smoothdata(diff.angularPosition,'rlowess',100);
     
-%     smoothed.xVel = smooth(diff.Intx,10);
-%     smoothed.yVel = smooth(diff.Inty,10);
-%     smoothed.angularVel = smooth(diff.angularPosition,5);
+    smoothed.angularVel = smoothdata(boundedDiffAngularPos,'rlowess',25,'includenan');
+
+
 
 end

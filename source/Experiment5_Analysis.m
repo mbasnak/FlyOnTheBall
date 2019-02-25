@@ -1,12 +1,12 @@
-% Experiment 4 analysis
+% Experiment 5 analysis
 
 %%% This code analyses the output of the panels and the FicTrac data
-%for experiment 3, in which a bar jumps every 200 sec by a predetermined
-%magnitude
+%for experiment 5, in which the fly gets thre blocks of bar jumps of
+%different error level (low-high-low)
 close all; clear all;
 
 % prompt the user to select the file to open and load it.
-cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4'
+cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5'
 [file,path] = uigetfile();
 load([path,file]);
 
@@ -20,7 +20,6 @@ xPanels = 4;
 yPanels = 5;
 PanelStatus = 6; %this signal tells whether the panels are on or off.
 
-JumpTime = 200; %how long was the time between bar jumps (in sec)
 %% Subset acquisition of x and y pos, as well as FicTrac data
 
 data.xpanelVolts =  rawData (:,xPanels); 
@@ -44,7 +43,7 @@ data.ficTracInty = rawData ( : , yFly);
 
 % Plot Panel acquisition time
 figure,
-subplot(3,1,1)
+subplot(2,1,1)
 plot(rawData(:,6))
 ylabel('Voltage signal (V)');
 title('Panels ON and OFF');
@@ -54,7 +53,7 @@ ylim([-0.1 10.1]);
 % Define when the panels turn on and off
 %take the derivative of the panels' signal
 panelON = diff(rawData(:,6));
-subplot(3,1,2)
+subplot(2,1,2)
 plot(panelON)
 xlim([0 size(daq_data,2)]);
 xlabel('Time (frames)');
@@ -69,33 +68,8 @@ endFrame = I2(1);
 text(startFrame+35000,5,strcat('startFrame',num2str(startFrame)))
 text(endFrame-100000,5,strcat('endFrame',num2str(endFrame)))
 
-% Define the frames with bar jumps
-%1) Using the start signal and the trial duration
-barjumpFrames = [startFrame:JumpTime*1000:endFrame]; %1000 is the sample rate from the nidaq
-barjumpFrames = barjumpFrames(2:end);
-barjumpSeconds = barjumpFrames/1000;
 
-%check that the number of trials is the same as requested
-if size(barjumpFrames,2)~=TrialNum
-    warning('Incorrect trial number');
-else
-    display('Correct trial number');
-end
-
-%plot the data from the yPanels and add lines of the previously determined
-%bar jumps
-%plot the panels y dimension signal
-subplot(3,1,3), plot(data.yPanelVolts)
-title('Bar jumps');
-xlabel('Time (frames)'); ylabel('Voltage (V)');
-hold on
-%add the bar jumps
-for i = 1:length(barjumpFrames)
-    plot([barjumpFrames(i) barjumpFrames(i)],[0 10],'r');
-end
-
-
-%2) Using the signal from the yPanels channel
+% get the jumps using the signal from the yPanels channel
 Jumps = diff(data.yPanelVolts);
 Jumps(abs(Jumps)>0.4 & abs(Jumps)<1)=1;
 Jumps = round(Jumps);
@@ -124,6 +98,11 @@ hold on
 for i = 1:length(j)
     plot([j(i) j(i)],[0 10],'r');
 end
+%add the blocks
+endBlock1 = j(12)+4000;
+endBlock2 = j(36)+4000;
+plot([endBlock1 endBlock1],[0 10],'k');
+plot([endBlock1 endBlock1],[0 10],'k');
 %% Fixing the data relative to the bar jumps
 
 %The x position of the panels and the FicTrac output are "ignorant" of the
@@ -207,6 +186,11 @@ title('Jump magnitude, taken from yPanels');
 ylabel('deg');xlabel('Trial #');xlim([1 TrialNum]);
 % compare that to the jump function we have stored
 hold on
+%Define jumps for the three blocks and in total
+Block1deg = [-90,-90,90,-90,-90,-90,90,-90,90,-90,90,90];
+Block2deg = [-90,-90,-90,90,90,90,90,90,-90,90,90,90,90,-90,-90,-90,90,90,90,90,90,-90,-90,90];
+Block3deg = [-90,-90,-90,-90,90,-90,90,90,-90,90,-90,-90];
+jumps = [Block1deg,Block2deg,Block3deg];
 plot(jumps(1:TrialNum),'b')
 legend({'Jumps from Y data','Jump function used'});
 
@@ -221,7 +205,6 @@ ylabel('deg');xlabel('Trial #'); xlim([1 TrialNum]);
 hold on
 plot(jumps(1:TrialNum),'b')
 legend({'Jumps from X data','Jump function used'});
-
 
 %check if the jump magnitude appears ok in the angular position data
 jumpMag2 = data.ficTracAngularPosition(j+1)-data.ficTracAngularPosition(j-1); 
@@ -238,15 +221,12 @@ legend({'Jumps from angular position','Jump function used'});
 
 %% Downsample, unwrap and smooth position data, then get velocity and smooth
 
-
 sizeBall = 9;
-
 [smoothed] = singleTrialVelocityAnalysis9mm(data,1000);
 
 % for most experiments I have used 1000 Hz as a sample rate, and it is what
 % I will use from now on, so that's how I'll leave it, but this could be
 % changed in case of need
-
 
 %% Forward velocity analysis
 
@@ -270,9 +250,13 @@ plot(time,forwardVelocity,'k','HandleVisibility','off')
 xlim([0 time(end)]);
 ylim([-20 40]);
 hold on
+%add the jumps
 for i = 1:length(jsec)
      plot([jsec(i) jsec(i)],[min(forwardVelocity)-10 max(forwardVelocity)+10],'g');
 end
+%add the blocks
+plot([endBlock1/1000 endBlock1/1000],[min(forwardVelocity)-10 max(forwardVelocity)+10],'y');
+plot([endBlock2/1000 endBlock2/1000],[min(forwardVelocity)-10 max(forwardVelocity)+10],'y');
 hline = refline([0 meanVelocity]);
 hline.Color = 'r'; hline.LineStyle = '--';
 rline = refline([0 0]);

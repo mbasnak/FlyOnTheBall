@@ -15,7 +15,7 @@ for i = 1:length(jumpFrames)
     downsampled.aJa(:,i) = downsample(aroundJumpa(:,i),1000/25);
     downsRad.aJa(:,i) = downsampled.aJa(:,i) .* 2 .* pi ./ 10;
     unwrapped.aJa(:,i) = unwrap(downsRad.aJa(:,i));
-    smoothed.aJa(:,i) = smoothdata(unwrapped.aJa(:,i),10); 
+    smoothed.aJa(:,i) = smoothdata(unwrapped.aJa(:,i),'rlowess',10); 
     angPosition(:,i) = (smoothed.aJa(:,i) / (2*pi)) * 360;
     
      %remap the angular position acording to our set-up

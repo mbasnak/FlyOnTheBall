@@ -18,7 +18,7 @@ for i = 1:length(jumpFrames)
     downsampled.aJ(:,i) = downsample(aroundJumpIntx(:,i),1000/25);
     downsRad.aJ(:,i) = downsampled.aJ(:,i) .* 2 .* pi ./ 10;
     unwrapped.aJ(:,i) = unwrap(downsRad.aJ(:,i));
-    smoothed.aJ(:,i) = smoothdata(unwrapped.aJ(:,i),10); 
+    smoothed.aJ(:,i) = smoothdata(unwrapped.aJ(:,i),'rlowess',25); 
     deg.aJ(:,i) = smoothed.aJ(:,i) * (sizeBall/2);
     diff.aJ(:,i) = gradient(deg.aJ(:,i)).* 25;
     DATA.forwardVel(:,i) = smoothdata(diff.aJ(:,i),10);
@@ -28,9 +28,15 @@ for i = 1:length(jumpFrames)
     downsampled.aJa(:,i) = downsample(aroundJumpa(:,i),1000/25);
     downsRad.aJa(:,i) = downsampled.aJa(:,i) .* 2 .* pi ./ 10;
     unwrapped.aJa(:,i) = unwrap(downsRad.aJa(:,i));
-    smoothed.aJa(:,i) = smoothdata(unwrapped.aJa(:,i),10); 
+    smoothed.aJa(:,i) = smoothdata(unwrapped.aJa(:,i),'rlowess',25); 
     smoothed.angPos(:,i) = (smoothed.aJa(:,i) / (2*pi)) * 360;
     diff.aJa(:,i) = gradient(smoothed.angPos(:,i)).* 25;
-    DATA.angVel(:,i) = smoothdata(diff.aJa(:,i),10);
+    
+    percentile25 = prctile(diff.aJa,2.5);
+    percentile975 = prctile(diff.aJa,97.5);
+    boundedDiffAngularPos = diff.aJa;
+    boundedDiffAngularPos(boundedDiffAngularPos<percentile25 | boundedDiffAngularPos>percentile975) = NaN;
 
+    %DATA.angVel(:,i) = smoothdata(diff.aJa(:,i),'rlowess',100);
+    DATA.angVel(:,i) = smoothdata(boundedDiffAngularPos(:,i),'rlowess',25,'omitnan');
 end
