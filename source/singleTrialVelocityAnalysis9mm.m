@@ -12,7 +12,6 @@ function [smoothed] = singleTrialVelocityAnalysis(data, sampleRate)
 
     % Downsample to match FicTrac's output
     downsampled.Intx = downsample(data.ficTracIntx,sampleRate/25); %For a 1000 rate acquisition frame rate from the NiDaq, downsampling to 25 Hz equals taking 1 every 40 frames
-    downsampled.Inty = downsample(data.ficTracInty,sampleRate/25);
     downsampled.angularPosition = downsample(data.ficTracAngularPosition,sampleRate/25);
        
  
@@ -22,7 +21,6 @@ function [smoothed] = singleTrialVelocityAnalysis(data, sampleRate)
 %% Tranform signal from voltage to radians for unwrapping
 
     downsRad.Intx = downsampled.Intx .* 2 .* pi ./ 10; %10 is for the max voltage outputed by the daq
-    downsRad.Inty = downsampled.Inty .* 2 .* pi ./ 10;
     downsRad.angularPosition = downsampled.angularPosition .* 2 .* pi ./ 10;
 
 % Now the position is going between 0 and 2 pi.
@@ -30,7 +28,6 @@ function [smoothed] = singleTrialVelocityAnalysis(data, sampleRate)
 %% Unwrapping 
 
     unwrapped.Intx = unwrap(downsRad.Intx);
-    unwrapped.Inty = unwrap(downsRad.Inty);
     unwrapped.angularPosition = unwrap(downsRad.angularPosition);
 
 % Now the position is unwrapped, so it doesn't jump when moving from 0 to
@@ -38,42 +35,51 @@ function [smoothed] = singleTrialVelocityAnalysis(data, sampleRate)
 
 %% Smooth the data
 
-    smoothed.Intx = smoothdata(unwrapped.Intx,10); 
-    smoothed.Inty = smoothdata(unwrapped.Inty,10);
+    smoothed.Intx = smoothdata(unwrapped.Intx,'rlowess',25); 
     smoothed.angularPosition = smoothdata(unwrapped.angularPosition,'rlowess',25);
     
   
 %% Transform to useful systems 
     
     deg.Intx = smoothed.Intx * 4.75; % wer tranform the pos to mm by scaling the value by the sphere's radius
-    deg.Inty = smoothed.Inty * 4.75;
     deg.angularPosition = (smoothed.angularPosition / (2*pi)) * 360; % we transform the angular position to degrees
 
     
 %% Take the derivative
 
     diff.Intx = gradient(deg.Intx).* 25; %we multiply by 25 because we have downsampled to 25 Hz
-    diff.Inty = gradient(deg.Inty).* 25;
     diff.angularPosition = gradient(deg.angularPosition).* 25;
 
-%% Calculate the distribution and take values that are below 5% and above 95%
+%% Calculate the distribution and take away values that are below 2.5% and above 97.5%
     
-    percentile25 = prctile(diff.angularPosition,2.5);
-    percentile975 = prctile(diff.angularPosition,97.5);
-
+    percentile25AV = prctile(diff.angularPosition,2.5);
+    percentile975AV = prctile(diff.angularPosition,97.5);
     boundedDiffAngularPos = diff.angularPosition;
-    boundedDiffAngularPos(boundedDiffAngularPos<percentile25 | boundedDiffAngularPos>percentile975) = NaN;
+    boundedDiffAngularPos(diff.angularPosition<percentile25AV | diff.angularPosition>percentile975AV) = NaN;
     
-       
+    percentile25FV = prctile(diff.Intx,2.5);
+    percentile975FV = prctile(diff.Intx,97.5);
+    boundedDiffIntx = diff.Intx;
+    boundedDiffIntx(boundedDiffIntx<percentile25FV | boundedDiffIntx>percentile975FV) = NaN;
     
-    %%  Smooth again
- 
-    smoothed.xVel = smoothdata(diff.Intx,10);
-    smoothed.yVel = smoothdata(diff.Inty,10);
-    %smoothed.angularVel = smoothdata(diff.angularPosition,'rlowess',100);
-    
-    smoothed.angularVel = smoothdata(boundedDiffAngularPos,'rlowess',25,'includenan');
 
+ %% Linearly interpolate to replace the NaNs with values.
+ 
+    [pointsVectorAV] = find(~isnan(boundedDiffAngularPos));
+    valuesVectorAV = boundedDiffAngularPos(pointsVectorAV);
+    xiAV = 1:length(boundedDiffAngularPos);
+    interpAngVel = interp1(pointsVectorAV,valuesVectorAV,xiAV);
+    
+    [pointsVectorFV] = find(~isnan(boundedDiffIntx));
+    valuesVectorFV = boundedDiffIntx(pointsVectorFV);
+    xiFV = 1:length(boundedDiffIntx);
+    interpxVel = interp1(pointsVectorFV,valuesVectorFV,xiFV);
+       
+ %%  Smooth again
+ 
+    %smoothed.xVel = smoothdata(diff.Intx,'rlowess',15); 
+    smoothed.xVel = smoothdata(interpxVel,'rlowess',15);
+    smoothed.angularVel = smoothdata(interpAngVel,'rlowess',15);
 
 
 end

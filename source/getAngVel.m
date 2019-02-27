@@ -12,7 +12,11 @@ percentile975 = prctile(diff.aP,97.5);
 boundedDiffAngularPos = diff.aP;
 boundedDiffAngularPos(boundedDiffAngularPos<percentile25 | boundedDiffAngularPos>percentile975) = NaN;
     
-%angularVelocity = smoothdata(diff.aP,'rlowess',100); %smooth again
-angularVelocity = smoothdata(boundedDiffAngularPos,'rlowess',25,'includenan'); %smooth again
+    [pointsVectorAV] = find(~isnan(boundedDiffAngularPos));
+    valuesVectorAV = boundedDiffAngularPos(pointsVectorAV);
+    xiAV = 1:length(boundedDiffAngularPos);
+    interpAngVel = interp1(pointsVectorAV,valuesVectorAV,xiAV);
+    
+angularVelocity = smoothdata(interpAngVel,'rlowess',15); %smooth again
 
 end

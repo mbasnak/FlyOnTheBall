@@ -20,6 +20,13 @@ xPanels = 4;
 yPanels = 5;
 PanelStatus = 6; %this signal tells whether the panels are on or off.
 
+%Define the error block we're in according to the file name
+if findstr('Low',file) == 1
+    error = 1; %(low)
+else
+    error = 2; %(high)
+end
+    
 %% Subset acquisition of x and y pos, as well as FicTrac data
 
 data.xpanelVolts =  rawData (:,xPanels); 
@@ -98,11 +105,7 @@ hold on
 for i = 1:length(j)
     plot([j(i) j(i)],[0 10],'r');
 end
-%add the blocks
-endBlock1 = j(12)+4000;
-endBlock2 = j(36)+4000;
-plot([endBlock1 endBlock1],[0 10],'k');
-plot([endBlock1 endBlock1],[0 10],'k');
+
 %% Fixing the data relative to the bar jumps
 
 %The x position of the panels and the FicTrac output are "ignorant" of the
@@ -186,11 +189,12 @@ title('Jump magnitude, taken from yPanels');
 ylabel('deg');xlabel('Trial #');xlim([1 TrialNum]);
 % compare that to the jump function we have stored
 hold on
-%Define jumps for the three blocks and in total
-Block1deg = [-90,-90,90,-90,-90,-90,90,-90,90,-90,90,90];
-Block2deg = [-90,-90,-90,90,90,90,90,90,-90,90,90,90,90,-90,-90,-90,90,90,90,90,90,-90,-90,90];
-Block3deg = [-90,-90,-90,-90,90,-90,90,90,-90,90,-90,-90];
-jumps = [Block1deg,Block2deg,Block3deg];
+%Define the jumps according to the error level
+if error == 1
+    jumps = jumps;
+elseif error == 2
+    jumps = [-90,-90,-90,90,90,90,90,90,-90,90,90,90,90,-90,-90,-90,90,90,90,90,90,-90,-90,90];
+end
 plot(jumps(1:TrialNum),'b')
 legend({'Jumps from Y data','Jump function used'});
 
@@ -248,15 +252,12 @@ figure ('Position', [100 100 1200 900]),
 subplot(2,1,1)
 plot(time,forwardVelocity,'k','HandleVisibility','off')
 xlim([0 time(end)]);
-ylim([-20 40]);
+ylim([min(forwardVelocity)-10 max(forwardVelocity)+10]);
 hold on
 %add the jumps
 for i = 1:length(jsec)
      plot([jsec(i) jsec(i)],[min(forwardVelocity)-10 max(forwardVelocity)+10],'g');
 end
-%add the blocks
-plot([endBlock1/1000 endBlock1/1000],[min(forwardVelocity)-10 max(forwardVelocity)+10],'y');
-plot([endBlock2/1000 endBlock2/1000],[min(forwardVelocity)-10 max(forwardVelocity)+10],'y');
 hline = refline([0 meanVelocity]);
 hline.Color = 'r'; hline.LineStyle = '--';
 rline = refline([0 0]);
@@ -270,9 +271,9 @@ histogram(forwardVelocity,'FaceColor',[.4 .2 .6])
 title('Distribution of forward velocities');
 xlabel('Forward velocity (mm/s)');
 ylabel('Frequency');
-xlim([-10, 20]);
+xlim([min(forwardVelocity) max(forwardVelocity)]);
 
-%saveas(gcf,strcat(path,'ForwardVelocityExp.png'))
+saveas(gcf,strcat(path,'ForwardVelocity',file(1:end-4),'.png'));
 
 %% Angular velocity
 
@@ -288,11 +289,11 @@ angularVelocity = getAngVel(AngularPosition);
 meanAngVelocity = mean(angularVelocity);
 time = linspace(0,(length(rawData)/1000),length(angularVelocity));
 
-figure%('Position', [100 100 1200 900]),
+figure('Position', [100 100 1200 900]),
 subplot(2,1,1)
 plot(time,angularVelocity,'k','HandleVisibility','off')
 xlim([0 time(end)]);
-ylim([-400 400]);
+ylim([min(angularVelocity)-50 max(angularVelocity)+50]);
 hold on
 for i = 1:length(j) %add the bar jumps
      plot([jsec(i) jsec(i)],[min(angularVelocity)-50 max(angularVelocity)+50],'g');
@@ -310,10 +311,9 @@ histogram(angularVelocity,'FaceColor',[.2 .8 .6])
 title('Distribution of angular velocities');
 xlabel('Angular velocity (deg/s)');
 ylabel('Frequency');
-xlim([-300, 300]);
+xlim([min(angularVelocity) max(angularVelocity)]);
 
-%saveas(gcf,strcat(path,'AngularVelocityExp.png'))
-saveas(gcf,strcat(path,'Smoothed50AngularVelocityExp.png'))
+saveas(gcf,strcat(path,'SmoothedAngularVelocity',file(1:end-4),'.png'))
 
 
 %%  Activity levels
@@ -333,7 +333,7 @@ percentageActivity = 100*size(moving)/size(smoothed.angularPosition);
 activity = zeros(length(forwardVelocity),1);
 
 for i = 1:length(forwardVelocity)
-    if forwardVelocity(i,1) > 1
+    if forwardVelocity(1,i) > 1
         activity(i,1) = 1;
     else
         activity(i,1) = 0;
@@ -350,7 +350,8 @@ ylabel('Activity');
 xlabel('Time (s)');
 xlim([0 time(end)]);
 
-%saveas(gcf,strcat(path,'ActivityRPExp.png'))
+save(strcat(path,'Activity',file(1:end-4),'.mat'),'time','activity');
+saveas(gcf,strcat(path,'ActivityRP',file(1:end-4),'.png'))
 
 %% Output in degrees of the Panels position
 
@@ -452,8 +453,7 @@ ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top';
 
-
-%saveas(gcf,strcat(path,'BarPositionExp.png'))
+saveas(gcf,strcat(path,'BarPosition',file(1:end-4),'.png'))
 
 %% Fly's heading thoughout the experiment
 
@@ -543,14 +543,14 @@ ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 %with only moving frames
 CircularStatsFlyMoving = circ_stats(posToRadFly(forwardVelocity>1));
 subplot(2,4,7)
-polarhistogram(posToRadFly(forwardVelocity>1),circedges,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
+posToRadFlyMoving = posToRadFly(forwardVelocity>1);
+polarhistogram(posToRadFlyMoving,circedges,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
 ax = gca;
 ax.ThetaDir='clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
-
-%saveas(gcf,strcat(path,'FlyPositionExp.png'))
-saveas(gcf,strcat(path,'Smoothed50FlyPositionExp.png'))
+save(strcat(path,'FlyPosition',file(1:end-4),'.mat'),'posToRadFlyMoving','circedges');
+saveas(gcf,strcat(path,'FlyPosition',file(1:end-4),'.png'))
 %% Look at the goal and calculate the distance to it...
 
 %Taking all the experiment
@@ -579,15 +579,13 @@ title('Distance to the goal with moving frames');
 xlim([-180, 180]); xlabel('Distance to the goal (deg)');
 ylabel('Probability');
 
-%saveas(gcf,strcat(path,'Dist2GoalExp.png'))
-saveas(gcf,strcat(path,'Smoothed50Dist2GoalExp.png'))
-%save(strcat(path,'goals.mat'),'goal','goalMoving','dist2goal','dist2goalMoving');
-
-save(strcat(path,'Smoothed50goals.mat'),'goal','goalMoving','dist2goal','dist2goalMoving');
+saveas(gcf,strcat(path,'Dist2Goal',file(1:end-4),'.png'))
+save(strcat(path,'goals',file(1:end-4),'.mat'),'goal','goalMoving','dist2goal','dist2goalMoving','degsFlyDistMoving','probabilitiesDistMoving');
 
 %% Using the 100 sec before and after each jump to compute several goal distributions
-%per experiment...
+%per experiment...if it's a low error block
 
+if error == 1
 %I get the 100 sec before and after the jump for every jump except for the
 %last
 sec = 100;
@@ -632,8 +630,8 @@ for i = 1:length(j)-1
 end
     suptitle('Distance to the goal 100 sec around the jumps');
     
-    %saveas(gcf,strcat(path,'Dist2goal100secExp.png'))
-saveas(gcf,strcat(path,'Smoothed50Dist2goal100secExp.png'))
+saveas(gcf,strcat(path,'Dist2goal100sec',file(1:end-4),'.png'))
+
     
 %Plot them using colorscales
 probaDist100sec = cell2mat(probabilitiesDist100sec);
@@ -648,25 +646,23 @@ trials = [1:110];
 figure, imagesc(xaxis,trials,probaDist100secMoving')
 colormap(newMap)
 colorbar
-%saveas(gcf,strcat(path,'HeatMapDist2goal100secExp.png'))
-saveas(gcf,strcat(path,'Smoothed50HeatMapDist2goal100secExp.png'))
+saveas(gcf,strcat(path,'HeatMapDist2goal100sec',file(1:end-4),'.png'))
 
 %save data
-%save(strcat(path,'shortData.mat'),'shortData','probaDist100secMoving');
-save(strcat(path,'Smoothed50shortData.mat'),'shortData','probaDist100secMoving');
+save(strcat(path,'shortData',file(1:end-4),'.mat'),'shortData','probaDist100secMoving');
 
+end
 %% Per 'trial'
 
 %I'm using a function to get and smooth data around the jumps
-sec = 15; %how many sec before and after the jump I want to look at
+sec = 10; %how many sec before and after the jump I want to look at
 perTrialData = getDataAroundJump(rawData,j,sec,sizeBall);
 
 %apend jump data and save for using in the pooled flies analysis
 perTrialData.jumpMag = jumps;
 perTrialData.angPos = getPosAroundJump(data.ficTracAngularPosition,j,sec);
 
-%save(strcat(path,'perTrialData.mat'),'perTrialData');
-save(strcat(path,'Smoothed50perTrialData.mat'),'perTrialData');
+save(strcat(path,'perTrialData',file(1:end-4),'.mat'),'perTrialData');
 
 %% Velocity and around the jumps
 
@@ -681,7 +677,7 @@ for i = 1:length(j)
     hold on
     plot(time,perTrialData.forwardVel(:,i))
     line([0,0],[min(perTrialData.forwardVel(:,i)), max(perTrialData.forwardVel(:,i))],'Color','black');
-    ylim([min(perTrialData.forwardVel(:,i)), max(perTrialData.forwardVel(:,i))]);
+    %ylim([min(perTrialData.forwardVel(:,i)), max(perTrialData.forwardVel(:,i))]);
     title('Forward velocity around the bar jumps');
     xlabel('Time(s)');
     ylabel('Velocity (mm/s)');
@@ -691,7 +687,7 @@ for i = 1:length(j)
     hold on
     plot(time,perTrialData.angVel(:,i))
     line([0,0],[min(perTrialData.angVel(:,i)), max(perTrialData.angVel(:,i))],'Color','black');
-    ylim([min(perTrialData.angVel(:,i)), max(perTrialData.angVel(:,i))]);
+   % ylim([min(perTrialData.angVel(:,i)), max(perTrialData.angVel(:,i))]);
     title('Angular velocity around the bar jumps');
     xlabel('Time(s)');
     ylabel('Velocity (deg/s)');
@@ -767,7 +763,7 @@ meanForwardVelNeg90 = mean(DataNeg90.forwardVel,2);
 meanAngVel90 = mean(Data90.angVel,2);
 meanAngVelNeg90 = mean(DataNeg90.angVel,2);
 
-figure%('Position', [100 100 1600 900]),
+figure('Position', [100 100 1600 900]),
 subplot(1,2,1)
 plot(time,meanForwardVel90,'r')
 hold on
@@ -775,8 +771,8 @@ plot(time,meanForwardVelNeg90,'k')
 title('Mean forward velocity');
 legend({'90','-90'});
 ylabel('Forward velocity (mm/s)'); xlabel('Time from bar jump (s)');
-xlim([-15,15]);
-plot([-15,15],[0,0],'-.k','HandleVisibility','off');
+xlim([-10,10]);
+plot([-10,10],[0,0],'-.k','HandleVisibility','off');
 subplot(1,2,2)
 plot(time,meanAngVel90,'r')
 hold on
@@ -788,5 +784,4 @@ xlim([-5, 5]); ylim([min(meanAngVel90)-10, max(meanAngVelNeg90)+10]);
 plot([0,0],[min(meanAngVel90)-10, max(meanAngVelNeg90)+10],'k','HandleVisibility','off');
 plot([-5,5],[0,0],'-.k','HandleVisibility','off');
 
-%saveas(gcf,strcat(path,'MeanAJvelocities.png'))
-saveas(gcf,strcat(path,'Smoothed50MeanAJvelocities.png'))
+saveas(gcf,strcat(path,'MeanAJvelocities',file(1:end-4),'.png'))

@@ -21,7 +21,7 @@ for i = 1:length(jumpFrames)
     smoothed.aJ(:,i) = smoothdata(unwrapped.aJ(:,i),'rlowess',25); 
     deg.aJ(:,i) = smoothed.aJ(:,i) * (sizeBall/2);
     diff.aJ(:,i) = gradient(deg.aJ(:,i)).* 25;
-    DATA.forwardVel(:,i) = smoothdata(diff.aJ(:,i),10);
+    DATA.forwardVel(:,i) = smoothdata(diff.aJ(:,i),'rlowess',15);
     
     %angular velocity
     aroundJumpa(:,i) = data(jumpFrames(i)-aroundJumpSec*1000:jumpFrames(i)+aroundJumpSec*1000,1);
@@ -31,12 +31,6 @@ for i = 1:length(jumpFrames)
     smoothed.aJa(:,i) = smoothdata(unwrapped.aJa(:,i),'rlowess',25); 
     smoothed.angPos(:,i) = (smoothed.aJa(:,i) / (2*pi)) * 360;
     diff.aJa(:,i) = gradient(smoothed.angPos(:,i)).* 25;
+    DATA.angVel(:,i) = smoothdata(diff.aJa(:,i),'rlowess',15);
     
-    percentile25 = prctile(diff.aJa,2.5);
-    percentile975 = prctile(diff.aJa,97.5);
-    boundedDiffAngularPos = diff.aJa;
-    boundedDiffAngularPos(boundedDiffAngularPos<percentile25 | boundedDiffAngularPos>percentile975) = NaN;
-
-    %DATA.angVel(:,i) = smoothdata(diff.aJa(:,i),'rlowess',100);
-    DATA.angVel(:,i) = smoothdata(boundedDiffAngularPos(:,i),'rlowess',25,'omitnan');
 end
