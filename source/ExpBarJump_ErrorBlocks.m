@@ -41,7 +41,7 @@ Panel_com('set_position',[startPos 1]);
 pause(0.03)
 %Panel_com('set_funcy_freq', 5);
 %pause(0.03)
-Panel_com('set_posfunc_id',[2 18]); %set it to jump every 200 sec, to one of the 5 jumping functions created.
+Panel_com('set_posfunc_id',[2 18]); 
 pause(0.03)
 Panel_com('set_AO',[3 32767]);
 Panel_com('start');

@@ -117,7 +117,7 @@ percentageActivity = 100*size(moving)/size(smoothed.angularPosition);
 activity = zeros(length(forwardVelocity),1);
 
 for i = 1:length(forwardVelocity)
-    if forwardVelocity(i,1) > 1
+    if forwardVelocity(1,i) > 1
         activity(i,1) = 1;
     else
         activity(i,1) = 0;
