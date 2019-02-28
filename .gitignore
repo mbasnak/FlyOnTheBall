@@ -18,3 +18,8 @@ log.dat
 source/CircStat2012a/
 source/.gitignore
 Thumbs.db
+source/MC_nonlinearCmap.m
+source/plotSpikeRaster.m
+source/smooth_diff.m
+source/smooth_diff_demo.m
+source/smooth_diff.jpg
