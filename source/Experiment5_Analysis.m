@@ -91,7 +91,9 @@ plot(Jumps);
 ylabel('Voltage difference (V)');xlabel('Time');
 
 j = find(Jumps); %indices of the actual bar jumps, taken from the y signal
-%j = j(2:end); %I leave out the 1st cause it's taking the on signal
+if error == 2
+ j = j(2:end);
+end
 jsec = j/1000;
 
 %plot the data from the yPanels and add lines of the previously determined
@@ -342,15 +344,27 @@ end
 
 time = linspace(0,(length(rawData)/1000),length(activity));
 
+% figure,
+% set(gcf, 'Position', [500, 500, 1000, 100])
+% plot(time,activity,'k');
+% title('Activity raster plot');
+% ylabel('Activity');
+% xlabel('Time (s)');
+% xlim([0 time(end)]);
+
+%A more accurate plot
 figure,
 set(gcf, 'Position', [500, 500, 1000, 100])
-plot(time,activity,'k');
-title('Activity raster plot');
+newMap = flipud(gray);
+xaxis = time;
+trials = [0:1];
+imagesc(xaxis,trials,activity')
+colormap(newMap)
+title(strcat('Activity raster plot, percentage activity:', num2str(percentageActivity), '%'));
 ylabel('Activity');
 xlabel('Time (s)');
-xlim([0 time(end)]);
 
-save(strcat(path,'Activity',file(1:end-4),'.mat'),'time','activity');
+save(strcat(path,'Activity',file(1:end-4),'.mat'),'time','activity','percentageActivity');
 saveas(gcf,strcat(path,'ActivityRP',file(1:end-4),'.png'))
 
 %% Output in degrees of the Panels position
@@ -611,7 +625,7 @@ for i = 1:length(j)-1
     
     %For moving frames only
     datamoving{i} = shortData.angPos(:,i);
-    datamoving{i}(shortData.forwardVel(:,i)>1) = NaN;
+    datamoving{i}(shortData.forwardVel(:,i)<=1) = NaN;
     datamoving{i} = datamoving{i}(~isnan(datamoving{i}))';
     goal100secMoving{i} = circ_mean(deg2rad(datamoving{i}),[],2);
     dist2goal2100secMoving{i} = circ_dist(deg2rad(datamoving{i}),goal100secMoving{i});
@@ -642,7 +656,7 @@ probaDist100secMoving = reshape(probaDist100secMoving,length(probaDist100secMovi
 %create new colormap
 newMap = flipud(gray);
 xaxis = [-180:360/17:180];
-trials = [1:110];
+trials = [1:length(jumps)];
 figure, imagesc(xaxis,trials,probaDist100secMoving')
 colormap(newMap)
 colorbar
@@ -652,6 +666,93 @@ saveas(gcf,strcat(path,'HeatMapDist2goal100sec',file(1:end-4),'.png'))
 save(strcat(path,'shortData',file(1:end-4),'.mat'),'shortData','probaDist100secMoving');
 
 end
+
+%% Using 10 sec around jump
+
+%1) Use the 10 sec preceding each jump to compute the goal by taking
+%the mean heading
+sec = 10;
+shortData10sec = getDataAroundJump(rawData,j,sec,sizeBall);
+shortData10sec.jumpMag = jumps;
+shortData10sec.angPos = getPosAroundJump(data.ficTracAngularPosition,j,sec);
+
+for i = 1:length(j)
+    goal10sec(i) = circ_mean(deg2rad(shortData10sec.angPos(1:250,i)));
+end
+
+%2) Look at the polar distribution of headings whithin those 10 sec
+%in every case, and maybe discard those where the SD is too big?
+figure('Position', [100 100 1600 900]),
+for i = 1:length(j)
+    distribution10sec(:,i) = circ_dist(deg2rad(shortData10sec.angPos(1:250,i)),goal10sec(i));
+    [s(i) s0(i)] = circ_std(distribution10sec(:,i));
+    subplot(4,length(jumps)/4,i)
+    polarhistogram(distribution10sec(:,i),circedges,'Normalization','probability','FaceColor',[1,0,0],'HandleVisibility','off');
+    ax = gca;
+    ax.ThetaDir='clockwise';
+    ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
+    title(strcat('SD = ',num2str(rad2deg(s0(i)))));
+end
+suptitle('Distribution of the distance to the goal 10 sec prior to jumps')
+%My distribution is way too variable most times! I need to improve my
+%flies' straight-walking.
+
+%For moving frames only
+figure('Position', [100 100 1600 900]),
+for i = 1:length(j)
+    datamoving10sec{i} = shortData10sec.angPos(1:250,i);
+    datamoving10sec{i}(shortData10sec.forwardVel(1:250,i)<=1) = NaN;
+    datamoving10sec{i} = datamoving10sec{i}(~isnan(datamoving10sec{i}))';
+    goal10secMoving{i} = circ_mean(deg2rad(datamoving10sec{i}),[],2);
+    distribution10secMoving{i} = circ_dist(deg2rad(datamoving10sec{i}),goal10secMoving{i});
+    [s(i) s010sec(i)] = circ_std(distribution10secMoving{i},[],[],2);
+    subplot(4,length(jumps)/4,i)
+    polarhistogram(distribution10secMoving{i},circedges,'Normalization','probability','FaceColor',[0,0,0],'HandleVisibility','off');
+    ax = gca;
+    ax.ThetaDir='clockwise';
+    ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
+    title(strcat('SD = ',num2str(rad2deg(s010sec(i)))));
+end
+suptitle('Distribution of the distance to the goal 10 sec prior to jumps, moving frames')     
+saveas(gcf,strcat(path,'Distribution10secBJ',file(1:end-4),'.png'))
+    
+%3) Calculate the distance to the goal in the seconds after the
+%jump
+figure('Position', [100 100 1600 900]),
+for i = 1:length(j)
+    datamoving10secAJ{i} = shortData10sec.angPos(:,i);
+    datamoving10secAJ{i}(shortData10sec.forwardVel(:,i)<=1) = NaN;
+    datamoving10secAJ{i} = datamoving10secAJ{i}(~isnan(datamoving10secAJ{i}))';
+    dist2goal10secMoving{i} = circ_dist(deg2rad(datamoving10secAJ{i}),goal10secMoving{i});
+    dist2goal210secMoving{i} = wrapTo180(rad2deg(dist2goal10secMoving{i}));
+    [countsDist10secMoving{i}] = histcounts(dist2goal210secMoving{i},edges);
+    probabilitiesDist10secMoving{i} = countsDist10secMoving{i}./sum(countsDist10secMoving{i});
+    degsFlyDist10secMoving{i} = linspace(-180,180,length(countsDist10secMoving{i}));
+    
+    %plot
+    subplot(4,length(jumps)/4,i),
+    plot(degsFlyDist10secMoving{i},probabilitiesDist10secMoving{i},'k')
+    xlim([-180, 180]); xlabel('Distance to the goal (deg)');
+    ylabel('Probability');
+end
+suptitle('Distance to the goal, 10 sec around jumps')     
+saveas(gcf,strcat(path,'Dist2goal10sec',file(1:end-4),'.png'))
+
+%Plot them using colorscales
+probaDist10secMoving = cell2mat(probabilitiesDist10secMoving);
+probaDist10secMoving = reshape(probaDist10secMoving,length(probaDist10secMoving)/length(probabilitiesDist10secMoving),length(probabilitiesDist10secMoving));
+
+%create new colormap
+newMap = flipud(gray);
+xaxis = [-180:360/17:180];
+trials = [1:length(jumps)];
+figure, imagesc(xaxis,trials,probaDist10secMoving')
+colormap(newMap)
+colorbar
+saveas(gcf,strcat(path,'HeatmapDist2goal10sec',file(1:end-4),'.png'))
+
+%save data
+save(strcat(path,'shortData10sec',file(1:end-4),'.mat'),'shortData10sec','probaDist10secMoving');
 %% Per 'trial'
 
 %I'm using a function to get and smooth data around the jumps

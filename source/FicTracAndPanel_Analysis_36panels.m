@@ -124,12 +124,19 @@ for i = 1:length(forwardVelocity)
     end
 end
 
-figure,
+
+%A more accurate plot
+figure
 set(gcf, 'Position', [500, 500, 1000, 100])
-plot(time,activity,'k');
-title('Activity raster plot');
+newMap = flipud(gray);
+xaxis = time;
+trials = [0:1];
+imagesc(xaxis,trials,activity')
+colormap(newMap)
+title(strcat('Activity raster plot, percentage activity:', num2str(percentageActivity), '%'));
 ylabel('Activity');
 xlabel('Time (s)');
+
 
 %% Output in degrees of the Panels position
 

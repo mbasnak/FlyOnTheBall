@@ -629,7 +629,7 @@ for i = 1:length(j)-1
     
     %For moving frames only
     datamoving{i} = shortData.angPos(:,i);
-    datamoving{i}(shortData.forwardVel(:,i)>1) = NaN;
+    datamoving{i}(shortData.forwardVel(:,i)<=1) = NaN;
     datamoving{i} = datamoving{i}(~isnan(datamoving{i}))';
     goal100secMoving{i} = circ_mean(deg2rad(datamoving{i}),[],2);
     dist2goal2100secMoving{i} = circ_dist(deg2rad(datamoving{i}),goal100secMoving{i});

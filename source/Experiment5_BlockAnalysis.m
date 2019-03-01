@@ -46,11 +46,18 @@ data = data(order);
 blockName = blockName(order);
 
 figure,
+newMap = flipud(gray);
+
+trials = [0:1];
+colormap(newMap)
+
 for i = 1:length(data)
     subplot(length(data),1,i)
-    plot(data{1,i}.time,data{1,i}.activity,'k')
-    hold on
-    title(strcat('ActivityRP',blockName{i}));
+    xaxis{i} = data{1,i}.time;
+    imagesc(xaxis{i},trials,data{1,i}.activity')
+    ylabel('Activity');
+    xlabel('Time (s)');
+    title(strcat('ActivityRP',blockName{i},'percentage activity:', num2str(data{1,i}.percentageActivity), '%'));
 end
 
 saveas(gcf,strcat(files(1).folder,'\ActivityRPAllBlocks.png'))
