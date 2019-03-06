@@ -857,6 +857,13 @@ xlabel('Time(s)');
 ylabel('Velocity (deg/s)');
 
 
+%Use heatmaps to see the evolution
+figure,
+trials = size(DataNeg90.angVel,2);
+imagesc(trials,time,DataNeg90.angVel)
+colorbar
+
+
 %plot mean forward and angular velocity per group
 meanForwardVel90 = mean(Data90.forwardVel,2);
 meanForwardVelNeg90 = mean(DataNeg90.forwardVel,2);

@@ -6,6 +6,90 @@
 clear all; close all;
 
 
+%% Activity level
+
+AFirstLowErrorBlock = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\*\experimental flies\*\ActivityLowErrorBlockExp3.mat');
+AHighErrorBlock = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\*\experimental flies\*\ActivityHighErrorBlockExp4.mat');
+ASecondLowErrorBlock = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\*\experimental flies\*\ActivityLowErrorBlockExp5.mat');
+
+for i = 1:length(AFirstLowErrorBlock)
+    ActFirstLE{i} = load(strcat(AFirstLowErrorBlock(i).folder,'\',AFirstLowErrorBlock(i).name));
+    ActHE{i} = load(strcat(AHighErrorBlock(i).folder,'\',AHighErrorBlock(i).name));
+    ActSecondLE{i} = load(strcat(ASecondLowErrorBlock(i).folder,'\',ASecondLowErrorBlock(i).name));
+end
+
+for i = 1:length(ActFirstLE)
+    ActivityPercentageFirstLE(i) = ActFirstLE{1,i}.percentageActivity;
+    ActivityPercentageHE(i) = ActHE{1,i}.percentageActivity;
+    ActivityPercentageSecondLE(i) = ActSecondLE{1,i}.percentageActivity;
+end
+
+AllActivityPercentage = [ActivityPercentageFirstLE;ActivityPercentageHE;ActivityPercentageSecondLE];
+
+%Plot the activity percentage per block
+figure, 
+subplot(1,2,1)
+plot(AllActivityPercentage,'o')
+hold on, plot(AllActivityPercentage)
+ylabel('Activity (%)');
+xlim([0,4]); ylim([0,100]);
+xticks([1 2 3])
+xticklabels({'Block 1','Block 2','Block 3'})
+subplot(1,2,2)
+boxplot((AllActivityPercentage'))
+ylim([0,100]);
+xticklabels({'Block 1','Block 2','Block 3'})
+suptitle('Activity percentage across blocks');
+
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\ActivityAcrossBlocks.png'))
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\ActivityAcrossBlocks.svg'))
+
+%% State transitions
+%I'm defining a state transition as a changing from 'quiescence' to
+%'movement' of from 'movement' to 'quiescence'
+activityAll = zeros(0,0);
+activityAllHE = zeros(0,0);
+activityAllSecondLE = zeros(0,0);
+
+for i = 1:length(ActFirstLE)
+    activityAll = [activityAll,ActFirstLE{1,i}.activity];
+    activityAllHE = [activityAllHE,ActHE{1,i}.activity];
+    activityAllSecondLE = [activityAllSecondLE,ActSecondLE{1,i}.activity];
+end
+
+%I will determine the state transitions by generating vectors that take the
+%difference between two consecutive points. If the state remains the same,
+%the cell will read 0, otherwise it will read 1 or -1.
+stateTransFirstLE = diff(activityAll);
+stateTransHE = diff(activityAllHE);
+stateTransSecondLE = diff(activityAllSecondLE);
+
+%we are now going to set every non-zero cell to one, and those are the
+%cells where the state transitioned
+stateTransFirstLE(stateTransFirstLE~=0)=1;
+stateTransHE(stateTransHE~=0)=1;
+stateTransSecondLE(stateTransSecondLE~=0)=1;
+
+%The probability of state transitions for each block should be the mean
+allStateTrans = [mean(stateTransFirstLE);mean(stateTransHE);mean(stateTransSecondLE)];
+
+figure, 
+subplot(1,2,1)
+plot(allStateTrans,'o')
+hold on, plot(allStateTrans)
+ylabel('Probability of state transition');
+xlim([0,4]); ylim([0,0.03]);
+xticks([1 2 3])
+xticklabels({'Block 1','Block 2','Block 3'})
+subplot(1,2,2)
+boxplot(allStateTrans')
+ylim([0,0.03]);
+xticklabels({'Block 1','Block 2','Block 3'})
+suptitle('State transitions across blocks');
+
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\StateTransitions.png'))
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\StateTransitions.svg'))
+
 %% Around jump velocities
 
 FirstLowErrorBlock = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\*\experimental flies\*\perTrialDataLowErrorBlockExp3.mat');
@@ -50,8 +134,8 @@ p1 = boundedline(time,meanAngVel90,stdAngVel90/sqrt(i),'r','alpha')
 hold on
 p2 = boundedline(time,meanAngVelNeg90,stdAngVelNeg90/sqrt(i),'k','alpha')
 title('First low error block');
-ylim([-80, 80]);xlim([-8, 8]);
-plot([0,0],[-80, 80],'--k','HandleVisibility','off');
+ylim([-60, 60]);xlim([-8, 8]);
+plot([0,0],[-60, 60],'--k','HandleVisibility','off');
 plot([-8,8],[0, 0],'k','HandleVisibility','off');
 legend([p1,p2], '90','-90');
 ylabel('Angular velocity (deg/s)'); xlabel('Time from bar jump (s)');
@@ -84,8 +168,8 @@ p21 = boundedline(time,meanAngVel90HE,stdAngVel90HE/sqrt(i),'r','alpha')
 hold on
 p22 = boundedline(time,meanAngVelNeg90HE,stdAngVelNeg90HE/sqrt(i),'k','alpha')
 title('High error block');
-ylim([-80, 80]);xlim([-8, 8]);
-plot([0,0],[-80, 80],'--k','HandleVisibility','off');
+ylim([-60, 60]);xlim([-8, 8]);
+plot([0,0],[-60, 60],'--k','HandleVisibility','off');
 plot([-8,8],[0, 0],'k','HandleVisibility','off');
 legend([p21,p22], '90','-90');
 ylabel('Angular velocity (deg/s)'); xlabel('Time from bar jump (s)');
@@ -118,8 +202,8 @@ p31 = boundedline(time,meanAngVel90SecondLE,stdAngVel90SecondLE/sqrt(i),'r','alp
 hold on
 p32 = boundedline(time,meanAngVelNeg90SecondLE,stdAngVelNeg90SecondLE/sqrt(i),'k','alpha')
 title('Second low error block');
-ylim([-80, 80]);xlim([-8, 8]);
-plot([0,0],[-80, 80],'--k','HandleVisibility','off');
+ylim([-60, 60]);xlim([-8, 8]);
+plot([0,0],[-60, 60],'--k','HandleVisibility','off');
 plot([-8,8],[0, 0],'k','HandleVisibility','off');
 legend([p31,p32], '90','-90');
 ylabel('Angular velocity (deg/s)'); xlabel('Time from bar jump (s)');
@@ -195,6 +279,25 @@ ax = gca;
 ax.ThetaDir='clockwise';
 ax.ThetaZeroLocation = 'top';
 
+suptitle('Goal distribution');
+
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\GoalDist.png'))
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\GoalDist.svg'))
+
+
+%Look at the goal per flie across blocks
+allGoals = [goalMovingAll,goalMovingAllHE,goalMovingAllSecondLE];
+figure, plot(rad2deg(allGoals'),'o')
+hold on, plot(rad2deg(allGoals'))
+ylabel('Goal (deg)');
+xlim([0,4]);
+xticks([1 2 3])
+xticklabels({'Block 1','Block 2','Block 3'})
+
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\GoalDistAcrossBlocks.png'))
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\GoalDistAcrossBlocks.svg'))
+
+
 
 %Looks at the distribution of the variable 'Distance to the goal' per block
 figure('Position', [100 100 1600 900]),
@@ -234,6 +337,10 @@ for i = 1:length(dist2goalMovingAll)
     title('Second low error block');
 end
 
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\Dist2GoalAllTrials.png'))
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\Dist2GoalAllTrials.svg'))
+
+
 %Plot mean and error for each one
 DistanceMoving = zeros(0,0);
 allFliesprobMoving = zeros(0,0);
@@ -267,14 +374,19 @@ alldegsMovingSecondLE = linspace(-180,180,length(allcountsMovingSecondLE));
 errorMovingSecondLE = std(allFliesprobMovingSecondLE);
 
 figure,
-h1 = boundedline(alldegsMoving,AllprobabilitiesMoving,errorMoving,'k','alpha')
+[h1,h1bis] = boundedline(alldegsMoving,AllprobabilitiesMoving,errorMoving,'k','alpha')
 set(h1, 'linewidth', 3);
+set(h1bis, 'HandleVisibility','off');
 hold on
-h2 = boundedline(alldegsMovingHE,AllprobabilitiesMovingHE,errorMovingHE,'r','alpha')
+[h2,h2bis] = boundedline(alldegsMovingHE,AllprobabilitiesMovingHE,errorMovingHE,'r','alpha')
 set(h2, 'linewidth', 3);
-h3 = boundedline(alldegsMovingSecondLE,AllprobabilitiesMovingSecondLE,errorMovingSecondLE,'b','alpha')
+set(h2bis, 'HandleVisibility','off');
+[h3,h3bis] = boundedline(alldegsMovingSecondLE,AllprobabilitiesMovingSecondLE,errorMovingSecondLE,'b','alpha')
 set(h3, 'linewidth', 3);
-%legend('First low error block','High error block','Second low error block');
+set(h3bis, 'HandleVisibility','off');
+legend('First low error block','High error block','Second low error block');
+xlabel('Distance to goal (deg)');
+ylabel('Probability');
 
 saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\Dist2goal.png'))
 saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\Dist2goal.svg'))
@@ -321,6 +433,8 @@ colormap(newMap)
 colorbar
 title('High error trials')
 xlabel('Distance to the goal (deg)'); ylabel('Trial #');
+
+suptitle('Distance to goal 10 sec around jumps');
 
 saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\Dist2Goal10secHeatMap.png'))
 saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\Dist2Goal10secHeatMap.svg'))

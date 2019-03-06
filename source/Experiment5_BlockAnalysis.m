@@ -131,3 +131,13 @@ plot([-5,5],[0,0],'-.k','HandleVisibility','off');
 end
 
 saveas(gcf,strcat(files(1).folder,'\AJangvelAllBlocks.png'))
+
+%Use heatmaps to see the evolution
+figure,
+for i = 1:length(files)
+    subplot(1,length(files),i)
+    trials = size(DataNeg90(i).angVel,2);
+    imagesc(time,trials,DataNeg90(i).angVel')
+    colorbar
+    title(strcat('AngVel ',blockName{i}))
+end
