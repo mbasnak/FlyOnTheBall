@@ -1,4 +1,4 @@
-% Experiment 5 analysis
+% Experiment 6 yoked analysis
 
 %%% This code analyses the output of the panels and the FicTrac data
 %for experiment 5, in which the fly gets thre blocks of bar jumps of
@@ -6,7 +6,7 @@
 close all; clear all;
 
 % prompt the user to select the file to open and load it.
-cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5'
+cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment6'
 [file,path] = uigetfile();
 load([path,file]);
 
@@ -20,16 +20,9 @@ xPanels = 4;
 yPanels = 5;
 PanelStatus = 6; %this signal tells whether the panels are on or off.
 
-%Define the error block we're in according to the file name
-if findstr('Low',file) == 1
-    error = 1; %(low)
-else
-    error = 2; %(high)
-end
-    
 %% Subset acquisition of x and y pos, as well as FicTrac data
 
-data.xpanelVolts =  rawData (:,xPanels); 
+data.xPanelVolts =  rawData (:,xPanels); 
 VOLTAGE_RANGE_x = 9.77; % This should be 10 V, but empirically I measure 0.1 V for pos x=1 and 9.87 V for pos x=96
 maxValX =  96 ;% pattern.x_num (I am using 96 for every pattern now, but if it wasn't the case I would need to adjust it)
 
@@ -38,7 +31,7 @@ VOLTAGE_RANGE_y = 9.86; %likewise, empirically this should be 10V, but I am gett
 maxValY = 96;% I think I am using 1 for my Y dimension for every pattern except the 4px grating, which uses 2
 
 %FicTrac data
-data.fictracAngularPosition = rawData ( : , headingFly); 
+data.ficTracAngularPosition = rawData ( : , headingFly); 
 data.ficTracIntx = -rawData ( : , xFly); 
 data.ficTracInty = rawData ( : , yFly); 
 
@@ -76,154 +69,12 @@ text(startFrame+35000,5,strcat('startFrame',num2str(startFrame)))
 text(endFrame-100000,5,strcat('endFrame',num2str(endFrame)))
 
 
-% get the jumps using the signal from the yPanels channel
-Jumps = diff(data.yPanelVolts);
-Jumps(abs(Jumps)>0.4 & abs(Jumps)<1)=1;
-Jumps = round(Jumps);
-
-figure,
-suptitle('Bar jumps');
-subplot(3,1,1)
-plot(data.yPanelVolts)
-ylabel('Voltage (V)');xlabel('Time');
-subplot(3,1,2)
-plot(Jumps);
-ylabel('Voltage difference (V)');xlabel('Time');
-
-j = find(Jumps); %indices of the actual bar jumps, taken from the y signal
-if error == 2
- j = j(2:end);
-end
-jsec = j/1000;
-
-%plot the data from the yPanels and add lines of the previously determined
-%bar jumps
-%plot the panels y dimension signal
-subplot(3,1,3), plot(data.yPanelVolts)
-title('Bar jumps');
-xlabel('Time (frames)'); ylabel('Voltage (V)');
-hold on
-%add the bar jumps
-for i = 1:length(j)
-    plot([j(i) j(i)],[0 10],'r');
-end
-
-%% Fixing the data relative to the bar jumps
-
-%The x position of the panels and the FicTrac output are "ignorant" of the
-%bar jumps. The x position of the bar will move with the angular position
-%of the fly, but the coordinate system changes every time the bar jumps.
-%We need to make sure the xpos and heading of the fly are corrected to take
-%this coordinate change into account.
-
-yVoltsBJ = data.yPanelVolts(j-1);
-yVoltsAJ = data.yPanelVolts(j+1);
-ydiff = yVoltsAJ-yVoltsBJ; %this is the offset that I need to adjust by
-
-%Correct the data after every jump except for the last
-data.xPanelVoltsUW = data.xpanelVolts;
-data.ficTracAngularPositionUW = data.fictracAngularPosition;
-for i = 1:size(j)-1
-   data.xPanelVoltsUW(j(i)+1:j(i+1)) = (data.xpanelVolts(j(i)+1:j(i+1)))+sum(ydiff(1:i));  
-   data.ficTracAngularPositionUW(j(i)+1:j(i+1)) = (data.fictracAngularPosition(j(i)+1:j(i+1)))+sum(ydiff(1:i));
-end
-
-%Correct the data after the last jump
-data.xPanelVoltsUW(j(end)+1:end) = data.xpanelVolts(j(end)+1:end)+sum(ydiff(1:end));
-data.ficTracAngularPositionUW(j(end)+1:end) = data.fictracAngularPosition(j(end)+1:end)+sum(ydiff(1:end));
-
-%I now have to wrap this data to get it to be between 0 and 10 V. 
-data.xPanelVolts = data.xPanelVoltsUW;
-data.ficTracAngularPosition = data.ficTracAngularPositionUW;
-
-for i = 1:size(data.xPanelVolts)
-    
-    if data.xPanelVoltsUW(i) > 10
-    data.xPanelVolts(i) = data.xPanelVoltsUW(i)-10;
-    else
-    data.xPanelVolts(i) = data.xPanelVoltsUW(i);
-    end
-    
-    if data.ficTracAngularPositionUW(i) > 10
-    data.ficTracAngularPosition(i) = data.ficTracAngularPositionUW(i)-10;
-    else
-    data.ficTracAngularPosition(i) = data.ficTracAngularPositionUW(i);
-    end
-
-end
+%% 
 
 % Getting the data in x and y position from the voltage info.
 data.xPanelPos = round ((data.xPanelVolts  * maxValX ) /VOLTAGE_RANGE_x); % Convert from what it reads in volts from the Ni-Daq to an X position in pixels in the panels
 data.yPanelPos = round ((data.yPanelVolts  * maxValY) /VOLTAGE_RANGE_y);
 
-%check the wrapping graphically
-figure('Position', [100 100 1200 900]),
-subplot(2,1,1),
-plot(data.yPanelVolts,'r')
-hold on
-plot(data.xPanelVoltsUW,'b')
-plot(data.xPanelVolts,'g')
-ylabel('Voltage (V)');
-title('x panels voltage signals before and after wrapping');
-ylim([0 max(data.xPanelVoltsUW)]);
-legend({'yPanels','Unwrapped xPanels', 'Wrapped xPanels'});
-
-subplot(2,1,2),
-plot(data.yPanelVolts,'r')
-hold on
-plot(data.ficTracAngularPositionUW,'b')
-plot(data.ficTracAngularPosition,'g')
-xlabel('Time (frame)');ylabel('Voltage (V)');
-title('angular position voltage signals before and after wrapping');
-ylim([0 max(data.ficTracAngularPositionUW)]);
-legend({'yPanels','Unwrapped angular position', 'Wrapped angular position'});
-
-
-% Getting the degrees that each jump represents and checking they are
-% correct
-figure('Position', [100 100 1200 900]),
-
-jumpPos = data.yPanelPos(j+1)-data.yPanelPos(j-1);
-degJumps = wrapTo180(jumpPos*(360/96));
-subplot(1,3,1), plot(degJumps,'ro')
-ylim([-180 180]);
-title('Jump magnitude, taken from yPanels');
-ylabel('deg');xlabel('Trial #');xlim([1 TrialNum]);
-% compare that to the jump function we have stored
-hold on
-%Define the jumps according to the error level
-if error == 1
-    jumps = jumps;
-elseif error == 2
-    jumps = [-90,-90,-90,90,90,90,90,90,-90,90,90,90,90,-90,-90,-90,90,90,90,90,90,-90,-90,90];
-end
-plot(jumps(1:TrialNum),'b')
-legend({'Jumps from Y data','Jump function used'});
-
-%Check if the jump magnitude appears ok in the x panel data
-jumpMag = data.xPanelPos(j+1)-data.xPanelPos(j-1); 
-degMag = wrapTo180(jumpMag*(360/96));
-subplot(1,3,2), plot(degMag,'ro')
-ylim([-180 180]);
-title('Jump magnitude, taken from xPanels');
-ylabel('deg');xlabel('Trial #'); xlim([1 TrialNum]);
-% compare that to the jump function we have stored
-hold on
-plot(jumps(1:TrialNum),'b')
-legend({'Jumps from X data','Jump function used'});
-
-%check if the jump magnitude appears ok in the angular position data
-jumpMag2 = data.ficTracAngularPosition(j+1)-data.ficTracAngularPosition(j-1); 
-radMag2 = jumpMag2.* 2 .* pi ./ 10; %convert from voltage to radians
-degMag2 = wrapTo180(rad2deg(radMag2)); %convert from radians to degrees and wrap 180
-subplot(1,3,3), plot(degMag2,'ro')
-ylim([-180 180]);
-title('Jump magnitude, taken from angular position');
-ylabel('deg');xlabel('Trial #');xlim([1 TrialNum]);
-% compare that to the jump function we have stored
-hold on
-plot(jumps(1:TrialNum),'b')
-legend({'Jumps from angular position','Jump function used'});
 
 %% Downsample, unwrap and smooth position data, then get velocity and smooth
 
@@ -256,10 +107,6 @@ plot(time,forwardVelocity,'k','HandleVisibility','off')
 xlim([0 time(end)]);
 ylim([min(forwardVelocity)-10 max(forwardVelocity)+10]);
 hold on
-%add the jumps
-for i = 1:length(jsec)
-     plot([jsec(i) jsec(i)],[min(forwardVelocity)-10 max(forwardVelocity)+10],'g');
-end
 hline = refline([0 meanVelocity]);
 hline.Color = 'r'; hline.LineStyle = '--';
 rline = refline([0 0]);
@@ -275,7 +122,7 @@ xlabel('Forward velocity (mm/s)');
 ylabel('Frequency');
 xlim([min(forwardVelocity) max(forwardVelocity)]);
 
-saveas(gcf,strcat(path,'ForwardVelocity',file(1:end-4),'.png'));
+%saveas(gcf,strcat(path,'ForwardVelocity',file(1:end-4),'.png'));
 
 %% Angular velocity
 
@@ -297,9 +144,6 @@ plot(time,angularVelocity,'k','HandleVisibility','off')
 xlim([0 time(end)]);
 ylim([min(angularVelocity)-50 max(angularVelocity)+50]);
 hold on
-for i = 1:length(j) %add the bar jumps
-     plot([jsec(i) jsec(i)],[min(angularVelocity)-50 max(angularVelocity)+50],'g');
-end
 hline = refline([0 meanAngVelocity]);
 hline.Color = 'r'; hline.LineStyle = '--';
 rline = refline([0 0]);
@@ -315,7 +159,7 @@ xlabel('Angular velocity (deg/s)');
 ylabel('Frequency');
 xlim([min(angularVelocity) max(angularVelocity)]);
 
-saveas(gcf,strcat(path,'SmoothedAngularVelocity',file(1:end-4),'.png'))
+%saveas(gcf,strcat(path,'SmoothedAngularVelocity',file(1:end-4),'.png'))
 
 
 %%  Activity levels
@@ -344,13 +188,6 @@ end
 
 time = linspace(0,(length(rawData)/1000),length(activity));
 
-% figure,
-% set(gcf, 'Position', [500, 500, 1000, 100])
-% plot(time,activity,'k');
-% title('Activity raster plot');
-% ylabel('Activity');
-% xlabel('Time (s)');
-% xlim([0 time(end)]);
 
 %A more accurate plot
 figure,
@@ -364,8 +201,8 @@ title(strcat('Activity raster plot, percentage activity:', num2str(percentageAct
 ylabel('Activity');
 xlabel('Time (s)');
 
-save(strcat(path,'Activity',file(1:end-4),'.mat'),'time','activity','percentageActivity');
-saveas(gcf,strcat(path,'ActivityRP',file(1:end-4),'.png'))
+%save(strcat(path,'Activity',file(1:end-4),'.mat'),'time','activity','percentageActivity');
+%saveas(gcf,strcat(path,'ActivityRP',file(1:end-4),'.png'))
 
 %% Output in degrees of the Panels position
 
@@ -398,10 +235,6 @@ hold on
 plot(remapPosToDeg, time,'k','HandleVisibility','off')
 xlabel('Heading angle (deg)'); ylabel('Time (s)');
 xlim([-180 180]); ylim([0 max(time)]);
-hold on
-for i = 1:length(j)
-     plot([-180 180], [jsec(i) jsec(i)],'r--');
-end
 ax = gca;
 ax.YDir = 'reverse';
 
@@ -410,10 +243,6 @@ subplot(2,4,[4,8])
 scatter(remapPosToDeg(forwardVelocity>1), time(forwardVelocity>1));
 xlabel('Heading angle (deg)'); ylabel('Time (s)');
 xlim([-180 180]); ylim([0 max(time)]);
-hold on
-for i = 1:length(j)
-     plot([-180 180], [jsec(i) jsec(i)],'r--');
-end
 ax = gca;
 ax.YDir = 'reverse'; 
 
@@ -467,7 +296,7 @@ ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top';
 
-saveas(gcf,strcat(path,'BarPosition',file(1:end-4),'.png'))
+%saveas(gcf,strcat(path,'BarPosition',file(1:end-4),'.png'))
 
 %% Fly's heading thoughout the experiment
 
@@ -501,10 +330,6 @@ hold on
 plot(flyPos180, time,'k','HandleVisibility','off')
 xlabel('Heading angle (deg)'); ylabel('Time (s)');
 xlim([-180 180]); ylim([0 max(time)]);
-hold on
-for i = 1:length(j)
-     plot([-180 180], [jsec(i) jsec(i)],'r--');
-end
 ax = gca;
 ax.YDir = 'reverse';
 
@@ -515,9 +340,6 @@ scatter(flyPos180(forwardVelocity>1), time(forwardVelocity>1));
 xlabel('Heading angle (deg)'); ylabel('Time (s)');
 xlim([-180 180]); ylim([0 max(time)]);
 hold on
-for i = 1:length(j)
-     plot([-180 180], [jsec(i) jsec(i)],'r--');
-end
 ax = gca;
 ax.YDir = 'reverse'; 
  
@@ -563,8 +385,8 @@ ax = gca;
 ax.ThetaDir='clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
-save(strcat(path,'FlyPosition',file(1:end-4),'.mat'),'posToRadFlyMoving','circedges');
-saveas(gcf,strcat(path,'FlyPosition',file(1:end-4),'.png'))
+%save(strcat(path,'FlyPosition',file(1:end-4),'.mat'),'posToRadFlyMoving','circedges');
+%saveas(gcf,strcat(path,'FlyPosition',file(1:end-4),'.png'))
 %% Look at the goal and calculate the distance to it...
 
 %Taking all the experiment
@@ -593,8 +415,8 @@ title('Distance to the goal with moving frames');
 xlim([-180, 180]); xlabel('Distance to the goal (deg)');
 ylabel('Probability');
 
-saveas(gcf,strcat(path,'Dist2Goal',file(1:end-4),'.png'))
-save(strcat(path,'goals',file(1:end-4),'.mat'),'goal','goalMoving','dist2goal','dist2goalMoving','degsFlyDistMoving','probabilitiesDistMoving');
+%saveas(gcf,strcat(path,'Dist2Goal',file(1:end-4),'.png'))
+%save(strcat(path,'goals',file(1:end-4),'.mat'),'goal','goalMoving','dist2goal','dist2goalMoving','degsFlyDistMoving','probabilitiesDistMoving');
 
 %% Using the 100 sec before and after each jump to compute several goal distributions
 %per experiment...if it's a low error block
@@ -644,7 +466,7 @@ for i = 1:length(j)-1
 end
     suptitle('Distance to the goal 100 sec around the jumps');
     
-saveas(gcf,strcat(path,'Dist2goal100sec',file(1:end-4),'.png'))
+%saveas(gcf,strcat(path,'Dist2goal100sec',file(1:end-4),'.png'))
 
     
 %Plot them using colorscales
@@ -660,10 +482,10 @@ trials = [1:length(jumps)];
 figure, imagesc(xaxis,trials,probaDist100secMoving')
 colormap(newMap)
 colorbar
-saveas(gcf,strcat(path,'HeatMapDist2goal100sec',file(1:end-4),'.png'))
+%saveas(gcf,strcat(path,'HeatMapDist2goal100sec',file(1:end-4),'.png'))
 
 %save data
-save(strcat(path,'shortData',file(1:end-4),'.mat'),'shortData','probaDist100secMoving');
+%save(strcat(path,'shortData',file(1:end-4),'.mat'),'shortData','probaDist100secMoving');
 
 end
 
@@ -714,7 +536,7 @@ for i = 1:length(j)
     title(strcat('SD = ',num2str(rad2deg(s010sec(i)))));
 end
 suptitle('Distribution of the distance to the goal 10 sec prior to jumps, moving frames')     
-saveas(gcf,strcat(path,'Distribution10secBJ',file(1:end-4),'.png'))
+%saveas(gcf,strcat(path,'Distribution10secBJ',file(1:end-4),'.png'))
     
 %3) Calculate the distance to the goal in the seconds after the
 %jump
@@ -736,7 +558,7 @@ for i = 1:length(j)
     ylabel('Probability');
 end
 suptitle('Distance to the goal, 10 sec around jumps')     
-saveas(gcf,strcat(path,'Dist2goal10sec',file(1:end-4),'.png'))
+%saveas(gcf,strcat(path,'Dist2goal10sec',file(1:end-4),'.png'))
 
 %Plot them using colorscales
 probaDist10secMoving = cell2mat(probabilitiesDist10secMoving);
@@ -749,10 +571,10 @@ trials = [1:length(jumps)];
 figure, imagesc(xaxis,trials,probaDist10secMoving')
 colormap(newMap)
 colorbar
-saveas(gcf,strcat(path,'HeatmapDist2goal10sec',file(1:end-4),'.png'))
+%saveas(gcf,strcat(path,'HeatmapDist2goal10sec',file(1:end-4),'.png'))
 
 %save data
-save(strcat(path,'shortData10sec',file(1:end-4),'.mat'),'shortData10sec','probaDist10secMoving');
+%save(strcat(path,'shortData10sec',file(1:end-4),'.mat'),'shortData10sec','probaDist10secMoving');
 %% Per 'trial'
 
 %I'm using a function to get and smooth data around the jumps
@@ -763,7 +585,7 @@ perTrialData = getDataAroundJump(rawData,j,sec,sizeBall);
 perTrialData.jumpMag = jumps;
 perTrialData.angPos = getPosAroundJump(data.ficTracAngularPosition,j,sec);
 
-save(strcat(path,'perTrialData',file(1:end-4),'.mat'),'perTrialData');
+%save(strcat(path,'perTrialData',file(1:end-4),'.mat'),'perTrialData');
 
 %% Velocity and around the jumps
 
@@ -892,4 +714,4 @@ xlim([-5, 5]); ylim([min(meanAngVel90)-10, max(meanAngVelNeg90)+10]);
 plot([0,0],[min(meanAngVel90)-10, max(meanAngVelNeg90)+10],'k','HandleVisibility','off');
 plot([-5,5],[0,0],'-.k','HandleVisibility','off');
 
-saveas(gcf,strcat(path,'MeanAJvelocities',file(1:end-4),'.png'))
+%saveas(gcf,strcat(path,'MeanAJvelocities',file(1:end-4),'.png'))

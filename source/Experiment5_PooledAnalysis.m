@@ -211,6 +211,196 @@ ylabel('Angular velocity (deg/s)'); xlabel('Time from bar jump (s)');
 saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\AverageVelocityChange.png'))
 saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\AverageVelocityChange.svg'))
 
+%% Look at the progression in angular velocity around jumps within block
+
+firstHalfAngVel = zeros(0,0);
+firstHalfjumpMag = zeros(0,0);
+secondHalfAngVel = zeros(0,0);
+secondHalfjumpMag = zeros(0,0);
+
+for i = 1:length(dataFirstLE)
+    firstHalfAngVel = [firstHalfAngVel,dataHE{1,i}.perTrialData.angVel(:,1:12)];
+    secondHalfAngVel = [secondHalfAngVel,dataHE{1,i}.perTrialData.angVel(:,13:24)];
+    firstHalfjumpMag = [firstHalfjumpMag,dataHE{1,i}.perTrialData.jumpMag(1,1:12)];
+    secondHalfjumpMag = [secondHalfjumpMag,dataHE{1,i}.perTrialData.jumpMag(1,13:24)];
+end
+
+%subset into the 2 magnitude groups
+Data90HEFirstHalf.angVel = firstHalfAngVel(:,firstHalfjumpMag == 90);
+DataNeg90HEFirstHalf.angVel = firstHalfAngVel(:,firstHalfjumpMag == -90);
+Data90HESecondHalf.angVel = secondHalfAngVel(:,secondHalfjumpMag == 90);
+DataNeg90HESecondHalf.angVel = secondHalfAngVel(:,secondHalfjumpMag == -90);
+
+%calculate mean and std ang vel
+meanAngVel90HEFirstHalf = mean(Data90HEFirstHalf.angVel,2);
+stdAngVel90HEFirstHalf = std(Data90HEFirstHalf.angVel,[],2);
+meanAngVelNeg90HEFirstHalf = mean(DataNeg90HEFirstHalf.angVel,2);
+stdAngVelNeg90HEFirstHalf = std(DataNeg90HEFirstHalf.angVel,[],2);
+
+meanAngVel90HESecondHalf = mean(Data90HESecondHalf.angVel,2);
+stdAngVel90HESecondHalf = std(Data90HESecondHalf.angVel,[],2);
+meanAngVelNeg90HESecondHalf = mean(DataNeg90HESecondHalf.angVel,2);
+stdAngVelNeg90HESecondHalf = std(DataNeg90HESecondHalf.angVel,[],2);
+
+%plot mean and error for each
+figure('Position', [200 200 1200 900]),
+subplot(1,2,1)
+p11 = boundedline(time,meanAngVel90HEFirstHalf,stdAngVel90HEFirstHalf/sqrt(i),'r','alpha')
+hold on
+p12 = boundedline(time,meanAngVelNeg90HEFirstHalf,stdAngVelNeg90HEFirstHalf/sqrt(i),'k','alpha')
+title('High error block, first half');
+ylim([-60, 60]);xlim([-8, 8]);
+plot([0,0],[-60, 60],'--k','HandleVisibility','off');
+plot([-8,8],[0, 0],'k','HandleVisibility','off');
+legend([p11,p12], '90','-90');
+ylabel('Angular velocity (deg/s)'); xlabel('Time from bar jump (s)');
+
+subplot(1,2,2)
+p21 = boundedline(time,meanAngVel90HESecondHalf,stdAngVel90HESecondHalf/sqrt(i),'r','alpha')
+hold on
+p22 = boundedline(time,meanAngVelNeg90HESecondHalf,stdAngVelNeg90HESecondHalf/sqrt(i),'k','alpha')
+title('High error block, second half');
+ylim([-60, 60]);xlim([-8, 8]);
+plot([0,0],[-60, 60],'--k','HandleVisibility','off');
+plot([-8,8],[0, 0],'k','HandleVisibility','off');
+legend([p21,p22], '90','-90');
+ylabel('Angular velocity (deg/s)'); xlabel('Time from bar jump (s)');
+
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\AverageVelocityProgressionHE.png'))
+saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\AverageVelocityProgressionHE.svg'))
+
+%% Add Jonathan's quantitative analysis:
+%he takes the mean velocity from -2 to 0 and compares it with the one from
+%0 to 2, for each fly, using a wilcoxon signed-rank test
+
+jumpFrame = round(size(angVelAll,1)/2+1);
+
+%2 sec = 50 frames, 5 sec = 150 frames
+
+for i = 1:length(dataFirstLE)
+    BJ90degMeanAngVel{i}= mean(dataFirstLE{1,i}.perTrialData.angVel(jumpFrame-50:jumpFrame,dataFirstLE{1,i}.perTrialData.jumpMag==90));
+    BJNeg90degMeanAngVel{i}= mean(dataFirstLE{1,i}.perTrialData.angVel(jumpFrame-50:jumpFrame,dataFirstLE{1,i}.perTrialData.jumpMag==-90));
+    AJ90degMeanAngVel{i}= mean(dataFirstLE{1,i}.perTrialData.angVel(jumpFrame:jumpFrame+50,dataFirstLE{1,i}.perTrialData.jumpMag==90));
+    AJNeg90degMeanAngVel{i}= mean(dataFirstLE{1,i}.perTrialData.angVel(jumpFrame:jumpFrame+50,dataFirstLE{1,i}.perTrialData.jumpMag==-90));
+
+    BJ90degMeanAngVelHE{i}= mean(dataHE{1,i}.perTrialData.angVel(jumpFrame-50:jumpFrame,dataHE{1,i}.perTrialData.jumpMag==90));
+    BJNeg90degMeanAngVelHE{i}= mean(dataHE{1,i}.perTrialData.angVel(jumpFrame-50:jumpFrame,dataHE{1,i}.perTrialData.jumpMag==-90));
+    AJ90degMeanAngVelHE{i}= mean(dataHE{1,i}.perTrialData.angVel(jumpFrame:jumpFrame+50,dataHE{1,i}.perTrialData.jumpMag==90));
+    AJNeg90degMeanAngVelHE{i}= mean(dataHE{1,i}.perTrialData.angVel(jumpFrame:jumpFrame+50,dataHE{1,i}.perTrialData.jumpMag==-90));
+
+    BJ90degMeanAngVelSecondLE{i}= mean(dataSecondLE{1,i}.perTrialData.angVel(jumpFrame-50:jumpFrame,dataSecondLE{1,i}.perTrialData.jumpMag==90));
+    BJNeg90degMeanAngVelSecondLE{i}= mean(dataSecondLE{1,i}.perTrialData.angVel(jumpFrame-50:jumpFrame,dataSecondLE{1,i}.perTrialData.jumpMag==-90));
+    AJ90degMeanAngVelSecondLE{i}= mean(dataSecondLE{1,i}.perTrialData.angVel(jumpFrame:jumpFrame+50,dataSecondLE{1,i}.perTrialData.jumpMag==90));
+    AJNeg90degMeanAngVelSecondLE{i}= mean(dataSecondLE{1,i}.perTrialData.angVel(jumpFrame:jumpFrame+50,dataSecondLE{1,i}.perTrialData.jumpMag==-90));
+end
+
+%convert to doubles
+BJ90degMeanAngVel = cell2mat(BJ90degMeanAngVel);
+BJNeg90degMeanAngVel = cell2mat(BJNeg90degMeanAngVel);
+AJ90degMeanAngVel = cell2mat(AJ90degMeanAngVel);
+AJNeg90degMeanAngVel = cell2mat(AJNeg90degMeanAngVel);
+
+BJ90degMeanAngVelHE = cell2mat(BJ90degMeanAngVelHE);
+BJNeg90degMeanAngVelHE = cell2mat(BJNeg90degMeanAngVelHE);
+AJ90degMeanAngVelHE = cell2mat(AJ90degMeanAngVelHE);
+AJNeg90degMeanAngVelHE = cell2mat(AJNeg90degMeanAngVelHE);
+
+BJ90degMeanAngVelSecondLE = cell2mat(BJ90degMeanAngVelSecondLE);
+BJNeg90degMeanAngVelSecondLE = cell2mat(BJNeg90degMeanAngVelSecondLE);
+AJ90degMeanAngVelSecondLE = cell2mat(AJ90degMeanAngVelSecondLE);
+AJNeg90degMeanAngVelSecondLE = cell2mat(AJNeg90degMeanAngVelSecondLE);
+
+%group BJ and AJ for every angle
+around90Ang = [BJ90degMeanAngVel;AJ90degMeanAngVel];
+aroundNeg90Ang = [BJNeg90degMeanAngVel;AJNeg90degMeanAngVel];
+
+around90AngHE = [BJ90degMeanAngVelHE;AJ90degMeanAngVelHE];
+aroundNeg90AngHE = [BJNeg90degMeanAngVelHE;AJNeg90degMeanAngVelHE];
+
+around90AngSecondLE = [BJ90degMeanAngVelSecondLE;AJ90degMeanAngVelSecondLE];
+aroundNeg90AngSecondLE = [BJNeg90degMeanAngVelSecondLE;AJNeg90degMeanAngVelSecondLE];
+
+%compute wilcoxon tests
+p1 = ranksum(BJ90degMeanAngVel,AJ90degMeanAngVel);
+p2 = ranksum(BJNeg90degMeanAngVel,AJNeg90degMeanAngVel);
+p3 = ranksum(BJ90degMeanAngVelHE,AJ90degMeanAngVelHE);
+p4 = ranksum(BJNeg90degMeanAngVelHE,AJNeg90degMeanAngVelHE);
+p5 = ranksum(BJ90degMeanAngVelSecondLE,AJ90degMeanAngVelSecondLE);
+p6 = ranksum(BJNeg90degMeanAngVelSecondLE,AJNeg90degMeanAngVelSecondLE);
+
+% Plotting them
+x = ones(1, length(around90Ang));
+figure('Position', [100 100 1600 900]),
+%Angular velocity
+subplot(2,3,1)
+plot(x, around90Ang(1,:),'o')
+hold on
+plot(2*x,around90Ang(2,:),'o')
+xlim([0,3]);
+for i = 1:length(around90Ang)
+    plot([1,2],[around90Ang(1,i) around90Ang(2,i)],'k')
+end
+ylabel('Angular velocity (deg/s)');
+text(1,max(max(around90Ang)),strcat('p = ',num2str(p1)))
+set(gca,'xticklabel',{[]})
+title('First low error block');
+subplot(2,3,4)
+plot(x, aroundNeg90Ang(1,:),'o')
+hold on
+plot(2*x,aroundNeg90Ang(2,:),'o')
+xlim([0,3]);
+for i = 1:length(aroundNeg90Ang)
+    plot([1,2],[aroundNeg90Ang(1,i) aroundNeg90Ang(2,i)],'k')
+end
+text(1,max(max(aroundNeg90Ang)),strcat('p = ',num2str(p2)))
+set(gca,'xticklabel',{[]})
+x = ones(1, length(around90AngHE));
+subplot(2,3,2)
+plot(x, around90AngHE(1,:),'o')
+hold on
+plot(2*x,around90AngHE(2,:),'o')
+xlim([0,3]);
+for i = 1:length(around90AngHE)
+    plot([1,2],[around90AngHE(1,i) around90AngHE(2,i)],'k')
+end
+ylabel('Angular velocity (deg/s)');
+text(1,max(max(around90AngHE)),strcat('p = ',num2str(p3)))
+set(gca,'xticklabel',{[]})
+title('High error block');
+subplot(2,3,5)
+x = ones(1, length(aroundNeg90AngHE));
+plot(x, aroundNeg90AngHE(1,:),'o')
+hold on
+plot(2*x,aroundNeg90AngHE(2,:),'o')
+xlim([0,3]);
+for i = 1:length(aroundNeg90AngHE)
+    plot([1,2],[aroundNeg90AngHE(1,i) aroundNeg90AngHE(2,i)],'k')
+end
+text(1,max(max(aroundNeg90Ang)),strcat('p = ',num2str(p4)))
+set(gca,'xticklabel',{[]})
+subplot(2,3,3)
+x = ones(1, length(around90AngSecondLE));
+plot(x, around90AngSecondLE(1,:),'o')
+hold on
+plot(2*x,around90AngSecondLE(2,:),'o')
+xlim([0,3]);
+for i = 1:length(around90AngSecondLE)
+    plot([1,2],[around90AngSecondLE(1,i) around90AngSecondLE(2,i)],'k')
+end
+text(1,max(max(around90AngSecondLE)),strcat('p = ',num2str(p5)))
+set(gca,'xticklabel',{[]})
+title('Second low error block');
+subplot(2,3,6)
+x = ones(1, length(aroundNeg90AngSecondLE));
+plot(x, aroundNeg90AngSecondLE(1,:),'o')
+hold on
+plot(2*x,aroundNeg90AngSecondLE(2,:),'o')
+xlim([0,3]);
+for i = 1:length(aroundNeg90AngSecondLE)
+    plot([1,2],[aroundNeg90AngSecondLE(1,i) aroundNeg90AngSecondLE(2,i)],'k')
+end
+text(1,max(max(aroundNeg90AngSecondLE)),strcat('p = ',num2str(p6)))
+set(gca,'xticklabel',{[]})
 
 %% distance to the goal
 

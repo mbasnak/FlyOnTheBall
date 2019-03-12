@@ -4,7 +4,7 @@
 
 function ExpEmptyTrial(flyNum,expNum)
 
-cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\';
+cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment6\';
 
 daqreset %reset DAC object
 devID = 'Dev1';  % Set device ID (to know what the ID is, you can type "daq.getDevices"
@@ -31,12 +31,12 @@ end
 
 
 if expNum == 1 %if it's the first experiment for this fly
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\',date]); %move to today's folder
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment6\',date]); %move to today's folder
    mkdir (strcat('flyNum',num2str(flyNum))) %inside that folder make a folder for this fly
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\',date,'\flyNum',num2str(flyNum)])
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment6\',date,'\flyNum',num2str(flyNum)])
    getFlyInfo() %get fly's details
 else
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment6\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
 end
 
 
