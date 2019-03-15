@@ -419,18 +419,24 @@ end
 
 %concatenate as columns the arrays for all the variables
 goalMovingAll = zeros(0,0);
+devGoalMovingAll = zeros(0,0);
 dist2goalMovingAll = {};
 goalMovingAllHE = zeros(0,0);
+devGoalMovingAllHE = zeros(0,0);
 dist2goalMovingAllHE = {};
 goalMovingAllSecondLE = zeros(0,0);
+devGoalMovingAllSecondLE = zeros(0,0);
 dist2goalMovingAllSecondLE = {};
 
 for i = 1:length(FilesHE)
     goalMovingAll = [goalMovingAll;goalsFirstLE{1,i}.goalMoving];
+    devGoalMovingAll = [devGoalMovingAll;goalsFirstLE{1,i}.devGoalMoving];
     dist2goalMovingAll{i} = goalsFirstLE{1,i}.dist2goalMoving;
     goalMovingAllHE = [goalMovingAllHE;goalsHE{1,i}.goalMoving];
+    devGoalMovingAllHE = [devGoalMovingAllHE;goalsHE{1,i}.devGoalMoving];
     dist2goalMovingAllHE{i} = goalsHE{1,i}.dist2goalMoving;
     goalMovingAllSecondLE = [goalMovingAllSecondLE;goalsSecondLE{1,i}.goalMoving];
+    devGoalMovingAllSecondLE = [devGoalMovingAllSecondLE;goalsSecondLE{1,i}.devGoalMoving];
     dist2goalMovingAllSecondLE{i} = goalsSecondLE{1,i}.dist2goalMoving;
 end
 
@@ -477,8 +483,10 @@ saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\GoalDist.svg'
 
 %Look at the goal per flie across blocks
 allGoals = [goalMovingAll,goalMovingAllHE,goalMovingAllSecondLE];
+allDevGoals = [devGoalMovingAll,devGoalMovingAllHE,devGoalMovingAllSecondLE];
 figure, plot(rad2deg(allGoals'),'o')
 hold on, plot(rad2deg(allGoals'))
+%errorbar(rad2deg(allGoals'),rad2deg(allDevGoals'),'LineStyle','none');
 ylabel('Goal (deg)');
 xlim([0,4]);
 xticks([1 2 3])

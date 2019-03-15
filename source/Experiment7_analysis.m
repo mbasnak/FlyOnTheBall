@@ -6,7 +6,7 @@
 close all; clear all;
 
 % prompt the user to select the file to open and load it.
-cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5'
+cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment7'
 [file,path] = uigetfile();
 load([path,file]);
 
@@ -20,12 +20,6 @@ xPanels = 4;
 yPanels = 5;
 PanelStatus = 6; %this signal tells whether the panels are on or off.
 
-%Define the error block we're in according to the file name
-if findstr('Low',file) == 1
-    error = 1; %(low)
-else
-    error = 2; %(high)
-end
     
 %% Subset acquisition of x and y pos, as well as FicTrac data
 
@@ -91,9 +85,7 @@ plot(Jumps);
 ylabel('Voltage difference (V)');xlabel('Time');
 
 j = find(Jumps); %indices of the actual bar jumps, taken from the y signal
-if error == 2
- j = j(2:end);
-end
+%j = j(2:end);
 jsec = j/1000;
 
 %plot the data from the yPanels and add lines of the previously determined
@@ -188,16 +180,10 @@ degJumps = wrapTo180(jumpPos*(360/96));
 subplot(1,3,1), plot(degJumps,'ro')
 ylim([-180 180]);
 title('Jump magnitude, taken from yPanels');
-ylabel('deg');xlabel('Trial #');xlim([1 TrialNum]);
+ylabel('deg');xlabel('Trial #');xlim([1 length(j)]);
 % compare that to the jump function we have stored
 hold on
-%Define the jumps according to the error level
-if error == 1
-    jumps = jumps;
-elseif error == 2
-    jumps = [-90,-90,-90,90,90,90,90,90,-90,90,90,90,90,-90,-90,-90,90,90,90,90,90,-90,-90,90];
-end
-plot(jumps(1:TrialNum),'b')
+plot(jumps(1:length(j)),'b')
 legend({'Jumps from Y data','Jump function used'});
 
 %Check if the jump magnitude appears ok in the x panel data
@@ -206,10 +192,10 @@ degMag = wrapTo180(jumpMag*(360/96));
 subplot(1,3,2), plot(degMag,'ro')
 ylim([-180 180]);
 title('Jump magnitude, taken from xPanels');
-ylabel('deg');xlabel('Trial #'); xlim([1 TrialNum]);
+ylabel('deg');xlabel('Trial #'); xlim([1 length(j)]);
 % compare that to the jump function we have stored
 hold on
-plot(jumps(1:TrialNum),'b')
+plot(jumps(1:length(j)),'b')
 legend({'Jumps from X data','Jump function used'});
 
 %check if the jump magnitude appears ok in the angular position data
@@ -219,10 +205,10 @@ degMag2 = wrapTo180(rad2deg(radMag2)); %convert from radians to degrees and wrap
 subplot(1,3,3), plot(degMag2,'ro')
 ylim([-180 180]);
 title('Jump magnitude, taken from angular position');
-ylabel('deg');xlabel('Trial #');xlim([1 TrialNum]);
+ylabel('deg');xlabel('Trial #');xlim([1 length(j)]);
 % compare that to the jump function we have stored
 hold on
-plot(jumps(1:TrialNum),'b')
+plot(jumps(1:length(j)),'b')
 legend({'Jumps from angular position','Jump function used'});
 
 %% Downsample, unwrap and smooth position data, then get velocity and smooth
@@ -596,77 +582,6 @@ ylabel('Probability');
 
 saveas(gcf,strcat(path,'Dist2Goal',file(1:end-4),'.png'))
 save(strcat(path,'goals',file(1:end-4),'.mat'),'goal','goalMoving','dist2goal','dist2goalMoving','degsFlyDistMoving','probabilitiesDistMoving','devGoalMoving');
-
-%% Using the 100 sec before and after each jump to compute several goal distributions
-%per experiment...if it's a low error block
-
-if error == 1
-%I get the 100 sec before and after the jump for every jump except for the
-%last
-sec = 100;
-sizeBall = 9;
-j2 = j(1:end-1);
-shortData = getDataAroundJump(rawData,j2,sec,sizeBall);
-%apend jump data and save for using in the pooled flies analysis
-shortData.jumpMag = jumps(1:end-1);
-shortData.angPos = getPosAroundJump(data.ficTracAngularPosition,j(1:end-1),sec);
-
-
-%Calculate and plot distribution of dist2goal around every jump
-%with every frame
-figure('Position', [100 100 1600 900]),
-for i = 1:length(j)-1
-    %For every frame
-    goal100sec = circ_mean(deg2rad(shortData.angPos));
-    dist2goal2100sec{i} = circ_dist(deg2rad(shortData.angPos(:,i)),goal100sec(i));
-    dist2goal100sec{i} = wrapTo180(rad2deg(dist2goal2100sec{i}));
-    [countsDist100sec{i}] = histcounts(dist2goal100sec{i},edges);
-    probabilitiesDist100sec{i} = countsDist100sec{i}./sum(countsDist100sec{i});
-    degsFlyDist100sec{i} = linspace(-180,180,length(countsDist100sec{i}));
-    
-    %For moving frames only
-    datamoving{i} = shortData.angPos(:,i);
-    datamoving{i}(shortData.forwardVel(:,i)<=1) = NaN;
-    datamoving{i} = datamoving{i}(~isnan(datamoving{i}))';
-    goal100secMoving{i} = circ_mean(deg2rad(datamoving{i}),[],2);
-    dist2goal2100secMoving{i} = circ_dist(deg2rad(datamoving{i}),goal100secMoving{i});
-    dist2goal100secMoving{i} = wrapTo180(rad2deg(dist2goal2100secMoving{i}));
-    [countsDist100secMoving{i}] = histcounts(dist2goal100secMoving{i},edges);
-    probabilitiesDist100secMoving{i} = countsDist100secMoving{i}./sum(countsDist100secMoving{i});
-    degsFlyDist100secMoving{i} = linspace(-180,180,length(countsDist100secMoving{i}));
-    
-    %plot
-    subplot(3,4,i),
-    plot(degsFlyDist100sec{i},probabilitiesDist100sec{i},'r')
-    hold on
-    plot(degsFlyDist100secMoving{i},probabilitiesDist100secMoving{i},'k')
-    xlim([-180, 180]); xlabel('Distance to the goal (deg)');
-    ylabel('Probability');
-end
-    suptitle('Distance to the goal 100 sec around the jumps');
-    
-saveas(gcf,strcat(path,'Dist2goal100sec',file(1:end-4),'.png'))
-
-    
-%Plot them using colorscales
-probaDist100sec = cell2mat(probabilitiesDist100sec);
-probaDist100sec = reshape(probaDist100sec,length(probaDist100sec)/length(probabilitiesDist100sec),length(probabilitiesDist100sec));
-probaDist100secMoving = cell2mat(probabilitiesDist100secMoving);
-probaDist100secMoving = reshape(probaDist100secMoving,length(probaDist100secMoving)/length(probabilitiesDist100secMoving),length(probabilitiesDist100secMoving));
-
-%create new colormap
-newMap = flipud(gray);
-xaxis = [-180:360/17:180];
-trials = [1:length(jumps)];
-figure, imagesc(xaxis,trials,probaDist100secMoving')
-colormap(newMap)
-colorbar
-saveas(gcf,strcat(path,'HeatMapDist2goal100sec',file(1:end-4),'.png'))
-
-%save data
-save(strcat(path,'shortData',file(1:end-4),'.mat'),'shortData','probaDist100secMoving');
-
-end
 
 %% Using 10 sec around jump
 

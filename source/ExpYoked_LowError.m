@@ -42,14 +42,12 @@ end
 %not sure about these...
 
 %%%%%% Run the panels %%%%%%
-Panel_com('set_pattern_id', 1); %set the bar
+Panel_com('set_pattern_id', 6); %set the bar
 Panel_com('set_mode', [4 0]); 
-pause(0.03)
-Panel_com('send_gain_bias', [0 0 0 0]);
 pause(0.03)
 Panel_com('set_position',[startPos 1]);
 pause(0.03)
-Panel_com('set_funcx_freq', 25);
+Panel_com('set_funcx_freq', 5);
 pause(0.03)
 Panel_com('set_posfunc_id',[1 jumpFunction]); %set it to be yoked, to one of the 4 functions made from master flies.
 pause(0.03)
@@ -85,7 +83,7 @@ else
    cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment6\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
 end
 
-save(strcat('Yoked_LowErrorBlockExp',num2str(expNum),'.mat'),'daq_data','startPos','jumps'); %save daq data and starting positions as a .mat file
+save(strcat('Yoked_LowErrorBlockExp',num2str(expNum),'.mat'),'daq_data','startPos','jumps','jumpFunction'); %save daq data and starting positions as a .mat file
 
 
 end

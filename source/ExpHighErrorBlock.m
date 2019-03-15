@@ -1,4 +1,4 @@
-function [daq_data] = ExpHighErrorBlock(flyNum,expNum,TrialNum)
+function [daq_data] = ExpHighErrorBlock(flyNum,expNum)
 
 % This function runs an experiment in which a bar is presented in closed-loop and
 % every 200 s, it jumps to a position at either 90 or -90 deg from the
@@ -21,7 +21,7 @@ aI = niOI.addAnalogInputChannel( devID , 1:6 , 'Voltage' );
 for i = 1:6
     aI(i).InputType = 'SingleEnded';
 end
-niOI.DurationInSeconds = TrialNum*20 + 20; %set the duration to the total panel display time + 5 extra seconds
+niOI.DurationInSeconds = 500; 
 
 fid = fopen('log.dat','w+'); %this opens a csv file named "log",creating it for writing (and overwriting existing filed) with the flag "w+"
 lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
@@ -31,21 +31,33 @@ niOI.startBackground(); %start acquiring
 
 startPos = 2; %to match the starting position of the Y pattern.
 
+jumpFunction = randperm(5,1)+23 %get a random number from 1 to 5 to determine the pos function
+
+if jumpFunction == 24
+    jumps = [90,90,90,90,-90,-90,-90,-90,-90,-90,90,90,-90,90,-90,-90,90,90,-90,-90,90,-90,90,90];
+elseif jumpFunction == 25
+    jumps = [-90,-90,-90,90,90,90,90,-90,-90,90,90,-90,-90,90,-90,90,-90,90,-90,-90,90,-90,90,90];
+elseif jumpFunction == 26
+    jumps = [-90,-90,90,-90,-90,90,90,-90,90,-90,-90,90,-90,90,90,90,-90,90,90,-90,90,-90,90,-90];
+elseif jumpFunction == 27
+    jumps = [90,90,-90,90,90,-90,-90,-90,90,-90,90,-90,-90,90,-90,90,90,90,-90,-90,-90,-90,90,90];
+elseif jumpFunction == 28
+    jumps = [-90,90,-90,-90,90,90,-90,90,90,-90,-90,90,90,-90,-90,-90,-90,90,-90,90,90,90,90,-90];
+end
+
 %%%%%% Run the panels %%%%%%
 Panel_com('set_pattern_id', 1); %set the bar
 Panel_com('set_mode', [3 4]); %set it to closed-loop mode in the x dimension and to be controlled by a function in the y dimension 
-pause(0.03)
-Panel_com('send_gain_bias', [0 0 0 0]);
 pause(0.03)
 Panel_com('set_position',[startPos 1]);
 pause(0.03)
 Panel_com('set_funcy_freq', 5);
 pause(0.03)
-Panel_com('set_posfunc_id',[2 19]); %set it to jump every 200 sec, to one of the 5 jumping functions created.
+Panel_com('set_posfunc_id',[2 jumpFunction]); %set it to jump every 20 sec, to one of the 5 jumping functions created.
 pause(0.03)
 Panel_com('set_AO',[3 32767]);
 Panel_com('start');
-pause(TrialNum*20+4) %record for the time it takes to span the number of trials requested
+pause(484) %record for the time it takes to span the number of trials requested
 Panel_com('stop');
 Panel_com('set_AO',[3 0]);
 Panel_com('all_off');
@@ -54,28 +66,28 @@ Panel_com('all_off');
 
 niOI.IsDone % will report 0
 niOI.wait() % wait and keep acquiring until the acquisition time is over
-niOI.IsDone % will report 1
+niOI.IsDone; % will report 1
 
-delete(lh) % delete the listener handle
+delete(lh); % delete the listener handle
 
 [daq_data] = loadFromLogFile('log.dat',6); %load the data just saved to the dat file, using Stephen's function
 
-cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\' %move to our data directory
+cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment7\' %move to our data directory
     
 % if flyNum ==1 %if it's the first fly
 %    mkdir ([date]) %make a folder with today's date
 % end
 
 if expNum == 1 %if it's the first experiment for this fly
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\',date]); %move to today's folder
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment7\',date]); %move to today's folder
    mkdir (strcat('flyNum',num2str(flyNum))) %inside that folder make a folder for this fly
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\',date,'\flyNum',num2str(flyNum)])
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment7\',date,'\flyNum',num2str(flyNum)])
    getFlyInfo() %get fly's details
 else
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
+   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment7\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
 end
 
-save(strcat('HighErrorBlockExp',num2str(expNum),'.mat'),'daq_data','startPos','TrialNum'); %save daq data and starting positions as a .mat file
+save(strcat('HighErrorBlockExp',num2str(expNum),'.mat'),'daq_data','startPos','jumps', 'jumpFunction'); %save daq data and starting positions as a .mat file
 
 
 end
