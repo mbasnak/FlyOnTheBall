@@ -21,7 +21,7 @@ aI = niOI.addAnalogInputChannel( devID , 1:6 , 'Voltage' );
 for i = 1:6
     aI(i).InputType = 'SingleEnded';
 end
-niOI.DurationInSeconds = 500; 
+niOI.DurationInSeconds = 1000; 
 
 fid = fopen('log.dat','w+'); %this opens a csv file named "log",creating it for writing (and overwriting existing filed) with the flag "w+"
 lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
@@ -31,18 +31,18 @@ niOI.startBackground(); %start acquiring
 
 startPos = 2; %to match the starting position of the Y pattern.
 
-jumpFunction = randperm(5,1)+23 %get a random number from 1 to 5 to determine the pos function
+jumpFunction = randperm(5,1)+28 %get a random number from 1 to 5 to determine the pos function
 
-if jumpFunction == 24
-    jumps = [90,90,90,90,-90,-90,-90,-90,-90,-90,90,90,-90,90,-90,-90,90,90,-90,-90,90,-90,90,90];
-elseif jumpFunction == 25
-    jumps = [-90,-90,-90,90,90,90,90,-90,-90,90,90,-90,-90,90,-90,90,-90,90,-90,-90,90,-90,90,90];
-elseif jumpFunction == 26
-    jumps = [-90,-90,90,-90,-90,90,90,-90,90,-90,-90,90,-90,90,90,90,-90,90,90,-90,90,-90,90,-90];
-elseif jumpFunction == 27
-    jumps = [90,90,-90,90,90,-90,-90,-90,90,-90,90,-90,-90,90,-90,90,90,90,-90,-90,-90,-90,90,90];
-elseif jumpFunction == 28
-    jumps = [-90,90,-90,-90,90,90,-90,90,90,-90,-90,90,90,-90,-90,-90,-90,90,-90,90,90,90,90,-90];
+if jumpFunction == 29
+    jumps = [90,90,90,90,-90,-90,-90,-90,-90,-90,90,90,-90,90,-90,-90,90,90,-90,-90,90,-90,90,90,90,90,90,90,-90,-90,-90,-90,-90,-90,90,90,-90,90,-90,-90,90,90,-90,-90,90,-90,90,90];
+elseif jumpFunction == 30
+    jumps = [-90,-90,-90,90,90,90,90,-90,-90,90,90,-90,-90,90,-90,90,-90,90,-90,-90,90,-90,90,90,-90,-90,-90,90,90,90,90,-90,-90,90,90,-90,-90,90,-90,90,-90,90,-90,-90,90,-90,90,90];
+elseif jumpFunction == 31
+    jumps = [-90,-90,90,-90,-90,90,90,-90,90,-90,-90,90,-90,90,90,90,-90,90,90,-90,90,-90,90,-90,-90,-90,90,-90,-90,90,90,-90,90,-90,-90,90,-90,90,90,90,-90,90,90,-90,90,-90,90,-90];
+elseif jumpFunction == 32
+    jumps = [90,90,-90,90,90,-90,-90,-90,90,-90,90,-90,-90,90,-90,90,90,90,-90,-90,-90,-90,90,90,90,90,-90,90,90,-90,-90,-90,90,-90,90,-90,-90,90,-90,90,90,90,-90,-90,-90,-90,90,90];
+elseif jumpFunction == 33
+    jumps = [-90,90,-90,-90,90,90,-90,90,90,-90,-90,90,90,-90,-90,-90,-90,90,-90,90,90,90,90,-90,-90,90,-90,-90,90,90,-90,90,90,-90,-90,90,90,-90,-90,-90,-90,90,-90,90,90,90,90,-90];
 end
 
 %%%%%% Run the panels %%%%%%
@@ -57,7 +57,7 @@ Panel_com('set_posfunc_id',[2 jumpFunction]); %set it to jump every 20 sec, to o
 pause(0.03)
 Panel_com('set_AO',[3 32767]);
 Panel_com('start');
-pause(484) %record for the time it takes to span the number of trials requested
+pause(984) %record for the time it takes to span the number of trials requested
 Panel_com('stop');
 Panel_com('set_AO',[3 0]);
 Panel_com('all_off');

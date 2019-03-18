@@ -307,6 +307,7 @@ alldegs = linspace(-180,180,length(allcounts));
 error = std(allFliesprob);
 h1 = boundedline(alldegs,Allprobabilities,error,'k','alpha')
 set(h1, 'linewidth', 3);
+ylim([0 0.27]);
 
 %For moving frames only
 for i = 1:length(dist2goalMovingAll)
@@ -333,7 +334,7 @@ alldegsMoving = linspace(-180,180,length(allcountsMoving));
 errorMoving = std(allFliesprobMoving);
 h2 = boundedline(alldegsMoving,AllprobabilitiesMoving,errorMoving,'k','alpha')
 set(h2, 'linewidth', 3);
-
+ylim([0 0.27]);
 %saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\Dist2goal.png'))
 %saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment4\Dist2goal.svg'))
 

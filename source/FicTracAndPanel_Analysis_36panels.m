@@ -357,3 +357,12 @@ ylabel('Probability');
 
 saveas(gcf,strcat(path,'Dist2goal_ClosedLoopBar.png'))
 
+
+%% Plot 2D trajectory
+
+[posx,posy]=FlyTrajectory(smoothed.Intx,smoothed.Inty,smoothed.angularPosition);
+
+figure, plot(posx,posy);
+axis equal
+axis tight
+title('2D trajectory of the fly');

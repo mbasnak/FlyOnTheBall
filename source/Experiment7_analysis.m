@@ -36,6 +36,7 @@ data.fictracAngularPosition = rawData ( : , headingFly);
 data.ficTracIntx = -rawData ( : , xFly); 
 data.ficTracInty = rawData ( : , yFly); 
 
+
 %% Determine bar jumps
 %This is going to be done in two ways:
 %1) using the signal from channel 6 to determine when the panels were on
@@ -219,6 +220,29 @@ sizeBall = 9;
 % for most experiments I have used 1000 Hz as a sample rate, and it is what
 % I will use from now on, so that's how I'll leave it, but this could be
 % changed in case of need
+
+%% 2D trajectories
+
+%Uncorrected trajectory (without correcting the heading). This is to
+%visualize the fly's response to the jumps, when they do very well.
+[posx,posy]=FlyTrajectory(smoothed.Intx,smoothed.Inty,smoothed.AngularPosition);
+
+figure, 
+subplot(1,2,1)
+plot(posx,posy);
+axis equal
+axis tight
+title('Uncorrected 2D trajectory');
+
+
+%Corrected trajectory: this is the actual trajectory the fly took during
+%the block
+[posx2,posy2]=FlyTrajectory(smoothed.Intx,smoothed.Inty,smoothed.angularPosition);
+
+subplot(1,2,2), plot(posx2,posy2);
+axis equal
+axis tight
+title('Corrected 2D trajectory');
 
 %% Forward velocity analysis
 

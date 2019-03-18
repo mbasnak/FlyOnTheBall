@@ -268,7 +268,7 @@ figure ('Position', [100 100 1200 900]),
 subplot(2,1,1)
 plot(time,forwardVelocity,'k','HandleVisibility','off')
 xlim([0 time(end)]);
-ylim([-20 40]);
+ylim([min(forwardVelocity)-10 max(forwardVelocity)+10]);
 hold on
 for i = 1:length(jsec)
      plot([jsec(i) jsec(i)],[min(forwardVelocity)-10 max(forwardVelocity)+10],'g');
@@ -286,9 +286,9 @@ histogram(forwardVelocity,'FaceColor',[.4 .2 .6])
 title('Distribution of forward velocities');
 xlabel('Forward velocity (mm/s)');
 ylabel('Frequency');
-xlim([-10, 20]);
+xlim([min(forwardVelocity) max(forwardVelocity)]);
 
-%saveas(gcf,strcat(path,'ForwardVelocityExp.png'))
+saveas(gcf,strcat(path,'ForwardVelocityExp.png'))
 
 %% Angular velocity
 
@@ -308,10 +308,10 @@ figure%('Position', [100 100 1200 900]),
 subplot(2,1,1)
 plot(time,angularVelocity,'k','HandleVisibility','off')
 xlim([0 time(end)]);
-ylim([-400 400]);
+ylim([min(angularVelocity)-10 max(angularVelocity)+10]);
 hold on
 for i = 1:length(j) %add the bar jumps
-     plot([jsec(i) jsec(i)],[min(angularVelocity)-50 max(angularVelocity)+50],'g');
+     plot([jsec(i) jsec(i)],[min(angularVelocity)-10 max(angularVelocity)+10],'g');
 end
 hline = refline([0 meanAngVelocity]);
 hline.Color = 'r'; hline.LineStyle = '--';
@@ -326,7 +326,7 @@ histogram(angularVelocity,'FaceColor',[.2 .8 .6])
 title('Distribution of angular velocities');
 xlabel('Angular velocity (deg/s)');
 ylabel('Frequency');
-xlim([-300, 300]);
+xlim([min(angularVelocity) max(angularVelocity)]);
 
 %saveas(gcf,strcat(path,'AngularVelocityExp.png'))
 saveas(gcf,strcat(path,'Smoothed50AngularVelocityExp.png'))
@@ -349,7 +349,7 @@ percentageActivity = 100*size(moving)/size(smoothed.angularPosition);
 activity = zeros(length(forwardVelocity),1);
 
 for i = 1:length(forwardVelocity)
-    if forwardVelocity(i,1) > 1
+    if forwardVelocity(1,i) > 1
         activity(i,1) = 1;
     else
         activity(i,1) = 0;
@@ -358,15 +358,28 @@ end
 
 time = linspace(0,(length(rawData)/1000),length(activity));
 
+% figure,
+% set(gcf, 'Position', [500, 500, 1000, 100])
+% plot(time,activity,'k');
+% title('Activity raster plot');
+% ylabel('Activity');
+% xlabel('Time (s)');
+% xlim([0 time(end)]);
+
+%A more accurate plot
 figure,
 set(gcf, 'Position', [500, 500, 1000, 100])
-plot(time,activity,'k');
-title('Activity raster plot');
+newMap = flipud(gray);
+xaxis = time;
+trials = [0:1];
+imagesc(xaxis,trials,activity')
+colormap(newMap)
+title(strcat('Activity raster plot, percentage activity:', num2str(percentageActivity), '%'));
 ylabel('Activity');
 xlabel('Time (s)');
-xlim([0 time(end)]);
 
-%saveas(gcf,strcat(path,'ActivityRPExp.png'))
+save(strcat(path,'Activity',file(1:end-4),'.mat'),'time','activity','percentageActivity');
+saveas(gcf,strcat(path,'ActivityRPExp.png'))
 
 %% Output in degrees of the Panels position
 
@@ -627,7 +640,7 @@ for i = 1:length(j)-1
     probabilitiesDist100sec{i} = countsDist100sec{i}./sum(countsDist100sec{i});
     degsFlyDist100sec{i} = linspace(-180,180,length(countsDist100sec{i}));
     
-    %For moving frames only
+  %For moving frames only
     datamoving{i} = shortData.angPos(:,i);
     datamoving{i}(shortData.forwardVel(:,i)<=1) = NaN;
     datamoving{i} = datamoving{i}(~isnan(datamoving{i}))';
