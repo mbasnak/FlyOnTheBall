@@ -1,13 +1,11 @@
-function [daq_data] = ExpLowErrorBlock(flyNum,expNum,TrialNum)
+function [daq_data] = ExpYoked_HighError(flyNum,expNum)
 
-% This function runs an experiment in which a bar is presented in closed-loop and
-% every 200 s, it jumps to a position at either 90 or -90 deg from the
-% current one.
+% This function runs an experiment in which the experience of a low error
+% block from a master fly is presented to a yolked fly.
 
 %INPUT
 %flyNum : which number of fly are you running
 %expNum : which experiment number are you running
-%TrialNum : how many closed-loop trials are you running
 
 %OUTPUT
 %daq_data : matrix that returns the voltage data acquired in the NiDaq
@@ -21,7 +19,7 @@ aI = niOI.addAnalogInputChannel( devID , 1:6 , 'Voltage' );
 for i = 1:6
     aI(i).InputType = 'SingleEnded';
 end
-niOI.DurationInSeconds = TrialNum*200 + 20; %set the duration to the total panel display time + 5 extra seconds
+niOI.DurationInSeconds = 1000;
 
 fid = fopen('log.dat','w+'); %this opens a csv file named "log",creating it for writing (and overwriting existing filed) with the flag "w+"
 lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
@@ -30,36 +28,39 @@ lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
 niOI.startBackground(); %start acquiring
 
 startPos = 2; %to match the starting position of the Y pattern.
-jumpFunction = randperm(5,1)+12 %get a random number from 1 to 5 to determine the pos function
+jumpFunction = randperm(4,1)+33 %get a random number from 1 to 4 to determine the pos function
+%jumpFunctiony = jumpFunction+5;
 
-if jumpFunction == 13
-    jumps = [-90,90,90,90,-90,90,90,-90,-90,90,-90,-90];
-elseif jumpFunction == 14
-    jumps = [-90,-90,90,-90,90,90,90,90,-90,-90,90,-90];
-elseif jumpFunction == 15
-    jumps = [-90,-90,90,-90,90,-90,90,90,90,90,-90,-90];
-elseif jumpFunction == 16
-    jumps = [-90,90,-90,-90,90,90,-90,-90,90,90,-90,90];
-elseif jumpFunction == 17
-    jumps = [90,-90,-90,90,-90,-90,90,90,-90,90,-90,90];
+if jumpFunction == 34
+    jumps = [90,90,-90,90,90,-90,-90,-90,90,-90,90,-90,-90,90,-90,90,90,90,-90,-90,-90,-90,90,90,90,90,-90,90,90,-90,-90,-90,90,-90,90,-90,-90,90,-90,90,90,90,-90,-90,-90,-90,90,90];
+elseif jumpFunction == 35
+    jumps = [90,90,90,90,-90,-90,-90,-90,-90,-90,90,90,-90,90,-90,-90,90,90,-90,-90,90,-90,90,90,90,90,90,90,-90,-90,-90,-90,-90,-90,90,90,-90,90,-90,-90,90,90,-90,-90,90,-90,90,90];
+elseif jumpFunction == 36
+    jumps = [90,90,-90,90,90,-90,-90,-90,90,-90,90,-90,-90,90,-90,90,90,90,-90,-90,-90,-90,90,90,90,90,-90,90,90,-90,-90,-90,90,-90,90,-90,-90,90,-90,90,90,90,-90,-90,-90,-90,90,90];
+elseif jumpFunction == 37
+    jumps = [90,90,-90,90,90,-90,-90,-90,90,-90,90,-90,-90,90,-90,90,90,90,-90,-90,-90,-90,90,90,90,90,-90,90,90,-90,-90,-90,90,-90,90,-90,-90,90,-90,90,90,90,-90,-90,-90,-90,90,90];
+elseif jumpFunction == 38
+    jumps = [90,90,-90,90,90,-90,-90,-90,90,-90,90,-90,-90,90,-90,90,90,90,-90,-90,-90,-90,90,90,90,90,-90,90,90,-90,-90,-90,90,-90,90,-90,-90,90,-90,90,90,90,-90,-90,-90,-90,90,90];
 end
 
 
 %%%%%% Run the panels %%%%%%
-Panel_com('set_pattern_id', 1); %set the bar
-Panel_com('set_mode', [3 4]); %set it to closed-loop mode in the x dimension and to be controlled by a function in the y dimension 
-pause(0.03)
-Panel_com('send_gain_bias', [0 0 0 0]);
+Panel_com('set_pattern_id', 6); %set the bar
+Panel_com('set_mode', [4 0]); 
 pause(0.03)
 Panel_com('set_position',[startPos 1]);
 pause(0.03)
-Panel_com('set_funcy_freq', 5);
+Panel_com('set_funcx_freq', 10);
 pause(0.03)
-Panel_com('set_posfunc_id',[2 jumpFunction]); %set it to jump every 200 sec, to one of the 5 jumping functions created.
+%Panel_com('set_funcy_freq', 10);
+%pause(0.03)
+Panel_com('set_posfunc_id',[1 jumpFunction]); %set it to be yoked, to one of the 4 functions made from master flies.
 pause(0.03)
+%Panel_com('set_posfunc_id',[2 jumpFunctiony]); 
+%pause(0.03)
 Panel_com('set_AO',[3 32767]);
 Panel_com('start');
-pause(TrialNum*200+4) %record for the time it takes to span the number of trials requested
+pause(984) %record for the time it takes to span the number of trials requested
 Panel_com('stop');
 Panel_com('set_AO',[3 0]);
 Panel_com('all_off');
@@ -89,7 +90,7 @@ else
    cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment7\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
 end
 
-save(strcat('LowErrorBlockExp',num2str(expNum),'.mat'),'daq_data','startPos','TrialNum','jumps'); %save daq data and starting positions as a .mat file
+save(strcat('Yoked_HighErrorBlockExp',num2str(expNum),'.mat'),'daq_data','startPos','jumps','jumpFunction'); %save daq data and starting positions as a .mat file
 
 
 end

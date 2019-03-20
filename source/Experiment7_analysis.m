@@ -1,7 +1,7 @@
 % Experiment 5 analysis
 
 %%% This code analyses the output of the panels and the FicTrac data
-%for experiment 5, in which the fly gets thre blocks of bar jumps of
+%for experiment 7, in which the fly gets thre blocks of bar jumps of
 %different error level (low-high-low)
 close all; clear all;
 
@@ -227,9 +227,12 @@ sizeBall = 9;
 %visualize the fly's response to the jumps, when they do very well.
 [posx,posy]=FlyTrajectory(smoothed.Intx,smoothed.Inty,smoothed.AngularPosition);
 
+time = linspace(1,1000,length(posx));
+
 figure, 
 subplot(1,2,1)
-plot(posx,posy);
+scatter(posx,posy,0.5,time)
+colorbar
 axis equal
 axis tight
 title('Uncorrected 2D trajectory');
@@ -239,11 +242,13 @@ title('Uncorrected 2D trajectory');
 %the block
 [posx2,posy2]=FlyTrajectory(smoothed.Intx,smoothed.Inty,smoothed.angularPosition);
 
-subplot(1,2,2), plot(posx2,posy2);
+subplot(1,2,2), scatter(posx2,posy2,0.5,time);
+colorbar
 axis equal
 axis tight
 title('Corrected 2D trajectory');
 
+saveas(gcf,strcat(path,'Trajectories',file(1:end-4),'.png'));
 %% Forward velocity analysis
 
 % The forward velocity is a good indicative of whether the fly is walking

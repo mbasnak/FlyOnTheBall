@@ -69,7 +69,7 @@ text(startFrame+35000,5,strcat('startFrame',num2str(startFrame)))
 text(endFrame-100000,5,strcat('endFrame',num2str(endFrame)))
 
 %define the jumps as occurring every 200 sec since the panels start
-j = [I:200000:I2];
+j = [I:20000:I2];
 j = j(2:end);
 jsec = j/1000;
 
