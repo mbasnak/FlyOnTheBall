@@ -28,7 +28,7 @@ lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
 niOI.startBackground(); %start acquiring
 
 startPos = 2; %to match the starting position of the Y pattern.
-jumpFunction = randperm(4,1)+33 %get a random number from 1 to 4 to determine the pos function
+jumpFunction = randperm(5,1)+33 %get a random number from 1 to 4 to determine the pos function
 %jumpFunctiony = jumpFunction+5;
 
 if jumpFunction == 34

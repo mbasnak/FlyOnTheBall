@@ -1,4 +1,4 @@
-% Experiment 5 analysis
+% Experiment 7 analysis
 
 %%% This code analyses the output of the panels and the FicTrac data
 %for experiment 7, in which the fly gets thre blocks of bar jumps of
@@ -292,6 +292,7 @@ xlim([min(forwardVelocity) max(forwardVelocity)]);
 
 saveas(gcf,strcat(path,'ForwardVelocity',file(1:end-4),'.png'));
 
+
 %% Angular velocity
 
 %To look at the velocity, I should do so without adding the offsets of the
@@ -332,6 +333,30 @@ xlim([min(angularVelocity) max(angularVelocity)]);
 
 saveas(gcf,strcat(path,'SmoothedAngularVelocity',file(1:end-4),'.png'))
 
+%% Plot forward and angular velocities throughout the experiment using a raster plot
+
+newMap = flipud(gray);
+figure
+set(gcf, 'Position', [300, 500, 1600, 500]),
+subplot(2,1,1)
+imagesc(time,[],forwardVelocity)
+colormap(newMap)
+colorbar
+xlabel('Time (s)');
+set(gca,'ytick',[])
+set(gca,'yticklabel',[])
+title('Forward Velocity (mm/s)')
+
+subplot(2,1,2)
+imagesc(time,[],angularVelocity)
+colormap(newMap)
+colorbar
+xlabel('Time (s)');
+set(gca,'ytick',[])
+set(gca,'yticklabel',[])
+title('Angular Velocity (deg/s)')
+
+saveas(gcf,strcat(path,'VelocityRP',file(1:end-4),'.png'))
 
 %%  Activity levels
 
@@ -359,15 +384,6 @@ end
 
 time = linspace(0,(length(rawData)/1000),length(activity));
 
-% figure,
-% set(gcf, 'Position', [500, 500, 1000, 100])
-% plot(time,activity,'k');
-% title('Activity raster plot');
-% ylabel('Activity');
-% xlabel('Time (s)');
-% xlim([0 time(end)]);
-
-%A more accurate plot
 figure,
 set(gcf, 'Position', [500, 500, 1000, 100])
 newMap = flipud(gray);
@@ -686,7 +702,6 @@ saveas(gcf,strcat(path,'Dist2goal10sec',file(1:end-4),'.png'))
 %Plot them using colorscales
 probaDist10secMoving = cell2mat(probabilitiesDist10secMoving);
 probaDist10secMoving = reshape(probaDist10secMoving,length(probaDist10secMoving)/length(probabilitiesDist10secMoving),length(probabilitiesDist10secMoving));
-
 %create new colormap
 newMap = flipud(gray);
 xaxis = [-180:360/17:180];
@@ -716,49 +731,49 @@ time = linspace(-sec,sec,length(perTrialData.forwardVel));
 
 %Individually
 
-for i = 1:length(j)
-    figure,
-    subplot(1,3,1)
-    plot(time,perTrialData.forwardVel(:,i),'.')
-    hold on
-    plot(time,perTrialData.forwardVel(:,i))
-    line([0,0],[min(perTrialData.forwardVel(:,i)), max(perTrialData.forwardVel(:,i))],'Color','black');
-    ylim([min(perTrialData.forwardVel(:,i)), max(perTrialData.forwardVel(:,i))]);
-    title('Forward velocity around the bar jumps');
-    xlabel('Time(s)');
-    ylabel('Velocity (mm/s)');
-    
-    subplot(1,3,2)
-    plot(time,perTrialData.angVel(:,i),'.')
-    hold on
-    plot(time,perTrialData.angVel(:,i))
-    line([0,0],[min(perTrialData.angVel(:,i)), max(perTrialData.angVel(:,i))],'Color','black');
-    ylim([min(perTrialData.angVel(:,i)), max(perTrialData.angVel(:,i))]);
-    title('Angular velocity around the bar jumps');
-    xlabel('Time(s)');
-    ylabel('Velocity (deg/s)');
-
-    % Position around the jumps
-%for ths, I need to use the corrected angular position of the fly in time
-
-    time2 = linspace(-sec,sec,length(perTrialData.angPos));
-    subplot(1,3,3)
-    plot(time2,wrapTo360(perTrialData.angPos(:,i)),'.')
-    hold on
-    plot(time2,wrapTo360(perTrialData.angPos(:,i)))
-    line([0,0],[0, 360],'Color','black');
-    title('Angular Position around the bar jumps');
-    xlabel('Time(s)');
-    ylabel('Angular Position');
-    ylim([0 360]);      
-
-end
+% for i = 1:length(j)
+%     figure,
+%     subplot(1,3,1)
+%     plot(time,perTrialData.forwardVel(:,i),'.')
+%     hold on
+%     plot(time,perTrialData.forwardVel(:,i))
+%     line([0,0],[min(perTrialData.forwardVel(:,i)), max(perTrialData.forwardVel(:,i))],'Color','black');
+%     ylim([min(perTrialData.forwardVel(:,i)), max(perTrialData.forwardVel(:,i))]);
+%     title('Forward velocity around the bar jumps');
+%     xlabel('Time(s)');
+%     ylabel('Velocity (mm/s)');
+%     
+%     subplot(1,3,2)
+%     plot(time,perTrialData.angVel(:,i),'.')
+%     hold on
+%     plot(time,perTrialData.angVel(:,i))
+%     line([0,0],[min(perTrialData.angVel(:,i)), max(perTrialData.angVel(:,i))],'Color','black');
+%     ylim([min(perTrialData.angVel(:,i)), max(perTrialData.angVel(:,i))]);
+%     title('Angular velocity around the bar jumps');
+%     xlabel('Time(s)');
+%     ylabel('Velocity (deg/s)');
+% 
+%     % Position around the jumps
+% %for ths, I need to use the corrected angular position of the fly in time
+% 
+%     time2 = linspace(-sec,sec,length(perTrialData.angPos));
+%     subplot(1,3,3)
+%     plot(time2,wrapTo360(perTrialData.angPos(:,i)),'.')
+%     hold on
+%     plot(time2,wrapTo360(perTrialData.angPos(:,i)))
+%     line([0,0],[0, 360],'Color','black');
+%     title('Angular Position around the bar jumps');
+%     xlabel('Time(s)');
+%     ylabel('Angular Position');
+%     ylim([0 360]);      
+% 
+% end
 
 
 %Pooling results from similar magnitude jumps
 %1) make a jump vector using the preloaded jump vector from the experiment
 %and taking only as many elements as trials there were
-trials = jumps(1:size(j,1));
+trials = jumps;
 %2) identify elements in that vector belonging to the 4 different groups,
 %and put the perTrialData into those groups
 Data90.forwardVel = perTrialData.forwardVel(:,trials == 90);
@@ -768,45 +783,37 @@ DataNeg90.angVel = perTrialData.angVel(:,trials == -90);
 
 %plot forward and angular velocity for every group
 
-figure,
-subplot(1,2,1)
-plot(time,Data90.forwardVel,'.')
-hold on
-plot(time,Data90.forwardVel)
-title('Forward velocity for 90 deg jumps');
-xlabel('Time(s)');
-ylabel('Velocity (mm/s)');    
-subplot(1,2,2)
-plot(time,Data90.angVel,'.')
-hold on
-plot(time,Data90.angVel)
-title('Angular velocity for 90 deg jumps');
-xlabel('Time(s)');
-ylabel('Velocity (deg/s)');
-
-
-figure,
-subplot(1,2,1)
-plot(time,DataNeg90.forwardVel,'.')
-hold on
-plot(time,DataNeg90.forwardVel)
-title('Forward velocity for -90 deg jumps');
-xlabel('Time(s)');
-ylabel('Velocity (mm/s)');    
-subplot(1,2,2)
-plot(time,DataNeg90.angVel,'.')
-hold on
-plot(time,DataNeg90.angVel)
-title('Angular velocity for -90 deg jumps');
-xlabel('Time(s)');
-ylabel('Velocity (deg/s)');
-
-
-%Use heatmaps to see the evolution
-figure,
-trials = size(DataNeg90.angVel,2);
-imagesc(trials,time,DataNeg90.angVel)
-colorbar
+% figure,
+% subplot(1,2,1)
+% plot(time,Data90.forwardVel,'.')
+% hold on
+% plot(time,Data90.forwardVel)
+% title('Forward velocity for 90 deg jumps');
+% xlabel('Time(s)');
+% ylabel('Velocity (mm/s)');    
+% subplot(1,2,2)
+% plot(time,Data90.angVel,'.')
+% hold on
+% plot(time,Data90.angVel)
+% title('Angular velocity for 90 deg jumps');
+% xlabel('Time(s)');
+% ylabel('Velocity (deg/s)');
+% 
+% figure,
+% subplot(1,2,1)
+% plot(time,DataNeg90.forwardVel,'.')
+% hold on
+% plot(time,DataNeg90.forwardVel)
+% title('Forward velocity for -90 deg jumps');
+% xlabel('Time(s)');
+% ylabel('Velocity (mm/s)');    
+% subplot(1,2,2)
+% plot(time,DataNeg90.angVel,'.')
+% hold on
+% plot(time,DataNeg90.angVel)
+% title('Angular velocity for -90 deg jumps');
+% xlabel('Time(s)');
+% ylabel('Velocity (deg/s)');
 
 
 %plot mean forward and angular velocity per group
@@ -838,3 +845,26 @@ plot([0,0],[min(meanAngVel90)-10, max(meanAngVelNeg90)+10],'k','HandleVisibility
 plot([-5,5],[0,0],'-.k','HandleVisibility','off');
 
 saveas(gcf,strcat(path,'MeanAJvelocities',file(1:end-4),'.png'))
+
+%% Use heatmaps to see the evolution of AV in the direction that compensates for the jump
+%I think I should plot the change from baseline.
+
+% (1)Add a negative sign to all the data in the 90 deg group
+Data90.angVelSignChanged = -(Data90.angVel);
+
+% (2)Combine both datasets in a new one
+AllAngVel = [Data90.angVelSignChanged, DataNeg90.angVel];
+
+
+% (3)Normalize by the mean before the jump frame?
+BaselineAngVel = AllAngVel(250,:);
+AllAngVelNorm = (AllAngVel-BaselineAngVel)./BaselineAngVel;
+
+
+% (3)Plot
+time = linspace(-sec,sec,length(perTrialData.forwardVel));
+figure, imagesc(time,[1:48],AllAngVelNorm')
+%colormap(newMap)
+colorbar
+hold on
+plot([0, 0], [1,48],'k','LineWidth',2);

@@ -311,6 +311,31 @@ xlim([min(angularVelocity) max(angularVelocity)]);
 saveas(gcf,strcat(path,'AngularVelocity',file(1:end-4),'.png'))
 
 
+%% Plot forward and angular velocities throughout the experiment using a raster plot
+
+newMap = flipud(gray);
+figure
+set(gcf, 'Position', [300, 500, 1600, 500]),
+subplot(2,1,1)
+imagesc(time,[],forwardVelocity)
+colormap(newMap)
+colorbar
+xlabel('Time (s)');
+set(gca,'ytick',[])
+set(gca,'yticklabel',[])
+title('Forward Velocity (mm/s)')
+
+subplot(2,1,2)
+imagesc(time,[],angularVelocity)
+colormap(newMap)
+colorbar
+xlabel('Time (s)');
+set(gca,'ytick',[])
+set(gca,'yticklabel',[])
+title('Angular Velocity (deg/s)')
+
+saveas(gcf,strcat(path,'VelocityRP',file(1:end-4),'.png'))
+
 %%  Activity levels
 
 % We are going to decide whether a fly is moving or not based on the
