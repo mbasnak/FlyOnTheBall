@@ -340,7 +340,7 @@ figure
 set(gcf, 'Position', [300, 500, 1600, 500]),
 subplot(2,1,1)
 imagesc(time,[],forwardVelocity)
-colormap(newMap)
+colormap(hot)
 colorbar
 xlabel('Time (s)');
 set(gca,'ytick',[])
@@ -349,7 +349,7 @@ title('Forward Velocity (mm/s)')
 
 subplot(2,1,2)
 imagesc(time,[],angularVelocity)
-colormap(newMap)
+colormap(hot)
 colorbar
 xlabel('Time (s)');
 set(gca,'ytick',[])
@@ -856,15 +856,74 @@ Data90.angVelSignChanged = -(Data90.angVel);
 AllAngVel = [Data90.angVelSignChanged, DataNeg90.angVel];
 
 
-% (3)Normalize by the mean before the jump frame?
-BaselineAngVel = AllAngVel(250,:);
-AllAngVelNorm = (AllAngVel-BaselineAngVel)./BaselineAngVel;
+% (3)Normalize using every frame, or just the baseline (before jump)
+AllAngVelNorm = (AllAngVel-mean(AllAngVel))./std(AllAngVel);
+AllAngVelNormBaseline = (AllAngVel-mean(AllAngVel(1:250,:)))./std(AllAngVel(1:250,:));
 
 
-% (3)Plot
+% (4)Plot
 time = linspace(-sec,sec,length(perTrialData.forwardVel));
-figure, imagesc(time,[1:48],AllAngVelNorm')
-%colormap(newMap)
+figure,
+colormap(hot)
+subplot(1,2,1),
+imagesc(time,[1:48],AllAngVelNorm')
 colorbar
 hold on
 plot([0, 0], [1,48],'k','LineWidth',2);
+xlim([-4,4]);
+title('Normalized using all frames');
+
+subplot(1,2,2),
+imagesc(time,[1:48],AllAngVelNormBaseline')
+colorbar
+hold on
+plot([0, 0], [1,48],'k','LineWidth',2);
+xlim([-4,4]);
+title('Normalized using only the baseline');
+
+
+%Looking separately at 90 and -90 deg trials
+AngVelNorm90 = (Data90.angVel-mean(Data90.angVel))./std(Data90.angVel);
+AngVelNorm90Baseline = (Data90.angVel-mean(Data90.angVel(1:250,:)))./std(Data90.angVel(1:250,:));
+
+time = linspace(-sec,sec,length(perTrialData.forwardVel));
+figure,
+colormap(hot)
+subplot(1,2,1),
+imagesc(time,[1:48],AngVelNorm90')
+colorbar
+hold on
+plot([0, 0], [1,48],'k','LineWidth',2);
+xlim([-4,4]);
+title('90 deg trials ang vel normalized using all frames');
+
+subplot(1,2,2),
+imagesc(time,[1:48],AngVelNorm90Baseline')
+colorbar
+hold on
+plot([0, 0], [1,48],'k','LineWidth',2);
+xlim([-4,4]);
+title('90 deg trials ang vel normalized using only the baseline');
+
+
+AngVelNormNeg90 = (DataNeg90.angVel-mean(DataNeg90.angVel))./std(DataNeg90.angVel);
+AngVelNormNeg90Baseline = (DataNeg90.angVel-mean(DataNeg90.angVel(1:250,:)))./std(DataNeg90.angVel(1:250,:));
+
+time = linspace(-sec,sec,length(perTrialData.forwardVel));
+figure,
+colormap(hot)
+subplot(1,2,1),
+imagesc(time,[1:48],AngVelNormNeg90')
+colorbar
+hold on
+plot([0, 0], [1,48],'k','LineWidth',2);
+xlim([-4,4]);
+title('-90 deg trials ang vel normalized using all frames');
+
+subplot(1,2,2),
+imagesc(time,[1:48],AngVelNormNeg90Baseline')
+colorbar
+hold on
+plot([0, 0], [1,48],'k','LineWidth',2);
+xlim([-4,4]);
+title('-90 deg trials ang vel normalized using only the baseline');

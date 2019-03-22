@@ -33,7 +33,7 @@ xlim([-180, 180]); xlabel('Distance to the goal (deg)');
 ylabel('Probability');
 legend(blockName{1},blockName{2},blockName{3});
 
-saveas(gcf,strcat(files(1).folder,'\Dist2GoalAllBlocks.png'))
+%saveas(gcf,strcat(files(1).folder,'\Dist2GoalAllBlocks.png'))
 %% Activity
 
 files = dir(strcat(path,'\Activity*.mat'));
