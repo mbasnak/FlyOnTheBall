@@ -333,7 +333,7 @@ figure
 set(gcf, 'Position', [300, 500, 1600, 500]),
 subplot(2,1,1)
 imagesc(time,[],forwardVelocity)
-colormap(newMap)
+colormap(hot)
 colorbar
 xlabel('Time (s)');
 set(gca,'ytick',[])
@@ -342,7 +342,7 @@ title('Forward Velocity (mm/s)')
 
 subplot(2,1,2)
 imagesc(time,[],angularVelocity)
-colormap(newMap)
+colormap(hot)
 colorbar
 xlabel('Time (s)');
 set(gca,'ytick',[])

@@ -1,8 +1,8 @@
 % run the NiDaq and a closed-loop bar
 
-function ExpClosedLoopBar(flyNum,expNum,time)
+function ExpClosedLoopBar(flyNum,expNum,time,folder)
 
-cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment7\';
+cd(strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment',num2str(folder),'\'));
 
 daqreset %reset DAC object
 devID = 'Dev1';  % Set device ID (to know what the ID is, you can type "daq.getDevices"
@@ -36,18 +36,18 @@ Panel_com('all_off');
 Panel_com('set_AO',[3 0]);
 
 
-% if flyNum ==1 %if it's the first fly
-%    mkdir ([date]) %make a folder with today's date
-% end
+if flyNum == 1 && expNum == 1%if it's the first fly and the first experiment
+   mkdir ([date]) %make a folder with today's date
+end
 
 
 if expNum == 1 %if it's the first experiment for this fly
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment7\',date]); %move to today's folder
+   cd(strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment',num2str(folder),'\',date)); %move to today's folder
    mkdir (strcat('flyNum',num2str(flyNum))) %inside that folder make a folder for this fly
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment7\',date,'\flyNum',num2str(flyNum)])
+   cd(strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment',num2str(folder),'\',date,'\flyNum',num2str(flyNum)));
    getFlyInfo() %get fly's details
 else
-   cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment7\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
+   cd(strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment',num2str(folder),'\',date,'\flyNum',num2str(flyNum))); %otherwise move to this fly's folder
 end
 
 

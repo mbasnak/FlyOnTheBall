@@ -215,7 +215,8 @@ legend({'Jumps from angular position','Jump function used'});
 %% Downsample, unwrap and smooth position data, then get velocity and smooth
 
 sizeBall = 9;
-[smoothed] = singleTrialVelocityAnalysis9mm(data,1000);
+%[smoothed] = singleTrialVelocityAnalysis9mm(data,1000);
+[smoothed] = posDataDecoding(data,1000);
 
 % for most experiments I have used 1000 Hz as a sample rate, and it is what
 % I will use from now on, so that's how I'll leave it, but this could be
@@ -302,7 +303,8 @@ saveas(gcf,strcat(path,'ForwardVelocity',file(1:end-4),'.png'));
 %with the angular position uncorrected for the offset
 
 AngularPosition = rawData ( : , headingFly);
-angularVelocity = getAngVel(AngularPosition);
+%angularVelocity = getAngVel(AngularPosition);
+angularVelocity = smoothed.AngularVel;
 
 meanAngVelocity = mean(angularVelocity);
 time = linspace(0,(length(rawData)/1000),length(angularVelocity));
@@ -339,7 +341,7 @@ newMap = flipud(gray);
 figure
 set(gcf, 'Position', [300, 500, 1600, 500]),
 subplot(2,1,1)
-imagesc(time,[],forwardVelocity)
+imagesc(time,[],forwardVelocity')
 colormap(hot)
 colorbar
 xlabel('Time (s)');
@@ -348,7 +350,7 @@ set(gca,'yticklabel',[])
 title('Forward Velocity (mm/s)')
 
 subplot(2,1,2)
-imagesc(time,[],angularVelocity)
+imagesc(time,[],angularVelocity')
 colormap(hot)
 colorbar
 xlabel('Time (s)');
@@ -375,7 +377,7 @@ percentageActivity = 100*size(moving)/size(smoothed.angularPosition);
 activity = zeros(length(forwardVelocity),1);
 
 for i = 1:length(forwardVelocity)
-    if forwardVelocity(1,i) > 1
+    if forwardVelocity(i,1) > 1
         activity(i,1) = 1;
     else
         activity(i,1) = 0;
@@ -711,18 +713,19 @@ colormap(newMap)
 colorbar
 saveas(gcf,strcat(path,'HeatmapDist2goal10sec',file(1:end-4),'.png'))
 
-%save data
+save data
 save(strcat(path,'shortData10sec',file(1:end-4),'.mat'),'shortData10sec','probaDist10secMoving');
 %% Per 'trial'
 
 %I'm using a function to get and smooth data around the jumps
 sec = 10; %how many sec before and after the jump I want to look at
-perTrialData = getDataAroundJump(rawData,j,sec,sizeBall);
+%perTrialData = getDataAroundJump(rawData,j,sec,sizeBall);
+perTrialData = getDataAroundJumpFiltered(rawData,j,sec,sizeBall);
 
 %apend jump data and save for using in the pooled flies analysis
 perTrialData.jumpMag = jumps;
-perTrialData.angPos = getPosAroundJump(data.ficTracAngularPosition,j,sec);
-
+%perTrialData.angPos = getPosAroundJump(data.ficTracAngularPosition,j,sec);
+perTrialData.angPos = getPosAroundJumpFiltered(data.ficTracAngularPosition,j,sec);
 save(strcat(path,'perTrialData',file(1:end-4),'.mat'),'perTrialData');
 
 %% Velocity and around the jumps

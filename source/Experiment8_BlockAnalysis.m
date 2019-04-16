@@ -1,15 +1,15 @@
-%Experiment 5, pooled blocks analysis
+%Experiment 8, pooled blocks analysis
 
 %This code pools the data from the various blocks of an individual fly and
 %analyses it.
 
 clear all; close all;
 
-order = [2,1,3];
+order = [1,3,2];
 %% Dist2goal
 
 % prompt the user to select the file to open and load it.
-cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5'
+cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment8'
 [path] = uigetdir();
 
 files = dir(strcat(path,'\goals*.mat'));
@@ -33,7 +33,7 @@ xlim([-180, 180]); xlabel('Distance to the goal (deg)');
 ylabel('Probability');
 legend(blockName{1},blockName{2},blockName{3});
 
-%saveas(gcf,strcat(files(1).folder,'\Dist2GoalAllBlocks.png'))
+saveas(gcf,strcat(files(1).folder,'\Dist2GoalAllBlocks.png'))
 %% Activity
 
 files = dir(strcat(path,'\Activity*.mat'));
@@ -57,6 +57,8 @@ for i = 1:length(data)
     imagesc(xaxis{i},trials,data{1,i}.activity')
     ylabel('Activity');
     xlabel('Time (s)');
+    set(gca,'ytick',[])
+    set(gca,'yticklabel',[])
     title(strcat('ActivityRP',blockName{i},'percentage activity:', num2str(data{1,i}.percentageActivity), '%'));
 end
 
@@ -85,7 +87,6 @@ for i = 1:length(data)
 end
 
 saveas(gcf,strcat(files(1).folder,'\FlyHeadingAllBlocks.png'))
-saveas(gcf,strcat(files(1).folder,'\FlyHeadingAllBlocks.svg'))
 
 %% Around jump velocities
 
@@ -115,7 +116,7 @@ meanAngVelNeg90{i} = mean(DataNeg90(i).angVel,2);
 end
 
 %Plot
-time = linspace(-10,10,length(meanAngVel90{1,1}));
+time = linspace(-3,3,length(meanAngVel90{1,1}));
 
 figure('Position', [100 100 1600 900]),
 for i = 1:length(files)
@@ -123,22 +124,70 @@ subplot(1,length(data),i)
 plot(time,meanAngVel90{i},'r')
 hold on
 plot(time,meanAngVelNeg90{i},'k')
-xlim([-5,5]); ylim([-80,80]);
+xlim([-3,3]); ylim([-90,90]);
 title(strcat('MeanAngVel',blockName{i}));
 legend({'90','-90'});
 ylabel('Angular velocity (deg/s)'); xlabel('Time from bar jump');
-plot([0,0],[-80, 80],'k','HandleVisibility','off');
-plot([-5,5],[0,0],'-.k','HandleVisibility','off');
+plot([0,0],[-90, 90],'k','HandleVisibility','off');
+plot([-3,3],[0,0],'-.k','HandleVisibility','off');
 end
 
 saveas(gcf,strcat(files(1).folder,'\AJangvelAllBlocks.png'))
 
 %Use heatmaps to see the evolution
+%-90 deg jumps
 figure,
 for i = 1:length(files)
     subplot(1,length(files),i)
-    trials = size(DataNeg90(i).angVel,2);
+    trials = [1:size(DataNeg90(i).angVel,2)];
     imagesc(time,trials,DataNeg90(i).angVel')
+    colormap(hot)
     colorbar
+    caxis([min(min([DataNeg90(1).angVel,DataNeg90(2).angVel,DataNeg90(3).angVel]))  max(max([DataNeg90(1).angVel,DataNeg90(2).angVel,DataNeg90(3).angVel]))])
     title(strcat('AngVel ',blockName{i}))
+    hold on
+    plot([0, 0], [1,length(trials)],'k','LineWidth',2);
 end
+suptitle('Ang Vel Heatmap for -90 jumps');
+saveas(gcf,strcat(files(1).folder,'\Neg90degAngvelHeatMap.png'))
+
+%90 deg jumps
+figure,
+for i = 1:length(files)
+    subplot(1,length(files),i)
+    trials = [1:size(Data90(i).angVel,2)];
+    imagesc(time,trials,Data90(i).angVel')
+    colormap(hot)
+    colorbar
+    caxis([min(min([Data90(1).angVel,Data90(2).angVel,Data90(3).angVel]))  max(max([Data90(1).angVel,Data90(2).angVel,Data90(3).angVel]))])
+    title(strcat('AngVel ',blockName{i}))
+    hold on
+    plot([0, 0], [1,length(trials)],'k','LineWidth',2);
+end
+suptitle('Ang Vel Heatmap for 90 jumps');
+saveas(gcf,strcat(files(1).folder,'\90degAngvelHeatMap.png'))
+%% Dist2Goal 3 sec around jumps
+
+files = dir(strcat(path,'\shortData3sec*.mat'));
+
+for i = 1:length(files)
+    data{i} = load(strcat(files(i).folder,'\',files(i).name));
+    blockName{i} = files(i).name(15:end-4);
+end
+data = data(order);
+blockName = blockName(order);
+
+figure('Position', [100 100 1600 900]),
+for i = 1:length(files)
+    subplot(1,length(files),i)
+    newMap = flipud(gray);
+    xaxis = [-180:360/17:180];
+    trials = [1:48];
+    imagesc(xaxis,trials,data{1,i}.probaDist3secMoving')
+    colormap(newMap)
+    colorbar
+    title(blockName{i})
+    xlabel('Dist2goal 3 sec around jump (deg)')
+end
+
+saveas(gcf,strcat(files(1).folder,'\Dist2Goal3secAllBlocks.png'))

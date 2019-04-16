@@ -15,9 +15,7 @@ function [smoothed] = singleTrialVelocityAnalysis(data, sampleRate)
     downsampled.Inty = downsample(data.ficTracInty,sampleRate/25); %For a 1000 rate acquisition frame rate from the NiDaq, downsampling to 25 Hz equals taking 1 every 40 frames  
     downsampled.angularPosition = downsample(data.ficTracAngularPosition,sampleRate/25);
     
-
-       
- 
+        
 % The output is downsampled. It isn't noticeable when plotting solid lines, and
 % it is barely noticeable when plotting dotted lines.
 
@@ -26,6 +24,7 @@ function [smoothed] = singleTrialVelocityAnalysis(data, sampleRate)
     downsRad.Intx = downsampled.Intx .* 2 .* pi ./ 10; %10 is for the max voltage outputed by the daq
     downsRad.Inty = downsampled.Inty .* 2 .* pi ./ 10;
     downsRad.angularPosition = downsampled.angularPosition .* 2 .* pi ./ 10;
+    
 
 % Now the position is going between 0 and 2 pi.
 
@@ -38,14 +37,14 @@ function [smoothed] = singleTrialVelocityAnalysis(data, sampleRate)
 % Now the position is unwrapped, so it doesn't jump when moving from 0 to
 % 2pi and vice versa
 
+
 %% Smooth the data
 
     smoothed.Intx = smoothdata(unwrapped.Intx,'rlowess',25); 
     smoothed.Inty = smoothdata(unwrapped.Inty,'rlowess',25); 
     smoothed.angularPosition = smoothdata(unwrapped.angularPosition,'rlowess',25);
     
-    
- 
+     
 %% Transform to useful systems 
     
     deg.Intx = smoothed.Intx * 4.5; % wer tranform the pos to mm by scaling the value by the sphere's radius

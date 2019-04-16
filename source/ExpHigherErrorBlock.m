@@ -1,7 +1,7 @@
-function [daq_data] = ExpHighErrorBlock(flyNum,expNum)
+function [daq_data] = ExpHigherErrorBlock(flyNum,expNum)
 
 % This function runs an experiment in which a bar is presented in closed-loop and
-% every 200 s, it jumps to a position at either 90 or -90 deg from the
+% every 5 s, it jumps to a position at either 90 or -90 deg from the
 % current one.
 
 %INPUT
@@ -21,7 +21,7 @@ aI = niOI.addAnalogInputChannel( devID , 1:6 , 'Voltage' );
 for i = 1:6
     aI(i).InputType = 'SingleEnded';
 end
-niOI.DurationInSeconds = 1000; 
+niOI.DurationInSeconds = 490; 
 
 fid = fopen('log.dat','w+'); %this opens a csv file named "log",creating it for writing (and overwriting existing filed) with the flag "w+"
 lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
@@ -31,18 +31,18 @@ niOI.startBackground(); %start acquiring
 
 startPos = 2; %to match the starting position of the Y pattern.
 
-jumpFunction = randperm(5,1)+28 %get a random number from 1 to 5 to determine the pos function
+jumpFunction = randperm(5,1)+ 43; %get a random number from 1 to 5 to determine the pos function
 
-if jumpFunction == 29
-    jumps = [90,90,90,90,-90,-90,-90,-90,-90,-90,90,90,-90,90,-90,-90,90,90,-90,-90,90,-90,90,90,90,90,90,90,-90,-90,-90,-90,-90,-90,90,90,-90,90,-90,-90,90,90,-90,-90,90,-90,90,90];
-elseif jumpFunction == 30
-    jumps = [-90,-90,-90,90,90,90,90,-90,-90,90,90,-90,-90,90,-90,90,-90,90,-90,-90,90,-90,90,90,-90,-90,-90,90,90,90,90,-90,-90,90,90,-90,-90,90,-90,90,-90,90,-90,-90,90,-90,90,90];
-elseif jumpFunction == 31
-    jumps = [-90,-90,90,-90,-90,90,90,-90,90,-90,-90,90,-90,90,90,90,-90,90,90,-90,90,-90,90,-90,-90,-90,90,-90,-90,90,90,-90,90,-90,-90,90,-90,90,90,90,-90,90,90,-90,90,-90,90,-90];
-elseif jumpFunction == 32
-    jumps = [90,90,-90,90,90,-90,-90,-90,90,-90,90,-90,-90,90,-90,90,90,90,-90,-90,-90,-90,90,90,90,90,-90,90,90,-90,-90,-90,90,-90,90,-90,-90,90,-90,90,90,90,-90,-90,-90,-90,90,90];
-elseif jumpFunction == 33
-    jumps = [-90,90,-90,-90,90,90,-90,90,90,-90,-90,90,90,-90,-90,-90,-90,90,-90,90,90,90,90,-90,-90,90,-90,-90,90,90,-90,90,90,-90,-90,90,90,-90,-90,-90,-90,90,-90,90,90,90,90,-90];
+if jumpFunction == 44
+    jumps = [90	90	90	90	-90	-90	-90	-90	-90	-90	90	90	-90	90	-90	-90	90	90	-90	-90	90	-90	90	90	90	90	90	90	-90	-90	-90	-90	-90	-90	90	90	-90	90	-90	-90	90	90	-90	-90	90	-90	90	90	90	90	90	90	-90	-90	-90	-90	-90	-90	90	90	-90	90	-90	-90	90	90	-90	-90	90	-90	90	90	90	90	90	90	-90	-90	-90	-90	-90	-90	90	90	-90	90	-90	-90	90	90	-90	-90	90	-90	90	90];
+elseif jumpFunction == 45
+    jumps = [-90	-90	-90	90	90	90	90	-90	-90	90	90	-90	-90	90	-90	90	-90	90	-90	-90	90	-90	90	90	-90	-90	-90	90	90	90	90	-90	-90	90	90	-90	-90	90	-90	90	-90	90	-90	-90	90	-90	90	90	-90	-90	-90	90	90	90	90	-90	-90	90	90	-90	-90	90	-90	90	-90	90	-90	-90	90	-90	90	90	-90	-90	-90	90	90	90	90	-90	-90	90	90	-90	-90	90	-90	90	-90	90	-90	-90	90	-90	90	90];
+elseif jumpFunction == 46
+    jumps = [-90	-90	90	-90	-90	90	90	-90	90	-90	-90	90	-90	90	90	90	-90	90	90	-90	90	-90	90	-90	-90	-90	90	-90	-90	90	90	-90	90	-90	-90	90	-90	90	90	90	-90	90	90	-90	90	-90	90	-90	-90	-90	90	-90	-90	90	90	-90	90	-90	-90	90	-90	90	90	90	-90	90	90	-90	90	-90	90	-90	-90	-90	90	-90	-90	90	90	-90	90	-90	-90	90	-90	90	90	90	-90	90	90	-90	90	-90	90	-90];
+elseif jumpFunction == 47
+    jumps = [90	90	-90	90	90	-90	-90	-90	90	-90	90	-90	-90	90	-90	90	90	90	-90	-90	-90	-90	90	90	90	90	-90	90	90	-90	-90	-90	90	-90	90	-90	-90	90	-90	90	90	90	-90	-90	-90	-90	90	90	90	90	-90	90	90	-90	-90	-90	90	-90	90	-90	-90	90	-90	90	90	90	-90	-90	-90	-90	90	90	90	90	-90	90	90	-90	-90	-90	90	-90	90	-90	-90	90	-90	90	90	90	-90	-90	-90	-90	90	90];
+elseif jumpFunction == 48
+    jumps = [-90	90	-90	-90	90	90	-90	90	90	-90	-90	90	90	-90	-90	-90	-90	90	-90	90	90	90	90	-90	-90	90	-90	-90	90	90	-90	90	90	-90	-90	90	90	-90	-90	-90	-90	90	-90	90	90	90	90	-90	-90	90	-90	-90	90	90	-90	90	90	-90	-90	90	90	-90	-90	-90	-90	90	-90	90	90	90	90	-90	-90	90	-90	-90	90	90	-90	90	90	-90	-90	90	90	-90	-90	-90	-90	90	-90	90	90	90	90	-90];
 end
 
 %%%%%% Run the panels %%%%%%
@@ -57,7 +57,7 @@ Panel_com('set_posfunc_id',[2 jumpFunction]); %set it to jump every 20 sec, to o
 pause(0.03)
 Panel_com('set_AO',[3 32767]);
 Panel_com('start');
-pause(984) %record for the time it takes to span the number of trials requested
+pause(484) %record for the time it takes to span the number of trials requested
 Panel_com('stop');
 Panel_com('set_AO',[3 0]);
 Panel_com('all_off');
@@ -87,7 +87,7 @@ else
    cd (['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment8\',date,'\flyNum',num2str(flyNum)]) %otherwise move to this fly's folder
 end
 
-save(strcat('HighErrorBlockExp',num2str(expNum),'.mat'),'daq_data','startPos','jumps', 'jumpFunction'); %save daq data and starting positions as a .mat file
+save(strcat('HigherErrorBlockExp',num2str(expNum),'.mat'),'daq_data','startPos','jumps', 'jumpFunction'); %save daq data and starting positions as a .mat file
 
 
 end
