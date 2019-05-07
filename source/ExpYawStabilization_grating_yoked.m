@@ -1,8 +1,9 @@
-function [daq_data] = ExpYawStabilization_grating(flyNum,expNum,TrialNum,folder)
+function [daq_data] = ExpYawStabilization_grating_yoked(flyNum,expNum,TrialNum,folder)
 
-% This function runs an experiment in which a grating is presented in closed-loop and
-% every 30 s, the loop opens for 3 sec and the grating rotates randomly
-% clockwise or counterclockwise
+% This function runs an experiment in which the closed-loop experience that a master fly had is
+% presented in open-loop for 30 sec, and then optomotor response trialss
+% 3 sec long are interspersed, rotating randomly clockwise or
+% counterclockwise
 
 %INPUT
 %flyNum : which number of fly are you running
@@ -37,12 +38,23 @@ niOI.startBackground(); %start acquiring
 count = 1;
 jumpFunction = zeros(1,TrialNum); %I'll store the jumpFunction for the optomotor response to know the direction
 
+masterFly = round(rand+1); %randomly choose masterFly1 or masterFly2
+%determine the yokedFunction matrix based on the master fly
+if masterFly == 1
+    yokedFunction = [56:105];
+else
+    yokedFunction = [106:155];
+end
+
 for count = 1:TrialNum
-    %stripe-fixation trial
+    %yoked open-loop trial
     Panel_com('set_pattern_id', 22); %set the grating as a pattern
-    Panel_com('set_mode', [3 1]); %set it to closed-loop mode in the x dimension 
+    Panel_com('set_mode', [4 0]); %set it to closed-loop mode in the x dimension 
     pause(0.03)
-    Panel_com('set_position',[1 2]);
+    Panel_com('set_posfunc_id',[1 yokedFunction(count)])
+    pause(0.03)
+    Panel_com('set_position',[1,2]);
+    Panel_com('set_funcx_freq', 25);
     pause(0.03)
     Panel_com('set_AO',[3 32767]);
     Panel_com('start');
@@ -97,7 +109,7 @@ else
    cd(strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment',num2str(folder),'\',date,'\flyNum',num2str(flyNum))); %otherwise move to this fly's folder
 end
 
-save(strcat('dataExpNum',num2str(expNum),'.mat'),'daq_data','TrialNum','jumpFunction','pauseEndCLtoOpto'); %save daq data and starting positions as a .mat file
+save(strcat('yokedDataExpNum',num2str(expNum),'.mat'),'daq_data','TrialNum','jumpFunction','pauseEndCLtoOpto','masterFly','yokedFunction'); %save daq data and starting positions as a .mat file
 
 
 end

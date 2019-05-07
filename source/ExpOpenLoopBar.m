@@ -1,8 +1,23 @@
-% run the NiDaq and a closed-loop bar
+% run the NiDaq and an open-loop bar at different speeds
 
-function ExpClosedLoopBar(flyNum,expNum,time,folder)
+function ExpOpenLoopBar(flyNum,expNum,folder)
 
 cd(strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment',num2str(folder),'\'));
+
+%define the velocity of the experiment
+velocity = round(rand)*40 + 20; %I set it to either 20 or 60 deg/s
+
+%set the acquisition time acording to the velocity.
+%if bar moves at 20 deg/s, then 18 sec. Else,6 sec
+if velocity == 20
+    time = 18;
+else
+    time = 6;
+end
+
+%define the side of the turn
+side = round(rand);
+%side ==1 will be clockwise
 
 daqreset %reset DAC object
 devID = 'Dev1';  % Set device ID (to know what the ID is, you can type "daq.getDevices"
@@ -10,7 +25,7 @@ devID = 'Dev1';  % Set device ID (to know what the ID is, you can type "daq.getD
 % Configure session: national instruments output/input
 niOI = daq.createSession('ni'); %create a session
 niOI.Rate = 1000;% set sample rate
-niOI.DurationInSeconds = time; %set duration in seconds
+niOI.DurationInSeconds = time + 1; %set duration in seconds
 % Determine the analog INPUT Channels
 aI = niOI.addAnalogInputChannel( devID , 1:6 , 'Voltage' );
 % Set all channels to the correct inputType, likely 'SingleEnded'
@@ -18,14 +33,24 @@ for i = 1:6
     aI(i).InputType = 'SingleEnded';
 end
 
-%set a rendom starting point for the stim
-pattern = 1;
+%define the mvtFunction acording to the velocity and turn side:
+if velocity == 20 && side == 1
+    mvtFunct = 50;
+elseif velocity == 20 && side == 0
+    mvtFunct = 51;
+elseif velocity == 60 && side == 1
+    mvtFunct = 54;
+else
+    mvtFunct = 55;
+end
 
-Panel_com('set_pattern_id', pattern); %load the light stripe pattern
+%set a rendom starting point for the stim
+Panel_com('set_pattern_id', 18); %load a 4 px dark stripe
 pause(0.01)
-Panel_com('send_gain_bias', [10 0 0 0]);
-pause(0.01)
-Panel_com('set_mode', [3 0]); %set the x to be controlled by FicTrac and the Y to be open loop
+Panel_com('set_position',[20,2]);
+Panel_com('set_mode', [4 1]); %set the x to be controlled by FicTrac and the Y to be open loop
+Panel_com('set_funcx_freq', 50);
+Panel_com('set_posfunc_id',[1 mvtFunct]);
 Panel_com('start');
 
 
@@ -53,7 +78,7 @@ else
 end
 
 
-save(strcat('dataClosedLoopBar',num2str(expNum),'.mat'),'rawData','pattern'); %save as 
+save(strcat('dataOpenLoopBar',num2str(expNum),'.mat'),'rawData','velocity','side'); %save as 
 
 
 end

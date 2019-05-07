@@ -37,7 +37,9 @@ data.ficTracInty = rawData ( : , yFly); %I think if I wanted to look into this o
 
 %% Downsample, unwrap and smooth position data, then get velocity and smooth
 
-[smoothed] = singleTrialVelocityAnalysis9mm(data,1000);
+%[smoothed] = singleTrialVelocityAnalysis9mm(data,1000);
+[smoothed] = posDataDecoding(data,1000);
+
 % for most experiments I have used 1000 Hz as a sample rate, and it is what
 % I will use from now on, so that's how I'll leave it, but this could be
 % changed in case of need
@@ -117,7 +119,7 @@ percentageActivity = 100*size(moving)/size(smoothed.angularPosition);
 activity = zeros(length(forwardVelocity),1);
 
 for i = 1:length(forwardVelocity)
-    if forwardVelocity(1,i) > 1
+    if forwardVelocity(i,1) > 1
         activity(i,1) = 1;
     else
         activity(i,1) = 0;
@@ -214,9 +216,9 @@ ylabel('Probability density'); xlabel('Stimulus position (deg)');
 % Polar coordinates analysis of the stimulus position
 posToRad = deg2rad(posToDeg);
 % some statistics...
-CircularStats = circ_stats(posToRad);
-[pval,z] = circ_rtest(posToRad);
-circLength = circ_r(posToRad,[],2);
+%CircularStats = circ_stats(posToRad);
+%[pval,z] = circ_rtest(posToRad);
+%circLength = circ_r(posToRad,[],2);
 
 %Plot the histogram in polar coordinates
 circedges = [0:20:360];
@@ -307,7 +309,7 @@ ylabel('Probability density'); xlabel('Fly heading (deg)');
 % In polar coordinates...
 %Taking every frame into account
 posToRadFly = deg2rad(FlyPos360);
-CircularStatsFly = circ_stats(posToRadFly);
+%CircularStatsFly = circ_stats(posToRadFly);
 circedges = [0:20:360];
 circedges = deg2rad(circedges);
 subplot(2,4,6)
@@ -317,14 +319,14 @@ ax.ThetaDir='clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
 %with only moving frames
-CircularStatsFlyMoving = circ_stats(posToRadFly(forwardVelocity>1));
+%CircularStatsFlyMoving = circ_stats(posToRadFly(forwardVelocity>1));
 subplot(2,4,7)
 polarhistogram(posToRadFly(forwardVelocity>1),circedges,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
 ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
-saveas(gcf,strcat(path,'FlyPosition_ClosedLoopBar.png'))
+saveas(gcf,strcat(path,'FlyPosition_',file(4:end-4),'.png'));
 
 
 %% Distance to the goal
@@ -355,8 +357,7 @@ title('Distance to the goal with moving frames');
 xlim([-180, 180]); xlabel('Distance to the goal (deg)');
 ylabel('Probability');
 
-saveas(gcf,strcat(path,'Dist2goal_ClosedLoopBar.png'))
-
+saveas(gcf,strcat(path,'Dist2goal_',file(4:end-4),'.png'));
 
 %% Plot 2D trajectory
 
@@ -366,3 +367,5 @@ figure, plot(posx,posy);
 axis equal
 axis tight
 title('2D trajectory of the fly');
+
+saveas(gcf,strcat(path,'Trajectory_',file(4:end-4),'.png'));
