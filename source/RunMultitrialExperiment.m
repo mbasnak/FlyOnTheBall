@@ -33,7 +33,8 @@ startPosition = {};
 % a settings file, the NiDaq will be initialized and the data will be
 % acquired as a separated field in the rawData struct?
 
-trialTypes = {'lightClosedLoopBar','darkClosedLoopBar','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','slowClockwiseOpenLoop','slowCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','slowClockwiseOpenLoop','slowCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','slowClockwiseOpenLoop','slowCounterclockwiseOpenLoop'};
+%trialTypes = {'lightClosedLoopBar','darkClosedLoopBar','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','slowClockwiseOpenLoop','slowCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','slowClockwiseOpenLoop','slowCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','slowClockwiseOpenLoop','slowCounterclockwiseOpenLoop'};
+trialTypes = {'lightClosedLoopBar','darkClosedLoopBar','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop'};
 trials = repmat(trialTypes,1,TrialNum);
 trials = trials(randperm(length(trials)));
 

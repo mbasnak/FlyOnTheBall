@@ -72,8 +72,8 @@ p32 = boundedline(time,meanAngVel90,stdAngVel90/sqrt(i),'r','alpha')
 hold on
 p42 = boundedline(time,meanAngVelNeg90,stdAngVelNeg90/sqrt(i),'k','alpha')
 title('Mean angular velocity');
-ylim([-80, 80]);xlim([-8, 8]);
-plot([0,0],[-80, 80],'--k','HandleVisibility','off');
+ylim([-40, 40]);xlim([-8, 8]);
+plot([0,0],[-40, 40],'--k','HandleVisibility','off');
 plot([-8,8],[0, 0],'k','HandleVisibility','off');
 legend([,p32,p42], '90','-90');
 ylabel('Angular velocity (deg/s)'); xlabel('Time from bar jump (s)');

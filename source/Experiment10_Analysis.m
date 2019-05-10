@@ -279,6 +279,8 @@ imagesc(time,[1:length(counterclockwiseTrials)],angularVelocityCounterclockwise'
 colorbar
 title('Angular Velocity in counterclockwise trials');
 
+save([path,'AngularVelocityClockwise',file(1:end-4),'.mat'],'angularVelocityClockwise');
+save([path,'AngularVelocityCounterclockwise',file(1:end-4),'.mat'],'angularVelocityCounterclockwise');
 saveas(gcf,strcat(path,'AngularVelocityEvolution',file(1:end-4),'.png'));
 
 
@@ -493,6 +495,10 @@ hold on
 plot([0, size(angularVelocityCounterclockwise,2)],[0, 0],'-.r');
 title('Evolution of counterclockwise optomotor trials');
 saveas(gcf,strcat(path,'CounterclockwiseResponseEv',file(1:end-4),'.png'))
+
+
+%save both responses 
+save([path,'Responses',file(1:end-4),'.mat'],'response','responseCC');
 
 
 %Plotting them both together taking into account the actual trial number in
