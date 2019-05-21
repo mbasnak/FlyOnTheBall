@@ -33,7 +33,7 @@ maxValY = 96;% I think I am using 1 for my Y dimension for every pattern except 
 
 %FicTrac data
 data.fictracAngularPosition = rawData ( : , headingFly); 
-data.ficTracIntx = -rawData ( : , xFly); 
+data.ficTracIntx = rawData ( : , xFly); 
 data.ficTracInty = rawData ( : , yFly); 
 
 

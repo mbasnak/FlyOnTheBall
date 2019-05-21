@@ -42,10 +42,10 @@ ylabel('Diff of voltage signal (V)');
 
 
 % get the trial changes using the signal from the 6th channel
-panelsON = find(panelON>1.5);
-panelsOFF = find(panelON<-1.5);
-jsec = panelsOFF/1000;
-j2sec = panelsON/1000;
+panelsON = find(panelON>1.5); %these are the frames when the closed-loop resumes
+panelsOFF = find(panelON<-1.5); %these are the frames when the 3 sec open-loop bouts start
+jsec = panelsOFF/1000; %when the open-loop bouts start in sec
+j2sec = panelsON/1000; %when the closed-loop bouts resume in sec
 
 
 %Plot to check for issues
@@ -76,6 +76,31 @@ data.ficTracIntx = -rawData ( : , xFly); %the negative sign is necessary under m
 data.ficTracInty = rawData ( : , yFly); %I think if I wanted to look into this one, I probably need to invert it too
 
 
+
+%% See if the panel signal correctly points to when the loop changed
+figure('Position', [200 200 1400 800]), 
+subplot(1,2,1)
+plot(data.xPanelPos,'k.')
+hold on
+for i = 1:length(panelsOFF)
+plot([panelsOFF(i) panelsOFF(i)],[0 96],'r')
+end
+title('Change to open-loop');
+
+subplot(1,2,2)
+plot(data.xPanelPos,'k.')
+hold on
+for i = 1:length(panelsOFF)-1
+plot([panelsON(i+1) panelsON(i+1)],[0 96],'g')
+end
+title('Back to closed-loop');
+
+%It seems like the jumps are occuring about 10 frames after the A0 signal
+%both for the open-loop bouts than for the closed-loop bouts.
+%I'm correcting them:
+
+panelsON = panelsON + 10;
+panelsOFF = panelsOFF +10;
 %% Downsample, unwrap and smooth position data, then get velocity and smooth
 
 %[smoothed] = singleTrialVelocityAnalysis9mm(data,1000);
@@ -95,14 +120,15 @@ forwardVelocity = smoothed.xVel;
 meanVelocity = mean(forwardVelocity);
 time = linspace(0,(length(rawData)/1000),length(forwardVelocity));
 
-figure,
+figure('Position', [300, 200, 1000, 800]),
 subplot(2,1,1)
 plot(time,forwardVelocity,'k','HandleVisibility','off')%plot(time,forwardVelocity,'k','HandleVisibility','off')
 xlim([0 time(end)]);
 hold on 
 for i = 1:TrialNum
-   plot([jsec(i) jsec(i)],[-5 10],'g')    
+   plot([jsec(i) jsec(i)],[min(forwardVelocity)-1 max(forwardVelocity)+1],'g','HandleVisibility','off')    
 end
+ylim([min(forwardVelocity)-1 max(forwardVelocity)+1]);
 hline = refline([0 meanVelocity]);
 hline.Color = 'r'; hline.LineStyle = '--';
 rline = refline([0 0]);
@@ -110,7 +136,7 @@ rline.Color = [.5 .5 .5]; rline.LineWidth = 1.5;
 title('Forward velocity of the fly', 'Interpreter', 'none');
 xlabel('Time (s)')
 ylabel('Velocity (mm/s)')
-legend('bar jumps', 'Mean forward velocity');
+legend('Mean forward velocity');
 
 subplot(2,1,2)
 histogram(forwardVelocity,'FaceColor',[.4 .2 .6])
@@ -129,13 +155,13 @@ angularVelocity = smoothed.angularVel;
 meanVelocity = mean(angularVelocity);
 time = linspace(0,(length(rawData)/1000),length(forwardVelocity));
 
-figure,
+figure('Position', [300, 200, 1000, 800]),
 subplot(2,1,1)
-plot(time,angularVelocity,'k','HandleVisibility','off')%plot(time,forwardVelocity,'k','HandleVisibility','off')
-xlim([0 time(end)]); ylim([-150 150]);
+plot(time,angularVelocity,'k','HandleVisibility','off')
+xlim([0 time(end)]); ylim([min(angularVelocity)-5 max(angularVelocity)+5]);
 hold on 
 for i = 1:TrialNum
-   plot([jsec(i) jsec(i)],[-150 150],'g')    
+   plot([jsec(i) jsec(i)],[min(angularVelocity)-5 max(angularVelocity)+5],'g','HandleVisibility','off')    
 end
 hline = refline([0 meanVelocity]);
 hline.Color = 'r'; hline.LineStyle = '--';
@@ -144,7 +170,7 @@ rline.Color = [.5 .5 .5]; rline.LineWidth = 1.5;
 title('Angular velocity of the fly', 'Interpreter', 'none');
 xlabel('Time (s)')
 ylabel('Velocity (deg/s)')
-legend('bar jumps', 'Mean angular velocity');
+legend('Mean angular velocity');
 
 subplot(2,1,2)
 histogram(angularVelocity,'FaceColor',[.2 .8 .6])
@@ -175,7 +201,6 @@ for i = 1:length(forwardVelocity)
 end
 
 
-%A more accurate plot
 figure
 set(gcf, 'Position', [500, 500, 1000, 100])
 newMap = flipud(gray);
@@ -252,7 +277,7 @@ subplot(2,4,2)
 plot(degs,probabilities,'k')
 set(0, 'DefaulttextInterpreter', 'none')
 xlim([-180 180]); ylim([0 max(probabilities)+0.05]);
-title('Probability density of the stimulus position');
+title({'Pb density of the stimulus position','every frame'});
 ylabel('Probability density'); xlabel('Stimulus position (deg)');
 
 %With only frames with velocity>1
@@ -264,7 +289,7 @@ subplot(2,4,3)
 plot(degsMoving,probabilitiesMoving,'k')
 set(0, 'DefaulttextInterpreter', 'none')
 xlim([-180 180]); ylim([0 max(probabilitiesMoving)+0.05]);
-title('Probability density of the stimulus position with only moving frames');
+title({'Pb density of the stimulus position',' with only moving frames'});
 ylabel('Probability density'); xlabel('Stimulus position (deg)');
 
 
@@ -276,14 +301,14 @@ circedges = [0:20:360];
 circedges = deg2rad(circedges);
 subplot(2,4,6)
 polarhistogram(posToRad,circedges,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
-title('Probability density of the stimulus position, every frame');
+title({'Pb density of the stimulus position' , 'every frame'});
 ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
 subplot(2,4,7)
 polarhistogram(posToRad(forwardVelocity>1),circedges,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
-title('Probability density of the stimulus position, moving frames');
+title({'Pb density of the stimulus position', 'moving frames'});
 ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top';
@@ -384,7 +409,7 @@ ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
-
+saveas(gcf,strcat(path,'FlyHeading',file(1:end-4),'.png'));
 
 %% Distance to the goal
 
@@ -414,8 +439,7 @@ title('Distance to the goal with moving frames');
 xlim([-180, 180]); xlabel('Distance to the goal (deg)');
 ylabel('Probability');
 
-
-
+saveas(gcf,strcat(path,'Dist2Goal',file(1:end-4),'.png'));
 %% Plot 2D trajectory
 
 [posx,posy]=FlyTrajectory(smoothed.Intx,smoothed.Inty,smoothed.angularPosition);
@@ -430,37 +454,33 @@ title('2D trajectory of the fly');
 
 %% Around the jumps for the jump followed by 3 sec in open-loop
 
-jumpData = getDataAroundJump(rawData,panelsOFF,3,9);
-jumpData.angPos = getPosAroundJump(data.ficTracAngularPosition,panelsOFF,3);
-jumpData.jumpMag = wrapTo180(data.xPanelPos(panelsOFF+100)*pxToDeg-data.xPanelPos(panelsOFF-100)*pxToDeg);
+%I'm getting the data for the 3 sec before and after each of the jumps that go from closed-loop to open-loop
+jumpData = getDataAroundJumpFiltered(rawData,panelsOFF,3,9); 
+jumpData.angPos = getPosAroundJumpFiltered(data.ficTracAngularPosition,panelsOFF,3);
+
+%Correct the xPanelPos data for the full non-downsampled raw-data, then
+%change to degrees and wrap to 180
+fullPosToDeg = data.xPanelPos;
+
+for i=1:length(fullPosToDeg)
+    if data.xPanelPos(i) == 70
+        fullPosToDeg(i) = 0;
+    elseif data.xPanelPos(i) >70 
+        fullPosToDeg(i) = (data.xPanelPos(i)-70)*pxToDeg; % Correct the offset and multiply by factor to get deg
+    else
+        fullPosToDeg(i) = (data.xPanelPos(i)+27)*pxToDeg; % Correct the offset and multiply by factor to get deg
+    end
+end
+fullPosToDeg = wrapTo180(fullPosToDeg);
+%Get the jump magnitude as the difference in degrees between the panel pos
+%20 frames before the jumps and 20 sec after the jumps
+jumpData.jumpMag = wrapTo180(fullPosToDeg(panelsOFF+20)-fullPosToDeg(panelsOFF-20));
 
 %plot the aJ data.
 time = linspace(-3,3,length(jumpData.angVel));
-figure('Position', [100 100 1200 900]),
-subplot(1,2,1)
-plot(time,jumpData.angVel)
-hold on
-plot([0 0],[-300 300],'k')
-plot(time,mean(jumpData.angVel,2),'k','lineWidth',2)
-title('Angular velocity around the jumps')
-xlabel('Time (s)'); ylabel('Angular velocity (deg/s)');
-ylim([-300 300]);
-
-%take the absolute value of the angular velocity (angular speed)
-subplot(1,2,2)
-plot(time,abs(jumpData.angVel))
-hold on
-plot([0 0],[-0 300],'k')
-plot(time,mean(abs(jumpData.angVel),2),'k','lineWidth',2)
-ylim([0 300])
-title('Angular speed around the jumps')
-xlabel('Time (s)'); ylabel('Angular speed (deg/s)');
-
-%% Negative and positive jumps
 
 positiveJumps = find(jumpData.jumpMag>0);
 negativeJumps = find(jumpData.jumpMag<0);
-
 
 figure('Position', [100 100 1200 900]),
 subplot(1,2,1)
@@ -468,25 +488,76 @@ plot(time,jumpData.angVel(:,positiveJumps))
 hold on
 plot([0 0],[-300 300],'k')
 plot(time,mean(jumpData.angVel(:,positiveJumps),2),'k','lineWidth',2)
-title('Angular velocity around the jumps for positive jumps')
+title('Angular velocity around the jumps for positive jumps');
 xlabel('Time (s)'); ylabel('Angular velocity (deg/s)');
-
 subplot(1,2,2)
 plot(time,jumpData.angVel(:,negativeJumps))
 hold on
 plot([0 0],[-300 300],'k')
 plot(time,mean(jumpData.angVel(:,negativeJumps),2),'k','lineWidth',2)
-title('Angular velocity around the jumps for negative jumps')
+title('Angular velocity around the jumps for negative jumps');
 xlabel('Time (s)'); ylabel('Angular velocity (deg/s)');
 
+
+%All together
+positiveMean = mean(jumpData.angVel(:,positiveJumps),2);
+positiveStd = std(jumpData.angVel(:,positiveJumps),[],2);
+
+negativeMean = mean(jumpData.angVel(:,negativeJumps),2);
+negativeStd = std(jumpData.angVel(:,negativeJumps),[],2);
+
+figure('Position', [100 100 1200 900]),
+p1 = boundedline(time,positiveMean,positiveStd/sqrt(length(positiveJumps)),'k','alpha');
+hold on
+p2= boundedline(time,negativeMean,negativeStd/sqrt(length(negativeJumps)),'r','alpha');
+plot([0 0],[-30 30],'color',[.5 .5 .5])
+plot([-3 3],[0 0],'color',[.5 .5 .5])
+title('Angular velocity around the jumps');
+xlabel('Time around the jumps (s)');
+ylabel('Angular velocity (deg/s)');
+legend([p1,p2],'Positive jumps', 'Negative jumps');
+
+saveas(gcf,strcat(path,'AJangularvelocity',file(1:end-4),'.png'));
+
+
+%Taking the angular speed (absolute value)
+figure('Position', [100 100 1200 900]),
+subplot(1,2,1)
+plot(time,abs(jumpData.angVel))
+hold on
+plot([0 0],[-300 300],'k')
+ylim([0 300])
+title('Angular speed around the jumps')
+xlabel('Time (s)'); ylabel('Angular speed (deg/s)');
+
+subplot(1,2,2)
+absMean = mean(abs(jumpData.angVel),2);
+stdAbsMean = std(abs(jumpData.angVel),[],2);
+p3= boundedline(time,absMean,stdAbsMean/sqrt(length(jsec)),'r','alpha');
+hold on
+plot([0 0],[0 50],'color',[.5 .5 .5]);
+
+saveas(gcf,strcat(path,'AbsAJangularvelocity',file(1:end-4),'.png'));
+
+
+
+%If I substract the values before the jump from the values after the jump,
+%and then plot that...
+respMag = abs(jumpData.angVel - mean(jumpData.angVel(1:75,:)));
+figure,
+plot(time,mean(respMag,2))
+title('Mean response magnitude');
+
+saveas(gcf,strcat(path,'AbsAJangularvelocity2',file(1:end-4),'.png'));
 
 %% Forward velocity around the jumps
 
 figure,
 plot(time,jumpData.forwardVel)
 hold on
-plot([0 0],[-5 15],'k')
+plot([0 0],[min(min(jumpData.forwardVel))-1 max(max(jumpData.forwardVel))+1],'k')
 plot(time,mean(jumpData.forwardVel,2),'k','lineWidth',2)
+ylim([min(min(jumpData.forwardVel))-1 max(max(jumpData.forwardVel))+1]);
 title('Forward velocity around the jumps')
 xlabel('Time (s)'); ylabel('Forward velocity (mm/s)');
 
@@ -494,9 +565,9 @@ xlabel('Time (s)'); ylabel('Forward velocity (mm/s)');
 %% Response magnitude
 
 %Get the magnitude of the response
-%I'll take the response between frames 90 and 130.
-%I'll take the baseline between frames 40 and 80.
-response = mean(jumpData.angVel(100:140,:))-mean(jumpData.angVel(40:80,:));
+%I'll take the response between frames 100 and 140.
+%I'll take the baseline between frames 30 and 70.
+response = mean(jumpData.angVel(100:140,:))-mean(jumpData.angVel(30:70,:));
 responseMag = abs(response);
 
 %plot a scatter of the speed vs the jump magnitude (using the difference
@@ -508,20 +579,22 @@ xlabel('Jump magnitude (deg)'); ylabel('Response magnitude (deg/s)');
 title('Response magnitude as a function of jump magnitude');
 
 
+saveas(gcf,strcat(path,'ResponseMagvsJumpMag',file(1:end-4),'.png'));
+
 %% Evolution of the responses in time
 
 figure('Position', [100 100 1200 900]),
-subplot(1,2,1)
-colormap(hot)
-imagesc(time,[1:length(panelsOFF)],abs(jumpData.angVel'))
-colorbar
-hold on
-plot([0, 0], [1,length(panelsOFF)],'k','LineWidth',2);
-xlim([-5,5]);
-title('Angular speed in time');
-xlabel('Time around jump (s)'); ylabel('Trial number');
-
-subplot(1,2,2)
+% subplot(1,2,1)
+% colormap(hot)
+% imagesc(time,[1:length(panelsOFF)],abs(jumpData.angVel'))
+% colorbar
+% hold on
+% plot([0, 0], [1,length(panelsOFF)],'k','LineWidth',2);
+% xlim([-5,5]);
+% title('Angular speed in time');
+% xlabel('Time around jump (s)'); ylabel('Trial number');
+% 
+% subplot(1,2,2)
 plot(responseMag,'ko')
 title('Response magnitude in time');
 xlabel('Trial number'); ylabel('Response magnitude (deg/s)');
@@ -533,35 +606,14 @@ xlabel('Trial number'); ylabel('Response magnitude (deg/s)');
 panelsON2 = panelsON(2:end);
 jumpData2 = getDataAroundJump(rawData,panelsON2,3,9);
 jumpData2.angPos = getPosAroundJump(data.ficTracAngularPosition,panelsON2,3);
-jumpData2.jumpMag = wrapTo180(data.xPanelPos(panelsON2+100)*pxToDeg-data.xPanelPos(panelsON2-100)*pxToDeg);
+
+%Get the jump magnitude as the difference in degrees between the panel pos
+%20 frames before the jumps and 20 sec after the jumps
+jumpData2.jumpMag = wrapTo180(fullPosToDeg(panelsON2+20)-fullPosToDeg(panelsON2-20));
 
 %plot the aJ data.
-time = linspace(-3,3,length(jumpData2.angVel));
-figure('Position', [100 100 1200 900]),
-subplot(1,2,1)
-plot(time,jumpData2.angVel)
-hold on
-plot([0 0],[-300 300],'k')
-plot(time,mean(jumpData2.angVel,2),'k','lineWidth',2)
-title('Angular velocity around the jumps')
-xlabel('Time (s)'); ylabel('Angular velocity (deg/s)');
-ylim([-300 300]);
-
-%take the absolute value of the angular velocity (angular speed)
-subplot(1,2,2)
-plot(time,abs(jumpData2.angVel))
-hold on
-plot([0 0],[-0 300],'k')
-plot(time,mean(abs(jumpData2.angVel),2),'k','lineWidth',2)
-ylim([0 300])
-title('Angular speed around the jumps')
-xlabel('Time (s)'); ylabel('Angular speed (deg/s)');
-
-%% Negative and positive jumps for the jump going back to closed loop
-
 positiveJumps2 = find(jumpData2.jumpMag>0);
 negativeJumps2 = find(jumpData2.jumpMag<0);
-
 
 figure('Position', [100 100 1200 900]),
 subplot(1,2,1)
@@ -569,35 +621,87 @@ plot(time,jumpData2.angVel(:,positiveJumps2))
 hold on
 plot([0 0],[-300 300],'k')
 plot(time,mean(jumpData2.angVel(:,positiveJumps2),2),'k','lineWidth',2)
-title('Angular velocity around the jumps for positive jumps')
+title('Angular velocity around the jumps for positive jumps');
 xlabel('Time (s)'); ylabel('Angular velocity (deg/s)');
-
 subplot(1,2,2)
 plot(time,jumpData2.angVel(:,negativeJumps2))
 hold on
 plot([0 0],[-300 300],'k')
 plot(time,mean(jumpData2.angVel(:,negativeJumps2),2),'k','lineWidth',2)
-title('Angular velocity around the jumps for negative jumps')
+title('Angular velocity around the jumps for negative jumps');
 xlabel('Time (s)'); ylabel('Angular velocity (deg/s)');
 
 
-%% Forward velocity around the jumps for the jumps going back to closed loop
+%All together
+positiveMean2 = mean(jumpData2.angVel(:,positiveJumps2),2);
+positiveStd2 = std(jumpData2.angVel(:,positiveJumps2),[],2);
+
+negativeMean2 = mean(jumpData2.angVel(:,negativeJumps2),2);
+negativeStd2 = std(jumpData2.angVel(:,negativeJumps2),[],2);
+
+figure('Position', [100 100 1200 900]),
+p12 = boundedline(time,positiveMean2,positiveStd2/sqrt(length(positiveJumps2)),'k','alpha');
+hold on
+p22= boundedline(time,negativeMean2,negativeStd2/sqrt(length(negativeJumps2)),'r','alpha');
+plot([0 0],[-30 30],'color',[.5 .5 .5])
+plot([-3 3],[0 0],'color',[.5 .5 .5])
+title('Angular velocity around the jumps');
+xlabel('Time around the jumps (s)');
+ylabel('Angular velocity (deg/s)');
+legend([p12,p22],'Positive jumps', 'Negative jumps');
+
+saveas(gcf,strcat(path,'AJBackClosedAngularvelocity',file(1:end-4),'.png'));
+
+
+%Taking the angular speed (absolute value)
+figure('Position', [100 100 1200 900]),
+subplot(1,2,1)
+plot(time,abs(jumpData2.angVel))
+hold on
+plot([0 0],[-300 300],'k')
+ylim([0 300])
+title('Angular speed around the jumps')
+xlabel('Time (s)'); ylabel('Angular speed (deg/s)');
+
+subplot(1,2,2)
+absMean2 = mean(abs(jumpData2.angVel),2);
+stdAbsMean2 = std(abs(jumpData2.angVel),[],2);
+p32= boundedline(time,absMean2,stdAbsMean2/sqrt(length(jsec)),'r','alpha');
+hold on
+plot([0 0],[0 50],'color',[.5 .5 .5]);
+
+saveas(gcf,strcat(path,'AbsAJBacktoClosedangularvelocity',file(1:end-4),'.png'));
+
+
+
+%If I substract the values before the jump from the values after the jump,
+%and then plot that...
+respMag2 = abs(jumpData2.angVel - mean(jumpData2.angVel(1:75,:)));
+figure,
+plot(time,mean(respMag2,2))
+title('Mean response magnitude');
+
+saveas(gcf,strcat(path,'AbsAJBacktoClosedangularvelocity2',file(1:end-4),'.png'));
+
+
+%% Forward velocity around the jumps
 
 figure,
 plot(time,jumpData2.forwardVel)
 hold on
-plot([0 0],[-5 15],'k')
+plot([0 0],[min(min(jumpData2.forwardVel))-1 max(max(jumpData2.forwardVel))+1],'k')
 plot(time,mean(jumpData2.forwardVel,2),'k','lineWidth',2)
+ylim([min(min(jumpData2.forwardVel))-1 max(max(jumpData2.forwardVel))+1]);
 title('Forward velocity around the jumps')
 xlabel('Time (s)'); ylabel('Forward velocity (mm/s)');
 
 
-%% Response magnitude for the jumps going back to closed-loop 
+%% Response magnitude
 
 %Get the magnitude of the response
-%I'll take the response between frames 90 and 130.
-%I'll take the baseline between frames 40 and 80.
-response2 = mean(jumpData2.angVel(100:140,:))-mean(jumpData2.angVel(40:80,:));
+%I'll take the response between frames 100 and 140.
+%I'll take the baseline between frames 30 and 70.
+response2 = mean(jumpData2.angVel(100:140,:))-mean(jumpData2.angVel(30:70,:));
 responseMag2 = abs(response2);
 
 %plot a scatter of the speed vs the jump magnitude (using the difference
@@ -609,20 +713,22 @@ xlabel('Jump magnitude (deg)'); ylabel('Response magnitude (deg/s)');
 title('Response magnitude as a function of jump magnitude');
 
 
-%% Evolution of the responses in time for the jumps going back to closed-loop 
+saveas(gcf,strcat(path,'ResponseMagvsJumpMagBackToClosed',file(1:end-4),'.png'));
+
+%% Evolution of the responses in time
 
 figure('Position', [100 100 1200 900]),
-subplot(1,2,1)
-colormap(hot)
-imagesc(time,[1:length(panelsON)],abs(jumpData2.angVel'))
-colorbar
-hold on
-plot([0, 0], [1,length(panelsON)],'k','LineWidth',2);
-xlim([-3,3]);
-title('Angular speed in time');
-xlabel('Time around jump (s)'); ylabel('Trial number');
-
-subplot(1,2,2)
+% subplot(1,2,1)
+% colormap(hot)
+% imagesc(time,[1:length(panelsOFF)],abs(jumpData.angVel'))
+% colorbar
+% hold on
+% plot([0, 0], [1,length(panelsOFF)],'k','LineWidth',2);
+% xlim([-5,5]);
+% title('Angular speed in time');
+% xlabel('Time around jump (s)'); ylabel('Trial number');
+% 
+% subplot(1,2,2)
 plot(responseMag2,'ko')
 title('Response magnitude in time');
 xlabel('Trial number'); ylabel('Response magnitude (deg/s)');

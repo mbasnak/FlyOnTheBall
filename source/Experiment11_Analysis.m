@@ -32,6 +32,12 @@ for i = 1:length(LightClosedLoopIndex)
 end
 ylim([0 Max+0.05]);
 title('Dist2goal distribution for light stripes');
+probL = cell2mat(probabilitiesDistMovingL);
+probL2 = reshape(probL,  18, length(probL)/18);
+meanProbL = mean(probL2,2);
+degs = degsFlyDistMovingL{1,1};
+plot(degs,meanProbL,'k','LineWidth',2)
+
 subplot(1,2,2)
 for i = 1:length(DarkClosedLoopIndex)
     plot(degsFlyDistMovingD{i},probabilitiesDistMovingD{i})
@@ -39,6 +45,11 @@ for i = 1:length(DarkClosedLoopIndex)
 end
 title('Dist2goal distribution for dark stripes');
 ylim([0 Max+0.05]);
+probD = cell2mat(probabilitiesDistMovingD);
+probD2 = reshape(probD,  18, length(probD)/18);
+meanProbD = mean(probD2,2);
+plot(degs,meanProbD,'k','LineWidth',2)
+
 saveas(gcf,strcat(path,'Dist2goal',file(1:end-4),'.png'));
 
 %(2) Polar histograms
@@ -72,21 +83,21 @@ saveas(gcf,strcat(path,'PolardistD',file(1:end-4),'.png'));
 %Divide in the different trial types
 FastClockOpenLoopIndex = find(contains(trials,'fastClockwise'));
 FastCounterclockOpenLoopIndex = find(contains(trials,'fastCounter'));
-SlowClockOpenLoopIndex = find(contains(trials,'slowClockwise'));
-SlowCounterclockOpenLoopIndex = find(contains(trials,'slowCounter'));
+%SlowClockOpenLoopIndex = find(contains(trials,'slowClockwise'));
+%SlowCounterclockOpenLoopIndex = find(contains(trials,'slowCounter'));
 
 for i = 1:length(FastClockOpenLoopIndex)    
     [smoothedFC{i},remapPosToDegFC{i},flyPos180FC{i}] = runOpenLoopAnalysis(rawData{FastClockOpenLoopIndex(i)},path,strcat(trials{FastClockOpenLoopIndex(i)},num2str(FastClockOpenLoopIndex(i))));
     [smoothedFCC{i},remapPosToDegFCC{i},flyPos180FCC{i}] = runOpenLoopAnalysis(rawData{FastCounterclockOpenLoopIndex(i)},path,strcat(trials{FastCounterclockOpenLoopIndex(i)},num2str(FastCounterclockOpenLoopIndex(i))));
-    [smoothedSC{i},remapPosToDegSC{i},flyPos180SC{i}] = runOpenLoopAnalysis(rawData{SlowClockOpenLoopIndex(i)},path,strcat(trials{SlowClockOpenLoopIndex(i)},num2str(SlowClockOpenLoopIndex(i))));
-    [smoothedSCC{i},remapPosToDegSCC{i},flyPos180SCC{i}] = runOpenLoopAnalysis(rawData{SlowCounterclockOpenLoopIndex(i)},path,strcat(trials{SlowCounterclockOpenLoopIndex(i)},num2str(SlowCounterclockOpenLoopIndex(i))));
+    %[smoothedSC{i},remapPosToDegSC{i},flyPos180SC{i}] = runOpenLoopAnalysis(rawData{SlowClockOpenLoopIndex(i)},path,strcat(trials{SlowClockOpenLoopIndex(i)},num2str(SlowClockOpenLoopIndex(i))));
+    %[smoothedSCC{i},remapPosToDegSCC{i},flyPos180SCC{i}] = runOpenLoopAnalysis(rawData{SlowCounterclockOpenLoopIndex(i)},path,strcat(trials{SlowCounterclockOpenLoopIndex(i)},num2str(SlowCounterclockOpenLoopIndex(i))));
 end
 
 figure('Position', [100 100 1400 900]),
-subplot(2,2,1)
+subplot(1,2,1)
 for i = 1:length(FastClockOpenLoopIndex)
-    plot(remapPosToDegFC{1,i}(5:147),smoothedFC{1,i}.angularVel(5:147))
-    angVelFC(:,i) = smoothedFC{1,i}.angularVel(5:147);
+    plot(remapPosToDegFC{1,i}(7:245),smoothedFC{1,i}.angularVel(7:245))
+    angVelFC(:,i) = smoothedFC{1,i}.angularVel(7:245);
     hold on
 end
 title('Angular Velocity for fast clockwise bars');
@@ -96,12 +107,12 @@ line([-180 180],[0 0],'Color','k','LineStyle','--');
 line([0 0],[-150 150],'Color','k','LineStyle','--');
 %add mean
 meanAngVelFC = mean(angVelFC,2);
-plot(remapPosToDegFC{1,1}(5:147),meanAngVelFC,'k','LineWidth',2)
+plot(remapPosToDegFC{1,1}(7:245),meanAngVelFC,'k','LineWidth',2)
 
-subplot(2,2,2)
+subplot(1,2,2)
 for i = 1:length(FastCounterclockOpenLoopIndex)
-    plot(remapPosToDegFCC{1,i}(1:142),smoothedFCC{1,i}.angularVel(1:142))
-    angVelFCC(:,i) = smoothedFCC{1,i}.angularVel(1:142);
+    plot(remapPosToDegFCC{1,i}(1:236),smoothedFCC{1,i}.angularVel(1:236))
+    angVelFCC(:,i) = smoothedFCC{1,i}.angularVel(1:236);
     hold on
 end
 title('Angular Velocity for fast counterclockwise bars');
@@ -111,37 +122,50 @@ line([0 0],[-150 150],'Color','k','LineStyle','--');
 ylim([-150, 150]);
 %add mean
 meanAngVelFCC = mean(angVelFCC,2);
-plot(remapPosToDegFCC{1,1}(1:142),meanAngVelFCC,'k','LineWidth',2)
+plot(remapPosToDegFCC{1,1}(1:236),meanAngVelFCC,'k','LineWidth',2)
 
-subplot(2,2,3)
-for i = 1:length(SlowClockOpenLoopIndex)
-    plot(remapPosToDegSC{1,i}(11:442),smoothedSC{1,i}.angularVel(11:442))
-    angVelSC(:,i) = smoothedSC{1,i}.angularVel(11:442);
-    hold on
-end
-title('Angular Velocity for slow clockwise bars');
-ylim([-150, 150]);
-hold on
-line([-180 180],[0 0],'Color','k','LineStyle','--');
-line([0 0],[-150 150],'Color','k','LineStyle','--');
-%add mean
-meanAngVelSC = mean(angVelSC,2);
-plot(remapPosToDegSC{1,1}(11:442),meanAngVelSC,'k','LineWidth',2)
 
-subplot(2,2,4)
-for i = 1:length(SlowCounterclockOpenLoopIndex)
-    plot(remapPosToDegSCC{1,i}(1:424),smoothedSCC{1,i}.angularVel(1:424))
-    angVelSCC(:,i) = smoothedSCC{1,i}.angularVel(1:424);
-    hold on
-end
-title('Angular Velocity for slow counterclockwise bars');
+figure,
+plot(remapPosToDegFC{1,1}(7:245),meanAngVelFC,'k','LineWidth',2)
 hold on
-line([-180 180],[0 0],'Color','k','LineStyle','--');
-line([0 0],[-150 150],'Color','k','LineStyle','--');
-ylim([-150, 150]);
-%add mean
-meanAngVelSCC = mean(angVelSCC,2);
-plot(remapPosToDegSCC{1,1}(1:424),meanAngVelSCC,'k','LineWidth',2)
+plot(-remapPosToDegFCC{1,1}(1:236),meanAngVelFCC,'r','LineWidth',2)
+plot([0 0], [-15 15],'k')
+plot([-180 180], [0 0], 'k')
+title('Open-loop tracking responses');
+ylabel('Angular velocity (deg/s)'); xlabel('Bar position (deg)');
+legend('Clockwise turns', 'Counterclockwise turns');
+
+
+
+% subplot(2,2,3)
+% for i = 1:length(SlowClockOpenLoopIndex)
+%     plot(remapPosToDegSC{1,i}(11:442),smoothedSC{1,i}.angularVel(11:442))
+%     angVelSC(:,i) = smoothedSC{1,i}.angularVel(11:442);
+%     hold on
+% end
+% title('Angular Velocity for slow clockwise bars');
+% ylim([-150, 150]);
+% hold on
+% line([-180 180],[0 0],'Color','k','LineStyle','--');
+% line([0 0],[-150 150],'Color','k','LineStyle','--');
+% %add mean
+% meanAngVelSC = mean(angVelSC,2);
+% plot(remapPosToDegSC{1,1}(11:442),meanAngVelSC,'k','LineWidth',2)
+% 
+% subplot(2,2,4)
+% for i = 1:length(SlowCounterclockOpenLoopIndex)
+%     plot(remapPosToDegSCC{1,i}(1:424),smoothedSCC{1,i}.angularVel(1:424))
+%     angVelSCC(:,i) = smoothedSCC{1,i}.angularVel(1:424);
+%     hold on
+% end
+% title('Angular Velocity for slow counterclockwise bars');
+% hold on
+% line([-180 180],[0 0],'Color','k','LineStyle','--');
+% line([0 0],[-150 150],'Color','k','LineStyle','--');
+% ylim([-150, 150]);
+% %add mean
+% meanAngVelSCC = mean(angVelSCC,2);
+% plot(remapPosToDegSCC{1,1}(1:424),meanAngVelSCC,'k','LineWidth',2)
 
 saveas(gcf,strcat(path,'AngVelOpenLoop',file(1:end-4),'.png'));
 

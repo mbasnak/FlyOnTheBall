@@ -495,7 +495,20 @@ xticklabels({'Block 1','Block 2','Block 3'})
 saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\GoalDistAcrossBlocks.png'))
 saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\GoalDistAcrossBlocks.svg'))
 
-
+%Make individual within fly across blocks goal plots
+for i = 1:15
+figure,
+plot(rad2deg(allGoals(i,:)),'ko')
+hold on
+plot(rad2deg(allGoals(i,:)),'k')
+ylabel('Goal (deg)');
+xlim([0,4]);
+ylim([-180 180]);
+xticks([1 2 3])
+xticklabels({'Block 1','Block 2','Block 3'})
+title('Goal evolution')
+saveas(gcf,['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\globalPlots\GoalEv',num2str(i),'.png'])
+end
 
 %Looks at the distribution of the variable 'Distance to the goal' per block
 figure('Position', [100 100 1600 900]),
@@ -636,4 +649,63 @@ suptitle('Distance to goal 10 sec around jumps');
 
 saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\Dist2Goal10secHeatMap.png'))
 saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\Dist2Goal10secHeatMap.svg'))
+
+
+%% Look at the goal distribution whithin each block and across blocks
+
+GoalEvFirstLowErrorBlock = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\*\experimental flies\*\goalTrialLowErrorBlockExp3.mat');
+GoalEvHighErrorBlock = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\*\experimental flies\*\goalTrialHighErrorBlockExp4.mat');
+GoalEvSecondLowErrorBlock = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\*\experimental flies\*\goalTrialLowErrorBlockExp5.mat');
+
+
+for i = 1:length(GoalEvHighErrorBlock)
+    
+    shortDataFirstLE{i} = load(strcat(GoalEvFirstLowErrorBlock(i).folder,'\',GoalEvFirstLowErrorBlock(i).name));
+    TrialGoalFirstBlock{i} = shortDataFirstLE{1,i}.goalMovingTrial;    
+    
+    shortDataHE{i} = load(strcat(GoalEvHighErrorBlock(i).folder,'\',GoalEvHighErrorBlock(i).name));
+    TrialGoalSecondBlock{i} = shortDataHE{1,i}.goalMovingTrial;
+      
+    shortDataSecondLE{i} = load(strcat(GoalEvFirstLowErrorBlock(i).folder,'\',GoalEvSecondLowErrorBlock(i).name));
+    TrialGoalThirdBlock{i} = shortDataSecondLE{1,i}.goalMovingTrial;
+    
+end
+
+ 
+for i = 1:length(GoalEvHighErrorBlock)
+    
+    figure ('Position', [200 100 800 1000]),
+    subplot(3,1,1)
+    plot(TrialGoalFirstBlock{1,i},'k')
+    hold on
+    plot(TrialGoalFirstBlock{1,i},'ko')
+    title('First low error block');
+    ylim([-180 180]); xlim([1 10]);
+    ylabel({'Heading goal', '[circ_mean of angular position] (deg)'});
+    xlabel('Time');
+    
+    subplot(3,1,2)
+    plot(TrialGoalSecondBlock{1,i},'r')
+    hold on
+    plot(TrialGoalSecondBlock{1,i},'ro')
+    title('High error block');
+    ylim([-180 180]); xlim([1 10]);
+    ylabel({'Heading goal', '[circ_mean of angular position] (deg)'});
+    xlabel('Time');  
+    
+    subplot(3,1,3)
+    plot(TrialGoalThirdBlock{1,i},'k')
+    hold on
+    plot(TrialGoalThirdBlock{1,i},'ko')
+    title('Second low error block');
+    ylim([-180 180]); xlim([1 10]);
+    ylabel({'Heading goal', '[circ_mean of angular position] (deg)'});
+    xlabel('Time');
+    
+    saveas(gcf,['Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment5\TrialGoal',num2str(i),'.png'])
+end
+
+
+
+
 

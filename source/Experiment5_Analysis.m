@@ -244,6 +244,7 @@ sizeBall = 9;
 time = linspace(1,2400,length(posx));
 
 figure,
+subplot(1,2,1)
 scatter(posx,posy,0.5,time)
 h = colorbar
 title(h,'Time (s)');
@@ -252,7 +253,7 @@ axis tight
 title('Uncorrected 2D trajectory');
 set(gca,'xtick',[])
 set(gca,'ytick',[])
-saveas(gcf,strcat(path,'UncorrectedTrajectory',file(1:end-4),'.svg'));
+
 
 %Corrected trajectory: this is the actual trajectory the fly took during
 %the block
@@ -602,46 +603,66 @@ save(strcat(path,'FlyPosition',file(1:end-4),'.mat'),'posToRadFlyMoving','circed
 saveas(gcf,strcat(path,'FlyPosition',file(1:end-4),'.png'))
 saveas(gcf,strcat(path,'FlyPosition',file(1:end-4),'.svg'))
 
-%only polar histogram
-figure,
-polarhistogram(posToRadFlyMoving,circedges,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
-ax = gca;
-ax.ThetaDir='clockwise';
-ax.ThetaZeroLocation = 'top'; 
-title('Heading distribution')
-saveas(gcf,strcat(path,'FlyPolarHistogram',file(1:end-4),'.svg'))
+% %only polar histogram
+% figure,
+% polarhistogram(posToRadFlyMoving,circedges,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
+% ax = gca;
+% ax.ThetaDir='clockwise';
+% ax.ThetaZeroLocation = 'top'; 
+% title('Heading distribution')
+% saveas(gcf,strcat(path,'FlyPolarHistogram',file(1:end-4),'.svg'))
 
 %% Look at the goal and calculate the distance to it...
 
-%Taking all the experiment
-figure,
-%with every frame
-goal = circ_mean(posToRadFly,[],2);
-dist2goal2 = circ_dist(posToRadFly,goal);
-dist2goal = wrapTo180(rad2deg(dist2goal2));
-[countsDist] = histcounts(dist2goal,edges);
-probabilitiesDist = countsDist./sum(countsDist);
-degsFlyDist = linspace(-180,180,length(countsDist));
-subplot(1,2,1), plot(degsFlyDist,probabilitiesDist,'r')
-title('Distance to the goal with every frame');
-xlim([-180, 180]); xlabel('Distance to the goal (deg)');
-ylabel('Probability');
+% %Taking all the experiment
+% figure,
+% %with every frame
+% goal = circ_mean(posToRadFly,[],2);
+% dist2goal2 = circ_dist(posToRadFly,goal);
+% dist2goal = wrapTo180(rad2deg(dist2goal2));
+% [countsDist] = histcounts(dist2goal,edges);
+% probabilitiesDist = countsDist./sum(countsDist);
+% degsFlyDist = linspace(-180,180,length(countsDist));
+% subplot(1,2,1), plot(degsFlyDist,probabilitiesDist,'r')
+% title('Distance to the goal with every frame');
+% xlim([-180, 180]); xlabel('Distance to the goal (deg)');
+% ylabel('Probability');
+% 
+% %taking only 'moving frames'
+% goalMoving = circ_mean(posToRadFly(forwardVelocity>1),[],2);
+% devGoalMoving = circ_std(posToRadFly(forwardVelocity>1),[],[],2);
+% dist2goalMoving2 = circ_dist(posToRadFly(forwardVelocity>1),goalMoving);
+% dist2goalMoving = wrapTo180(rad2deg(dist2goalMoving2));
+% [countsDistMoving] = histcounts(dist2goalMoving,edges);
+% probabilitiesDistMoving = countsDistMoving./sum(countsDistMoving);
+% degsFlyDistMoving = linspace(-180,180,length(countsDistMoving));
+% subplot(1,2,2), plot(degsFlyDistMoving,probabilitiesDistMoving,'r')
+% title('Distance to the goal with moving frames');
+% xlim([-180, 180]); xlabel('Distance to the goal (deg)');
+% ylabel('Probability');
+% 
+% saveas(gcf,strcat(path,'Dist2Goal',file(1:end-4),'.png'))
+% save(strcat(path,'goals',file(1:end-4),'.mat'),'goal','goalMoving','dist2goal','dist2goalMoving','degsFlyDistMoving','probabilitiesDistMoving','devGoalMoving');
 
-%taking only 'moving frames'
-goalMoving = circ_mean(posToRadFly(forwardVelocity>1),[],2);
-devGoalMoving = circ_std(posToRadFly(forwardVelocity>1),[],[],2);
-dist2goalMoving2 = circ_dist(posToRadFly(forwardVelocity>1),goalMoving);
-dist2goalMoving = wrapTo180(rad2deg(dist2goalMoving2));
-[countsDistMoving] = histcounts(dist2goalMoving,edges);
-probabilitiesDistMoving = countsDistMoving./sum(countsDistMoving);
-degsFlyDistMoving = linspace(-180,180,length(countsDistMoving));
-subplot(1,2,2), plot(degsFlyDistMoving,probabilitiesDistMoving,'r')
-title('Distance to the goal with moving frames');
-xlim([-180, 180]); xlabel('Distance to the goal (deg)');
-ylabel('Probability');
 
-saveas(gcf,strcat(path,'Dist2Goal',file(1:end-4),'.png'))
-save(strcat(path,'goals',file(1:end-4),'.mat'),'goal','goalMoving','dist2goal','dist2goalMoving','degsFlyDistMoving','probabilitiesDistMoving','devGoalMoving');
+%% Looking at the goal in 10 segments throughout the experiment
+
+posToRadFlyMoving = posToRadFly(forwardVelocity>1);
+
+stepSize = round(length(posToRadFlyMoving)/10)-1;
+
+count = 1;
+for i = 1:10
+    
+    goalMovingTrial(i) = circ_mean(posToRadFlyMoving(count:count+stepSize),[],2);
+    goalMovingTrial(i) = wrapTo180(rad2deg(goalMovingTrial(i)));
+    count = count + stepSize;
+
+end
+
+figure, plot(goalMovingTrial,'ko')
+
+save(strcat(path,'goalTrial',file(1:end-4),'.mat'),'goalMovingTrial');
 
 %% Using the 100 sec before and after each jump to compute several goal distributions
 %per experiment...if it's a low error block

@@ -31,7 +31,7 @@ data.yPanelPos = round ((data.yPanelVolts  * maxValY) /VOLTAGE_RANGE);
 
 %FicTrac data
 data.ficTracAngularPosition = rawData ( : , headingFly); 
-data.ficTracIntx = -rawData ( : , xFly); %the negative sign is necessary under my current conditions (z axis facing up)
+data.ficTracIntx = rawData ( : , xFly); %the negative sign is necessary under my current conditions (z axis facing up)
 data.ficTracInty = rawData ( : , yFly); %I think if I wanted to look into this one, I probably need to invert it too
 
 

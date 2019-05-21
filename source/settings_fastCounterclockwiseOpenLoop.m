@@ -1,5 +1,5 @@
-startPos = 20;
-niOI.DurationInSeconds = 6;
+startPos = 19;
+niOI.DurationInSeconds = 9.2;
 Panel_com('set_pattern_id', 18);
 pause(0.01)
 Panel_com('set_position',[startPos,2]);
