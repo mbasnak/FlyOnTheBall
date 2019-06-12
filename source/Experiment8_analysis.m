@@ -6,7 +6,7 @@
 close all; clear all;
 
 % prompt the user to select the file to open and load it.
-cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment13'
+cd 'Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment8'
 [file,path] = uigetfile();
 load([path,file]);
 
