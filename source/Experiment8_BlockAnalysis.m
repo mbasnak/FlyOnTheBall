@@ -124,11 +124,11 @@ subplot(1,length(data),i)
 plot(time,meanAngVel90{i},'r')
 hold on
 plot(time,meanAngVelNeg90{i},'k')
-xlim([-3,3]); ylim([-90,90]);
+xlim([-3,3]); ylim([-40,40]);
 title(strcat('MeanAngVel',blockName{i}));
 legend({'90','-90'});
 ylabel('Angular velocity (deg/s)'); xlabel('Time from bar jump');
-plot([0,0],[-90, 90],'k','HandleVisibility','off');
+plot([0,0],[-40, 40],'k','HandleVisibility','off');
 plot([-3,3],[0,0],'-.k','HandleVisibility','off');
 end
 

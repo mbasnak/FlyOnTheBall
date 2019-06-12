@@ -37,7 +37,6 @@ data.ficTracInty = rawData ( : , yFly); %I think if I wanted to look into this o
 
 %% Downsample, unwrap and smooth position data, then get velocity and smooth
 
-%[smoothed] = singleTrialVelocityAnalysis9mm(data,1000);
 [smoothed] = posDataDecoding(data,1000);
 
 % for most experiments I have used 1000 Hz as a sample rate, and it is what

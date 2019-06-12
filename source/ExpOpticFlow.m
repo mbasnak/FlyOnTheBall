@@ -1,6 +1,7 @@
-% run the NiDaq and a closed-loop bar
+function ExpOpticFlow(flyNum,expNum,time,folder)
 
-function ExpClosedLoopBar(flyNum,expNum,time,folder)
+%code to make a grating move from front to back when the animal moves
+%forward and sideways when the animal rotates.
 
 cd(strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment',num2str(folder),'\'));
 
@@ -18,14 +19,9 @@ for i = 1:7
     aI(i).InputType = 'SingleEnded';
 end
 
-%set a rendom starting point for the stim
-pattern = 1;
-
-Panel_com('set_pattern_id', pattern); %load the light stripe pattern
+Panel_com('set_pattern_id', 26); %load the grating optic flow
 pause(0.01)
-Panel_com('send_gain_bias', [10 0 0 0]);
-pause(0.01)
-Panel_com('set_mode', [3 0]); %set the x to be controlled by FicTrac and the Y to be open loop
+Panel_com('set_mode', [3 3]); %set both dimensions to be in closed-loop with the animal's mvts.
 Panel_com('start');
 
 

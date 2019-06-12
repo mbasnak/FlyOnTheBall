@@ -13,7 +13,7 @@ function [DATA] = getDataAroundJump(data,jumpFrames,aroundJumpSec,sizeBall)
 for i = 1:length(jumpFrames)
     
     %x position and forward walking
-    aroundJumpIntx(:,i) = -data(jumpFrames(i)-aroundJumpSec*1000:jumpFrames(i)+aroundJumpSec*1000,3);
+    aroundJumpIntx(:,i) = data(jumpFrames(i)-aroundJumpSec*1000:jumpFrames(i)+aroundJumpSec*1000,3);
     %The - sign is necessary to invert the x axis.
     downsampled.aJ(:,i) = downsample(aroundJumpIntx(:,i),1000/25);
     downsRad.aJ(:,i) = downsampled.aJ(:,i) .* 2 .* pi ./ 10;

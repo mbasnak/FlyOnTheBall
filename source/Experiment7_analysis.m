@@ -33,7 +33,7 @@ maxValY = 96;% I think I am using 1 for my Y dimension for every pattern except 
 
 %FicTrac data
 data.fictracAngularPosition = rawData ( : , headingFly); 
-data.ficTracIntx = -rawData ( : , xFly); 
+data.ficTracIntx = rawData ( : , xFly); 
 data.ficTracInty = rawData ( : , yFly); 
 
 
@@ -784,39 +784,6 @@ Data90.angVel = perTrialData.angVel(:,trials == 90);
 DataNeg90.forwardVel = perTrialData.forwardVel(:,trials == -90);
 DataNeg90.angVel = perTrialData.angVel(:,trials == -90);
 
-%plot forward and angular velocity for every group
-
-% figure,
-% subplot(1,2,1)
-% plot(time,Data90.forwardVel,'.')
-% hold on
-% plot(time,Data90.forwardVel)
-% title('Forward velocity for 90 deg jumps');
-% xlabel('Time(s)');
-% ylabel('Velocity (mm/s)');    
-% subplot(1,2,2)
-% plot(time,Data90.angVel,'.')
-% hold on
-% plot(time,Data90.angVel)
-% title('Angular velocity for 90 deg jumps');
-% xlabel('Time(s)');
-% ylabel('Velocity (deg/s)');
-% 
-% figure,
-% subplot(1,2,1)
-% plot(time,DataNeg90.forwardVel,'.')
-% hold on
-% plot(time,DataNeg90.forwardVel)
-% title('Forward velocity for -90 deg jumps');
-% xlabel('Time(s)');
-% ylabel('Velocity (mm/s)');    
-% subplot(1,2,2)
-% plot(time,DataNeg90.angVel,'.')
-% hold on
-% plot(time,DataNeg90.angVel)
-% title('Angular velocity for -90 deg jumps');
-% xlabel('Time(s)');
-% ylabel('Velocity (deg/s)');
 
 
 %plot mean forward and angular velocity per group

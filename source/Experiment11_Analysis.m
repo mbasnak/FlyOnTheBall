@@ -66,7 +66,7 @@ ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 end
 suptitle('Polar distribution for light stripes');
 saveas(gcf,strcat(path,'PolardistL',file(1:end-4),'.png'));
-
+saveas(gcf,strcat(path,'PolardistL',file(1:end-4),'.svg'));
 
 figure('Position', [100 100 1400 400]),
 for i = 1:length(DarkClosedLoopIndex)
@@ -77,164 +77,135 @@ ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 end
 suptitle('Polar distribution for dark stripes');
+
 saveas(gcf,strcat(path,'PolardistD',file(1:end-4),'.png'));
+saveas(gcf,strcat(path,'PolardistD',file(1:end-4),'.svg'));
 %% Analyze velocity open-loop trials
 
 %Divide in the different trial types
 FastClockOpenLoopIndex = find(contains(trials,'fastClockwise'));
 FastCounterclockOpenLoopIndex = find(contains(trials,'fastCounter'));
-%SlowClockOpenLoopIndex = find(contains(trials,'slowClockwise'));
-%SlowCounterclockOpenLoopIndex = find(contains(trials,'slowCounter'));
+FClockOpenLoopIndex = find(contains(trials,'clockwiseF'));
+FCounterclockOpenLoopIndex = find(contains(trials,'counterclockwiseF'));
 
 for i = 1:length(FastClockOpenLoopIndex)    
     [smoothedFC{i},remapPosToDegFC{i},flyPos180FC{i}] = runOpenLoopAnalysis(rawData{FastClockOpenLoopIndex(i)},path,strcat(trials{FastClockOpenLoopIndex(i)},num2str(FastClockOpenLoopIndex(i))));
     [smoothedFCC{i},remapPosToDegFCC{i},flyPos180FCC{i}] = runOpenLoopAnalysis(rawData{FastCounterclockOpenLoopIndex(i)},path,strcat(trials{FastCounterclockOpenLoopIndex(i)},num2str(FastCounterclockOpenLoopIndex(i))));
-    %[smoothedSC{i},remapPosToDegSC{i},flyPos180SC{i}] = runOpenLoopAnalysis(rawData{SlowClockOpenLoopIndex(i)},path,strcat(trials{SlowClockOpenLoopIndex(i)},num2str(SlowClockOpenLoopIndex(i))));
-    %[smoothedSCC{i},remapPosToDegSCC{i},flyPos180SCC{i}] = runOpenLoopAnalysis(rawData{SlowCounterclockOpenLoopIndex(i)},path,strcat(trials{SlowCounterclockOpenLoopIndex(i)},num2str(SlowCounterclockOpenLoopIndex(i))));
+    [smoothedSC{i},remapPosToDegSC{i},flyPos180SC{i}] = runOpenLoopAnalysis(rawData{FClockOpenLoopIndex(i)},path,strcat(trials{FClockOpenLoopIndex(i)},num2str(FClockOpenLoopIndex(i))));
+    [smoothedSCC{i},remapPosToDegSCC{i},flyPos180SCC{i}] = runOpenLoopAnalysis(rawData{FCounterclockOpenLoopIndex(i)},path,strcat(trials{FCounterclockOpenLoopIndex(i)},num2str(FCounterclockOpenLoopIndex(i))));
 end
 
-figure('Position', [100 100 1400 900]),
-subplot(1,2,1)
+
 for i = 1:length(FastClockOpenLoopIndex)
-    plot(remapPosToDegFC{1,i}(7:245),smoothedFC{1,i}.angularVel(7:245))
-    angVelFC(:,i) = smoothedFC{1,i}.angularVel(7:245);
-    hold on
+    angVelFC(:,i) = smoothedFC{1,i}.angularVel;
+    angVelFCC(:,i) = smoothedFCC{1,i}.angularVel;
 end
-title('Angular Velocity for fast clockwise bars');
-ylim([-150, 150]);
-hold on
-line([-180 180],[0 0],'Color','k','LineStyle','--');
-line([0 0],[-150 150],'Color','k','LineStyle','--');
-%add mean
 meanAngVelFC = mean(angVelFC,2);
-plot(remapPosToDegFC{1,1}(7:245),meanAngVelFC,'k','LineWidth',2)
-
-subplot(1,2,2)
-for i = 1:length(FastCounterclockOpenLoopIndex)
-    plot(remapPosToDegFCC{1,i}(1:236),smoothedFCC{1,i}.angularVel(1:236))
-    angVelFCC(:,i) = smoothedFCC{1,i}.angularVel(1:236);
-    hold on
-end
-title('Angular Velocity for fast counterclockwise bars');
-hold on
-line([-180 180],[0 0],'Color','k','LineStyle','--');
-line([0 0],[-150 150],'Color','k','LineStyle','--');
-ylim([-150, 150]);
-%add mean
 meanAngVelFCC = mean(angVelFCC,2);
-plot(remapPosToDegFCC{1,1}(1:236),meanAngVelFCC,'k','LineWidth',2)
+stdFC = std(angVelFC,[],2);
+stdFCC = std(angVelFCC,[],2);
 
-
-figure,
-plot(remapPosToDegFC{1,1}(7:245),meanAngVelFC,'k','LineWidth',2)
+figure('Position',[200 200 1000 600]),
+subplot(1,2,1)
+p1 = boundedline(remapPosToDegFC{1,1}(4:end),meanAngVelFC(4:end),stdFC(4:end)/sqrt(i),'k','alpha')
 hold on
-plot(-remapPosToDegFCC{1,1}(1:236),meanAngVelFCC,'r','LineWidth',2)
-plot([0 0], [-15 15],'k')
-plot([-180 180], [0 0], 'k')
+p2 = boundedline(remapPosToDegFCC{1,1}(1:end-3),meanAngVelFCC(1:end-3),stdFCC(1:end-3)/sqrt(i),'r','alpha')
+plot([0 0], [-30 30],'k','handleVisibility','off')
+plot([-180 180], [0 0], 'k','handleVisibility','off')
+ylim([-30 30]); xlim([-180 180]);
 title('Open-loop tracking responses');
 ylabel('Angular velocity (deg/s)'); xlabel('Bar position (deg)');
-legend('Clockwise turns', 'Counterclockwise turns');
+legend([p1,p2],'Clockwise turns', 'Counterclockwise turns');
 
 
+% Plot response to Fourier bars
 
-% subplot(2,2,3)
-% for i = 1:length(SlowClockOpenLoopIndex)
-%     plot(remapPosToDegSC{1,i}(11:442),smoothedSC{1,i}.angularVel(11:442))
-%     angVelSC(:,i) = smoothedSC{1,i}.angularVel(11:442);
-%     hold on
-% end
-% title('Angular Velocity for slow clockwise bars');
-% ylim([-150, 150]);
-% hold on
-% line([-180 180],[0 0],'Color','k','LineStyle','--');
-% line([0 0],[-150 150],'Color','k','LineStyle','--');
-% %add mean
-% meanAngVelSC = mean(angVelSC,2);
-% plot(remapPosToDegSC{1,1}(11:442),meanAngVelSC,'k','LineWidth',2)
-% 
-% subplot(2,2,4)
-% for i = 1:length(SlowCounterclockOpenLoopIndex)
-%     plot(remapPosToDegSCC{1,i}(1:424),smoothedSCC{1,i}.angularVel(1:424))
-%     angVelSCC(:,i) = smoothedSCC{1,i}.angularVel(1:424);
-%     hold on
-% end
-% title('Angular Velocity for slow counterclockwise bars');
-% hold on
-% line([-180 180],[0 0],'Color','k','LineStyle','--');
-% line([0 0],[-150 150],'Color','k','LineStyle','--');
-% ylim([-150, 150]);
-% %add mean
-% meanAngVelSCC = mean(angVelSCC,2);
-% plot(remapPosToDegSCC{1,1}(1:424),meanAngVelSCC,'k','LineWidth',2)
+for i = 1:length(FastClockOpenLoopIndex)
+    angVelSC(:,i) = smoothedSC{1,i}.angularVel;
+    angVelSCC(:,i) = smoothedSCC{1,i}.angularVel;
+end
+meanAngVelSC = mean(angVelSC,2);
+meanAngVelSCC = mean(angVelSCC,2);
+stdSC = std(angVelSC,[],2);
+stdSCC = std(angVelSCC,[],2);
+
+subplot(1,2,2)
+p1 = boundedline(remapPosToDegSC{1,1}(4:end),meanAngVelSC(4:end),stdSC(4:end)/sqrt(i),'k','alpha')
+hold on
+p2 = boundedline(remapPosToDegSCC{1,1}(1:end-3),meanAngVelSCC(1:end-3),stdSCC(1:end-3)/sqrt(i),'r','alpha')
+plot([0 0], [-30 30],'k','handleVisibility','off')
+plot([-180 180], [0 0], 'k','handleVisibility','off')
+ylim([-30 30]); xlim([-180 180]);
+title('Open-loop tracking responses with Fourier bar');
+ylabel('Angular velocity (deg/s)'); xlabel('Bar position (deg)');
+legend([p1,p2],'Clockwise turns', 'Counterclockwise turns');
 
 saveas(gcf,strcat(path,'AngVelOpenLoop',file(1:end-4),'.png'));
 
-
-%% 
-
-%Adding Bahl's analyses
+%% Adding Bahl's analyses
 
 %(1) P = (Rcw+Rccw)/2
+
 figure
 subplot(1,2,1)
 for i = 1:length(FastClockOpenLoopIndex)
-    Pfast(:,i) = (smoothedFC{1,i}.angularVel(5:142)+smoothedFCC{1,i}.angularVel(5:142))/2;
-    plot(remapPosToDegFC{1,i}(5:142),Pfast(:,i))
+    Pfast(:,i) = (smoothedFC{1,i}.angularVel(4:end) + flip(smoothedFCC{1,i}.angularVel(1:end-3)))/2;
+    plot(remapPosToDegFC{1,i}(4:end),Pfast(:,i))
     hold on
 end
-title('P for fast stimuli');
-ylim([-150, 150]);
+title('P for open-loop bar stimuli');
+ylim([-50, 50]);
 hold on
 line([-180 180],[0 0],'Color','k','LineStyle','--');
-line([0 0],[-150 150],'Color','k','LineStyle','--');
-%add mean
+line([0 0],[-50 50],'Color','k','LineStyle','--');
 meanPfast = mean(Pfast,2);
-plot(remapPosToDegFC{1,1}(5:142),meanPfast,'k','LineWidth',2)
-
-subplot(1,2,2)
-for i = 1:length(FastClockOpenLoopIndex)
-    Pslow(:,i) = (smoothedSC{1,i}.angularVel(11:424)+smoothedSCC{1,i}.angularVel(11:424))/2;
-    plot(remapPosToDegSC{1,i}(11:424),Pslow(:,i))
-    hold on
-end
-title('P for slow stimuli');
-ylim([-150, 150]);
-hold on
-line([-180 180],[0 0],'Color','k','LineStyle','--');
-line([0 0],[-150 150],'Color','k','LineStyle','--');
-%add mean
-meanPslow = mean(Pslow,2);
-plot(remapPosToDegSC{1,1}(11:424),meanPslow,'k','LineWidth',2)
+plot(remapPosToDegFC{1,1}(4:end),meanPfast,'k','LineWidth',2)
 
 
 %(2) M = (Rcw-Rccw)/2
+subplot(1,2,2)
+for i = 1:length(FastClockOpenLoopIndex)
+    Mfast(:,i) = (flip(smoothedFCC{1,i}.angularVel(1:end-3)) - smoothedFC{1,i}.angularVel(4:end))/2;;
+    plot(remapPosToDegFC{1,i}(4:end),Mfast(:,i))
+    hold on
+end
+title('M for open-loop stimuli');
+ylim([-50, 50]);
+hold on
+line([-180 180],[0 0],'Color','k','LineStyle','--');
+line([0 0],[-50 50],'Color','k','LineStyle','--');
+meanMfast = mean(Mfast,2);
+plot(remapPosToDegFC{1,1}(4:end),meanMfast,'k','LineWidth',2)
+
+%%  For the fourier bar
+
 figure
 subplot(1,2,1)
 for i = 1:length(FastClockOpenLoopIndex)
-    Mfast(:,i) = (smoothedFC{1,i}.angularVel(5:142)-smoothedFCC{1,i}.angularVel(5:142))/2;
-    plot(remapPosToDegFC{1,i}(5:142),Mfast(:,i))
+    Pfourier(:,i) = (smoothedSC{1,i}.angularVel(4:end) + flip(smoothedSCC{1,i}.angularVel(1:end-3)))/2;
+    plot(remapPosToDegSC{1,i}(4:end),Pfourier(:,i))
     hold on
 end
-title('M for fast stimuli');
-ylim([-150, 150]);
+title('P for fourier bar');
+ylim([-50, 50]);
 hold on
 line([-180 180],[0 0],'Color','k','LineStyle','--');
-line([0 0],[-150 150],'Color','k','LineStyle','--');
-%add mean
-meanMfast = mean(Mfast,2);
-plot(remapPosToDegFC{1,1}(5:142),meanMfast,'k','LineWidth',2)
+line([0 0],[-50 50],'Color','k','LineStyle','--');
+meanPfourier = mean(Pfourier,2);
+plot(remapPosToDegSC{1,1}(4:end),meanPfourier,'k','LineWidth',2)
 
+
+%(2) M = (Rcw-Rccw)/2
 subplot(1,2,2)
 for i = 1:length(FastClockOpenLoopIndex)
-    Mslow(:,i) = (smoothedSC{1,i}.angularVel(11:424)-smoothedSCC{1,i}.angularVel(11:424))/2;
-    plot(remapPosToDegSC{1,i}(11:424),Mslow(:,i))
+    Mfourier(:,i) = (smoothedSC{1,i}.angularVel(4:end) - flip(smoothedSCC{1,i}.angularVel(1:end-3)))/2;;
+    plot(remapPosToDegSC{1,i}(4:end),Mfourier(:,i))
     hold on
 end
-title('M for slow stimuli');
-ylim([-150, 150]);
+title('M for fourier stimuli');
+ylim([-50, 50]);
 hold on
 line([-180 180],[0 0],'Color','k','LineStyle','--');
-line([0 0],[-150 150],'Color','k','LineStyle','--');
-%add mean
-meanMslow = mean(Mslow,2);
-plot(remapPosToDegSC{1,1}(11:424),meanMslow,'k','LineWidth',2)
+line([0 0],[-50 50],'Color','k','LineStyle','--');
+meanMfourier = mean(Mfourier,2);
+plot(remapPosToDegSC{1,1}(4:end),meanMfourier,'k','LineWidth',2)

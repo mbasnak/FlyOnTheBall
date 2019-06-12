@@ -28,27 +28,24 @@ end
 rawData = {};
 startPosition = {};
 
-% for loop in which for every element of the vector of trials,
-% the name of the type of stim will be read, the info will be loaded from
-% a settings file, the NiDaq will be initialized and the data will be
-% acquired as a separated field in the rawData struct?
-
-%trialTypes = {'lightClosedLoopBar','darkClosedLoopBar','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','slowClockwiseOpenLoop','slowCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','slowClockwiseOpenLoop','slowCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','slowClockwiseOpenLoop','slowCounterclockwiseOpenLoop'};
-trialTypes = {'lightClosedLoopBar','darkClosedLoopBar','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop'};
+trialTypes = {'lightClosedLoopBar','darkClosedLoopBar','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','fastClockwiseOpenLoop','fastCounterclockwiseOpenLoop','clockwiseFourier','clockwiseFourier','clockwiseFourier','counterclockwiseFourier','counterclockwiseFourier','counterclockwiseFourier'};
 trials = repmat(trialTypes,1,TrialNum);
 trials = trials(randperm(length(trials)));
 
 
-for i = 1:length(trials)
-    
+% for loop in which for every element of the vector of trials,
+% the name of the type of stim will be read, the info will be loaded from
+% a settings file, the NiDaq will be initialized and the data will be
+% acquired as a separated field in the data struct
+for i = 1:length(trials)   
 % read settings file and run the panels commands
-run(['settings_',trials{1,i}]) 
-startPosition{i} = startPos;
-Panel_com('start');
-rawData{i} = niOI.startForeground(); %this will acquire the channels described above for the length of time also defined
-Panel_com('stop');
-Panel_com('all_off')
-pause(3);
+    run(['settings_',trials{1,i}]) 
+    startPosition{i} = startPos;
+    Panel_com('start');
+    rawData{i} = niOI.startForeground(); %this will acquire the channels described above for the length of time also defined
+    Panel_com('stop');
+    Panel_com('all_off')
+    pause(3);
 
 end
 

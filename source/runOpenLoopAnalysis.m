@@ -36,7 +36,7 @@ data.yPanelPos = round ((data.yPanelVolts  * maxValY) /VOLTAGE_RANGE);
 
 %FicTrac data
 data.ficTracAngularPosition = rawData ( : , headingFly); 
-data.ficTracIntx = -rawData ( : , xFly); %the negative sign is necessary under my current conditions (z axis facing up)
+data.ficTracIntx = rawData ( : , xFly); %the negative sign is necessary under my current conditions (z axis facing up)
 data.ficTracInty = rawData ( : , yFly); %I think if I wanted to look into this one, I probably need to invert it too
 
 
@@ -109,14 +109,14 @@ time = linspace(0,(length(rawData)/1000),length(forwardVelocity));
 % We will work with the downsampled data
 
 downsampled.xPanelPos = downsample(data.xPanelPos,1000/25); %downsample the panels position
-dataMoving.xPanelPos = downsampled.xPanelPos(forwardVelocity>1); %keep the position frames during which the fly moved
-moving = smoothed.angularPosition(forwardVelocity>1); %keep the angular position frames during which the fly moved
+dataMoving.xPanelPos = downsampled.xPanelPos(forwardVelocity>0.75); %keep the position frames during which the fly moved
+moving = smoothed.angularPosition(forwardVelocity>=0.75); %keep the angular position frames during which the fly moved
 
 percentageActivity = 100*size(moving)/size(smoothed.angularPosition);
 activity = zeros(length(forwardVelocity),1);
 
 for i = 1:length(forwardVelocity)
-    if forwardVelocity(i,1) > 1
+    if forwardVelocity(i,1) > 0.75
         activity(i,1) = 1;
     else
         activity(i,1) = 0;

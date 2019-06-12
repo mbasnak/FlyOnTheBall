@@ -1,7 +1,10 @@
+clear all; close all
+
+
 %% Activity level
 
 AFirstLowErrorBlock = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment8\*\experimental flies\*\ActivityHighErrorBlockExp3.mat');
-AHighErrorBlock = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment8\*\experimental flies\*\ActivityHigherErrorBlockExp4.mat');
+AHighErrorBlock = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment8\*\experimental flies\*\ActivityHighErrorBlockExp4.mat');
 ASecondLowErrorBlock = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment8\*\experimental flies\*\ActivityHighErrorBlockExp5.mat');
 
 for i = 1:length(AFirstLowErrorBlock)
@@ -85,7 +88,7 @@ saveas(gcf,strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment8\StateTransiti
 %% Around jump velocities
 
 FirstLowErrorBlock = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment8\*\experimental flies\*\perTrialDataHighErrorBlockExp3.mat');
-HighErrorBlock = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment8\*\experimental flies\*\perTrialDataHigherErrorBlockExp4.mat');
+HighErrorBlock = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment8\*\experimental flies\*\perTrialDataHighErrorBlockExp4.mat');
 SecondLowErrorBlock = dir('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment8\*\experimental flies\*\perTrialDataHighErrorBlockExp5.mat');
 
 %load every file with name %perTrialData, adding to the name the date and
@@ -118,7 +121,7 @@ meanAngVelNeg90 = mean(DataNeg90.angVel,2);
 stdAngVelNeg90 = std(DataNeg90.angVel,[],2);
 
 %plot mean and error for each
-time = linspace(-3,3,length(angVelAll));
+time = linspace(-3,3,size(angVelAll,1));
 
 figure('Position', [100 100 1600 900]),
 subplot(1,3,1)
