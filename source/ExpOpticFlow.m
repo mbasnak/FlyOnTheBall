@@ -49,7 +49,7 @@ else
 end
 
 
-save(strcat('dataClosedLoopBar',num2str(expNum),'.mat'),'rawData','pattern'); %save as 
+save(strcat('dataClosedLoopBar',num2str(expNum),'.mat'),'rawData'); %save as 
 
 
 end

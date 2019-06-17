@@ -85,7 +85,7 @@ plot(Jumps);
 ylabel('Voltage difference (V)');xlabel('Time');
 
 j = find(Jumps); %indices of the actual bar jumps, taken from the y signal
-%j = j(2:end);
+j = j(2:end);
 jsec = j/1000;
 
 %plot the data from the yPanels and add lines of the previously determined
@@ -100,39 +100,41 @@ for i = 1:length(j)
     plot([j(i) j(i)],[0 10],'r');
 end
 
+changeBlock1 = j(8);
+changeBlock2 = j(24);
 %% 
 
 %Now that we have the bar jumps, let's bring the y voltage down to be
 %contained similarly for all 3 blocks
 
 %first we need to find the jumps that signal a change in block
-remove1 = abs(j-900000); %the first change occurs around 980 s
-[M,I] = min(remove1); %find the jump index that's closer to that time
-changeBlock1 = j(I);
-
-remove2 = abs(j-1800000); %the second change occurs around 1960 s
-[M2,I2] = min(remove2); %find the jump index that's closer to that time
-changeBlock2 = j(I2);
-
-voltageCorr = data.yPanelVolts(j(I)+1) - data.yPanelVolts(j(I)-1);
-
-figure,
-subplot(2,1,1)
-plot(data.yPanelVolts)
-title('Y panel output before deleting the block change jumps');
-
-data.yPanelVolts(j(I)+1:j(I2)) = data.yPanelVolts(j(I)+1:j(I2)) - voltageCorr;
-data.yPanelVolts = 2*data.yPanelVolts;
-
-%check that it now looks fine
-subplot(2,1,2)
-plot(data.yPanelVolts)
-title('Y panel output after deleting the block change jumps');
-
-%remove values from jumps vector
-indices = [I,I2];
-j(indices) = [];
-jsec = j/1000;
+% remove1 = abs(j-900000); %the first change occurs around 980 s
+% [M,I] = min(remove1); %find the jump index that's closer to that time
+% changeBlock1 = j(I);
+% 
+% remove2 = abs(j-1800000); %the second change occurs around 1960 s
+% [M2,I2] = min(remove2); %find the jump index that's closer to that time
+% changeBlock2 = j(I2);
+% 
+% voltageCorr = data.yPanelVolts(j(I)+1) - data.yPanelVolts(j(I)-1);
+% 
+% figure,
+% subplot(2,1,1)
+% plot(data.yPanelVolts)
+% title('Y panel output before deleting the block change jumps');
+% 
+% data.yPanelVolts(j(I)+1:j(I2)) = data.yPanelVolts(j(I)+1:j(I2)) - voltageCorr;
+% data.yPanelVolts = 2*data.yPanelVolts;
+% 
+% %check that it now looks fine
+% subplot(2,1,2)
+% plot(data.yPanelVolts)
+% title('Y panel output after deleting the block change jumps');
+% 
+% %remove values from jumps vector
+% indices = [I,I2];
+% j(indices) = [];
+% jsec = j/1000;
 
 %% Fixing the data relative to the bar jumps
 
