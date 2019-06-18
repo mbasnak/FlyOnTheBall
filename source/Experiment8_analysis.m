@@ -715,6 +715,7 @@ saveas(gcf,strcat(path,'HeatmapDist2goal3sec',file(1:end-4),'.png'))
 
 %save data
 save(strcat(path,'shortData3sec',file(1:end-4),'.mat'),'shortData3sec','probaDist3secMoving');
+
 %% Per 'trial'
 
 %I'm using a function to get and smooth data around the jumps

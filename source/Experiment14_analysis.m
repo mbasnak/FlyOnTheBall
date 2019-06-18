@@ -607,3 +607,242 @@ ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
 saveas(gcf,strcat(path,'BarPosition',file(1:end-4),'.png'))
 saveas(gcf,strcat(path,'BarPosition',file(1:end-4),'.svg'))
+
+
+%% Look at the goal and calculate the distance to it...
+
+edges = [-180:20:180];
+%Taking all the experiment
+figure,
+%with every frame
+goal = circ_mean(posToRad,[],2);
+dist2goal2 = circ_dist(posToRad,goal);
+dist2goal = wrapTo180(rad2deg(dist2goal2));
+[countsDist] = histcounts(dist2goal,edges);
+probabilitiesDist = countsDist./sum(countsDist);
+degsFlyDist = linspace(-180,180,length(countsDist));
+subplot(1,2,1), plot(degsFlyDist,probabilitiesDist,'r')
+title('Distance to the goal with every frame');
+xlim([-180, 180]); xlabel('Distance to the goal (deg)');
+ylabel('Probability');
+
+%taking only 'moving frames'
+goalMoving = circ_mean(movingPos,[],2);
+devGoalMoving = circ_std(movingPos,[],[],2);
+dist2goalMoving2 = circ_dist(movingPos,goalMoving);
+dist2goalMoving = wrapTo180(rad2deg(dist2goalMoving2));
+[countsDistMoving] = histcounts(dist2goalMoving,edges);
+probabilitiesDistMoving = countsDistMoving./sum(countsDistMoving);
+degsFlyDistMoving = linspace(-180,180,length(countsDistMoving));
+subplot(1,2,2), plot(degsFlyDistMoving,probabilitiesDistMoving,'r')
+title('Distance to the goal with moving frames');
+xlim([-180, 180]); xlabel('Distance to the goal (deg)');
+ylabel('Probability');
+
+saveas(gcf,strcat(path,'Dist2Goal',file(1:end-4),'.png'))
+save(strcat(path,'goals',file(1:end-4),'.mat'),'goal','goalMoving','dist2goal','dist2goalMoving','degsFlyDistMoving','probabilitiesDistMoving','devGoalMoving');
+
+
+
+%% Using 3 sec around jump
+
+%1) Use the 3 sec preceding each jump to compute the goal by taking
+%the mean heading
+sec = 3;
+shortData3sec = getDataAroundJump(rawData,j,sec,sizeBall);
+shortData3sec.jumpMag = jumps;
+shortData3sec.angPos = getPosAroundJump(data.ficTracAngularPosition,j,sec);
+
+for i = 1:length(j)
+    goal3sec(i) = circ_mean(deg2rad(shortData3sec.angPos(1:75,i)));
+end
+
+%2) Look at the polar distribution of headings whithin those 10 sec
+%in every case, and maybe discard those where the SD is too big?
+figure('Position', [100 100 1600 900]),
+for i = 1:length(j)
+    distribution3sec(:,i) = circ_dist(deg2rad(shortData3sec.angPos(1:75,i)),goal3sec(i));
+    [s(i) s0(i)] = circ_std(distribution3sec(:,i));
+    subplot(4,length(jumps)/4,i)
+    polarhistogram(distribution3sec(:,i),circedges,'Normalization','probability','FaceColor',[1,0,0],'HandleVisibility','off');
+    ax = gca;
+    ax.ThetaDir='clockwise';
+    ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
+    title(strcat('SD = ',num2str(rad2deg(s0(i)))));
+end
+suptitle('Distribution of the distance to the goal 3 sec prior to jumps')
+
+
+%For moving frames only
+figure('Position', [100 100 1600 900]),
+for i = 1:length(j)
+    datamoving3sec{i} = shortData3sec.angPos(1:75,i);
+    datamoving3sec{i}(shortData3sec.forwardVel(1:75,i)<=1) = NaN;
+    datamoving3sec{i} = datamoving3sec{i}(~isnan(datamoving3sec{i}))';
+    goal3secMoving{i} = circ_mean(deg2rad(datamoving3sec{i}),[],2);
+    distribution3secMoving{i} = circ_dist(deg2rad(datamoving3sec{i}),goal3secMoving{i});
+    [s(i) s03sec(i)] = circ_std(distribution3secMoving{i},[],[],2);
+    subplot(4,length(jumps)/4,i)
+    polarhistogram(distribution3secMoving{i},circedges,'Normalization','probability','FaceColor',[0,0,0],'HandleVisibility','off');
+    ax = gca;
+    ax.ThetaDir='clockwise';
+    ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
+    title(strcat('SD = ',num2str(rad2deg(s03sec(i)))));
+end
+suptitle('Distribution of the distance to the goal 3 sec prior to jumps, moving frames')     
+saveas(gcf,strcat(path,'Distribution3secBJ',file(1:end-4),'.png'))
+    
+%3) Calculate the distance to the goal in the seconds after the
+%jump
+figure('Position', [100 100 1600 900]),
+for i = 1:length(j)
+    datamoving3secAJ{i} = shortData3sec.angPos(:,i);
+    datamoving3secAJ{i}(shortData3sec.forwardVel(:,i)<=1) = NaN;
+    datamoving3secAJ{i} = datamoving3secAJ{i}(~isnan(datamoving3secAJ{i}))';
+    dist2goal3secMoving{i} = circ_dist(deg2rad(datamoving3secAJ{i}),goal3secMoving{i});
+    dist2goal23secMoving{i} = wrapTo180(rad2deg(dist2goal3secMoving{i}));
+    [countsDist3secMoving{i}] = histcounts(dist2goal23secMoving{i},edges);
+    probabilitiesDist3secMoving{i} = countsDist3secMoving{i}./sum(countsDist3secMoving{i});
+    degsFlyDist3secMoving{i} = linspace(-180,180,length(countsDist3secMoving{i}));
+    
+    %plot
+    subplot(4,length(jumps)/4,i),
+    plot(degsFlyDist3secMoving{i},probabilitiesDist3secMoving{i},'k')
+    xlim([-180, 180]); xlabel('Distance to the goal (deg)');
+    ylabel('Probability');
+end
+suptitle('Distance to the goal, 3 sec around jumps')     
+saveas(gcf,strcat(path,'Dist2goal3sec',file(1:end-4),'.png'))
+
+%Plot them using colorscales
+probaDist3secMoving = cell2mat(probabilitiesDist3secMoving);
+probaDist3secMoving = reshape(probaDist3secMoving,length(probaDist3secMoving)/length(probabilitiesDist3secMoving),length(probabilitiesDist3secMoving));
+%create new colormap
+newMap = flipud(gray);
+xaxis = [-180:360/17:180];
+trials = [1:length(jumps)];
+figure, imagesc(xaxis,trials,probaDist3secMoving')
+colormap(newMap)
+colorbar
+saveas(gcf,strcat(path,'HeatmapDist2goal3sec',file(1:end-4),'.png'))
+
+%save data
+save(strcat(path,'shortData3sec',file(1:end-4),'.mat'),'shortData3sec','probaDist3secMoving');
+
+
+%% Per 'trial'
+
+%I'm using a function to get and smooth data around the jumps
+sec = 3; %how many sec before and after the jump I want to look at
+%perTrialData = getDataAroundJump(rawData,j,sec,sizeBall);
+perTrialData = getDataAroundJumpFiltered(rawData,j,sec,sizeBall);
+
+%apend jump data and save for using in the pooled flies analysis
+perTrialData.jumpMag = jumps;
+%perTrialData.angPos = getPosAroundJump(data.ficTracAngularPosition,j,sec);
+perTrialData.angPos = getPosAroundJumpFiltered(data.ficTracAngularPosition,j,sec);
+save(strcat(path,'perTrialData',file(1:end-4),'.mat'),'perTrialData');
+
+
+%% Velocity and around the jumps
+
+time = linspace(-sec,sec,length(perTrialData.forwardVel));
+
+%Pooling results from similar magnitude jumps
+%1) make a jump vector using the preloaded jump vector from the experiment
+%and taking only as many elements as trials there were
+trials = jumps;
+%2) identify elements in that vector belonging to the 4 different groups,
+%and put the perTrialData into those groups
+Data90.forwardVel = perTrialData.forwardVel(:,trials == 90);
+Data90.angVel = perTrialData.angVel(:,trials == 90);
+DataNeg90.forwardVel = perTrialData.forwardVel(:,trials == -90);
+DataNeg90.angVel = perTrialData.angVel(:,trials == -90);
+
+
+%plot mean forward and angular velocity per group
+meanForwardVel90 = mean(Data90.forwardVel,2);
+meanForwardVelNeg90 = mean(DataNeg90.forwardVel,2);
+
+meanAngVel90 = mean(Data90.angVel,2);
+meanAngVelNeg90 = mean(DataNeg90.angVel,2);
+
+figure('Position', [100 100 1600 900]),
+subplot(1,2,1)
+plot(time,meanForwardVel90,'r')
+hold on
+plot(time,meanForwardVelNeg90,'k')
+title('Mean forward velocity');
+legend({'90','-90'});
+ylabel('Forward velocity (mm/s)'); xlabel('Time from bar jump (s)');
+xlim([-3,3]);
+plot([-3,3],[0,0],'-.k','HandleVisibility','off');
+subplot(1,2,2)
+plot(time,meanAngVel90,'r')
+hold on
+plot(time,meanAngVelNeg90,'k')
+title('Mean angular velocity');
+legend({'90','-90'});
+ylabel('Angular velocity (deg/s)'); xlabel('Time from bar jump (s)');
+xlim([-3, 3]); ylim([min(meanAngVel90)-10, max(meanAngVelNeg90)+10]);
+plot([0,0],[min(meanAngVel90)-10, max(meanAngVelNeg90)+10],'k','HandleVisibility','off');
+plot([-3,3],[0,0],'-.k','HandleVisibility','off');
+
+saveas(gcf,strcat(path,'MeanAJvelocities',file(1:end-4),'.png'))
+
+
+%% Plot per block
+
+firstBlock = perTrialData.angVel(:,1:8);
+secondBlock = perTrialData.angVel(:,9:24);
+thirdBlock = perTrialData.angVel(:,25:32);
+
+Data90FB.angVel = firstBlock(:,trials(1:8) == 90);
+DataNeg90FB.angVel = firstBlock(:,trials(1:8) == -90);
+Data90SB.angVel = secondBlock(:,trials(9:24) == 90);
+DataNeg90SB.angVel = secondBlock(:,trials(9:24) == -90);
+Data90TB.angVel = thirdBlock(:,trials(25:32) == 90);
+DataNeg90TB.angVel = thirdBlock(:,trials(25:32) == -90);
+
+meanFB90 = mean(Data90FB.angVel,2);
+meanFBNeg90 = mean(DataNeg90FB.angVel,2);
+meanSB90 = mean(Data90SB.angVel,2);
+meanSBNeg90 = mean(DataNeg90SB.angVel,2);
+meanTB90 = mean(Data90TB.angVel,2);
+meanTBNeg90 = mean(DataNeg90TB.angVel,2);
+
+figure('Position', [100 100 1600 900]),
+
+subplot(1,3,1)
+plot(time,meanFB90,'r')
+hold on
+plot(time,meanFBNeg90,'k')
+title('First block');
+legend({'90','-90'});
+ylabel('Angular velocity (deg/s)'); xlabel('Time from bar jump (s)');
+xlim([-3,3]); ylim([-80,80]);
+plot([0,0],[-80,80],'k','HandleVisibility','off');
+plot([-3,3],[0,0],'-.k','HandleVisibility','off');
+
+subplot(1,3,2)
+plot(time,meanSB90,'r')
+hold on
+plot(time,meanSBNeg90,'k')
+title('Second block');
+legend({'90','-90'});
+xlabel('Time from bar jump (s)');
+xlim([-3,3]); ylim([-80,80]);
+plot([0,0],[-80,80],'k','HandleVisibility','off');
+plot([-3,3],[0,0],'-.k','HandleVisibility','off');
+
+subplot(1,3,3)
+plot(time,meanTB90,'r')
+hold on
+plot(time,meanTBNeg90,'k')
+title('Third block');
+legend({'90','-90'});
+xlabel('Time from bar jump (s)');
+xlim([-3,3]); ylim([-80,80]);
+plot([0,0],[-80,80],'k','HandleVisibility','off');
+plot([-3,3],[0,0],'-.k','HandleVisibility','off');
+

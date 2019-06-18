@@ -19,7 +19,7 @@ for i = 1:7
     aI(i).InputType = 'SingleEnded';
 end
 
-Panel_com('set_pattern_id', 27); %load the grating optic flow
+Panel_com('set_pattern_id', 29); %load the grating optic flow
 pause(0.01)
 Panel_com('set_mode', [3 3]); %set both dimensions to be in closed-loop with the animal's mvts.
 Panel_com('start');
@@ -49,7 +49,7 @@ else
 end
 
 
-save(strcat('dataClosedLoopBar',num2str(expNum),'.mat'),'rawData'); %save as 
+save(strcat('dataOpticFlowHallway30degWindow',num2str(expNum),'.mat'),'rawData'); %save as 
 
 
 end

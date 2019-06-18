@@ -30,7 +30,7 @@ aI = niOI.addAnalogInputChannel( devID , 1:6 , 'Voltage' );
 for i = 1:6
     aI(i).InputType = 'SingleEnded';
 end
-niOI.DurationInSeconds = 2370; 
+niOI.DurationInSeconds = 2130; 
 
 fid = fopen('log.dat','w+'); %this opens a csv file named "log",creating it for writing (and overwriting existing filed) with the flag "w+"
 lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
@@ -40,7 +40,7 @@ niOI.startBackground(); %start acquiring
 
 startPos = 2; %to match the starting position of the Y pattern.
 
-jumpFunction = 164;
+jumpFunction = 165;
 jumps = [90,-90,-90,90,90,-90,90,90,-90,-90,90,90,-90,-90,-90,-90,90,-90,90,90,90,90,-90,-90,90,-90,-90,90,90,-90,90,-90];
 
 
@@ -56,7 +56,7 @@ Panel_com('set_posfunc_id',[2 jumpFunction]); %set it to jump every 20 sec, to o
 pause(0.03)
 Panel_com('set_AO',[3 32767]);
 Panel_com('start');
-pause(2365) %record for the time it takes to span the number of trials requested
+pause(2125) %record for the time it takes to span the number of trials requested
 Panel_com('stop');
 Panel_com('set_AO',[3 0]);
 Panel_com('all_off');
