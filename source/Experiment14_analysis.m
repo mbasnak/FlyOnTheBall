@@ -100,8 +100,8 @@ for i = 1:length(j)
     plot([j(i) j(i)],[0 10],'r');
 end
 
-changeBlock1 = j(8);
-changeBlock2 = j(24);
+changeBlock1 = j(9);
+changeBlock2 = j(32);
 %% 
 
 %Now that we have the bar jumps, let's bring the y voltage down to be
@@ -218,8 +218,8 @@ ylim([-180 180]);
 title('Jump magnitude, taken from yPanels');
 ylabel('deg');xlabel('Trial #');xlim([1 length(j)]);
 % compare that to the jump function we have stored
-hold on
-plot(jumps,'b')
+%hold on
+%plot(jumps,'b')
 legend({'Jumps from Y data','Jump function used'});
 
 %Check if the jump magnitude appears ok in the x panel data
@@ -230,8 +230,8 @@ ylim([-180 180]);
 title('Jump magnitude, taken from xPanels');
 ylabel('deg');xlabel('Trial #'); xlim([1 length(j)]);
 % compare that to the jump function we have stored
-hold on
-plot(jumps,'b')
+%hold on
+%plot(jumps,'b')
 legend({'Jumps from X data','Jump function used'});
 
 %check if the jump magnitude appears ok in the angular position data
@@ -243,8 +243,8 @@ ylim([-180 180]);
 title('Jump magnitude, taken from angular position');
 ylabel('deg');xlabel('Trial #');xlim([1 length(j)]);
 % compare that to the jump function we have stored
-hold on
-plot(jumps,'b')
+%hold on
+%plot(jumps,'b')
 legend({'Jumps from angular position','Jump function used'});
 
 
@@ -310,6 +310,25 @@ sizeBall = 9;
 % for most experiments I have used 1000 Hz as a sample rate, and it is what
 % I will use from now on, so that's how I'll leave it, but this could be
 % changed in case of need
+
+% %% Smooth data by block
+% 
+% %subset the 3 blocks
+% FB = data;
+% SB = data;
+% TB = data;
+% f=fieldnames(FB)
+% 
+% for i = 1:length(f)
+%     FB.(f{i})(changeBlock1:end)=[]; 
+%     SB.(f{i})([1:changeBlock1-1,changeBlock2:end])=[]; 
+%     TB.(f{i})(1:changeBlock2-1)=[]; 
+% end
+% 
+% %smooth them
+% [smoothedFB] = posDataDecoding(FB,1000);
+% [smoothedSB] = posDataDecoding(SB,1000);
+% [smoothedTB] = posDataDecoding(TB,1000);
 
 
 %% 2D trajectories
@@ -559,48 +578,57 @@ posToRad = deg2rad(posToDeg);
 %Plot the histogram in polar coordinates
 circedges = [0:20:360];
 circedges = deg2rad(circedges);
+
+
+FB = posToRad(1:(changeBlock1/40));
+SB = posToRad((changeBlock1/40)+1:(changeBlock2/40));
+TB = posToRad((changeBlock2/40)+1:end);
+
+forwardVelFB = forwardVelocity(1:(changeBlock1/40));
+forwardVelSB = forwardVelocity((changeBlock1/40)+1:(changeBlock2/40));
+forwardVelTB = forwardVelocity((changeBlock2/40)+1:end);
+
+
 %Block1
 subplot(3,4,2)
-polarhistogram(posToRad(1:round(length(posToRad)/3)),circedges,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
+polarhistogram(FB,circedges,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
 ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
 %Block2
 subplot(3,4,6)
-polarhistogram(posToRad(round(length(posToRad)/3):(round(length(posToRad)/3))*2),circedges,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
+polarhistogram(SB,circedges,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
 ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
 %Block3
 subplot(3,4,10)
-polarhistogram(posToRad((round(length(posToRad)/3))*2:(round(length(posToRad)/3))*3),circedges,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
+polarhistogram(TB,circedges,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
 ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
 
 %with moving frames
-movingPos = posToRad(forwardVelocity>1);
-
 %Block1
 subplot(3,4,3)
-polarhistogram(movingPos(1:round(length(movingPos)/3)),circedges,'Normalization','probability','FaceColor',[0,0.5,0.3],'HandleVisibility','off');
+polarhistogram(FB(forwardVelFB>1),circedges,'Normalization','probability','FaceColor',[0,0.5,0.3],'HandleVisibility','off');
 ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
 %Block2
 subplot(3,4,7)
-polarhistogram(movingPos(round(length(movingPos)/3):(round(length(movingPos)/3))*2),circedges,'Normalization','probability','FaceColor',[0,0.5,0.3],'HandleVisibility','off');
+polarhistogram(SB(forwardVelSB>1),circedges,'Normalization','probability','FaceColor',[0,0.5,0.3],'HandleVisibility','off');
 ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
 %Block3
 subplot(3,4,11)
-polarhistogram(movingPos((round(length(movingPos)/3))*2:end),circedges,'Normalization','probability','FaceColor',[0,0.5,0.3],'HandleVisibility','off');
+polarhistogram(TB(forwardVelTB>1),circedges,'Normalization','probability','FaceColor',[0,0.5,0.3],'HandleVisibility','off');
 ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
@@ -610,6 +638,8 @@ saveas(gcf,strcat(path,'BarPosition',file(1:end-4),'.svg'))
 
 
 %% Look at the goal and calculate the distance to it...
+
+movingPos = posToRad(forwardVelocity>1);
 
 edges = [-180:20:180];
 %Taking all the experiment
@@ -650,7 +680,7 @@ save(strcat(path,'goals',file(1:end-4),'.mat'),'goal','goalMoving','dist2goal','
 %the mean heading
 sec = 3;
 shortData3sec = getDataAroundJump(rawData,j,sec,sizeBall);
-shortData3sec.jumpMag = jumps;
+shortData3sec.jumpMag = newJumps;
 shortData3sec.angPos = getPosAroundJump(data.ficTracAngularPosition,j,sec);
 
 for i = 1:length(j)
@@ -663,7 +693,7 @@ figure('Position', [100 100 1600 900]),
 for i = 1:length(j)
     distribution3sec(:,i) = circ_dist(deg2rad(shortData3sec.angPos(1:75,i)),goal3sec(i));
     [s(i) s0(i)] = circ_std(distribution3sec(:,i));
-    subplot(4,length(jumps)/4,i)
+    subplot(4,length(newJumps)/4,i)
     polarhistogram(distribution3sec(:,i),circedges,'Normalization','probability','FaceColor',[1,0,0],'HandleVisibility','off');
     ax = gca;
     ax.ThetaDir='clockwise';
@@ -682,7 +712,7 @@ for i = 1:length(j)
     goal3secMoving{i} = circ_mean(deg2rad(datamoving3sec{i}),[],2);
     distribution3secMoving{i} = circ_dist(deg2rad(datamoving3sec{i}),goal3secMoving{i});
     [s(i) s03sec(i)] = circ_std(distribution3secMoving{i},[],[],2);
-    subplot(4,length(jumps)/4,i)
+    subplot(4,length(newJumps)/4,i)
     polarhistogram(distribution3secMoving{i},circedges,'Normalization','probability','FaceColor',[0,0,0],'HandleVisibility','off');
     ax = gca;
     ax.ThetaDir='clockwise';
@@ -706,7 +736,7 @@ for i = 1:length(j)
     degsFlyDist3secMoving{i} = linspace(-180,180,length(countsDist3secMoving{i}));
     
     %plot
-    subplot(4,length(jumps)/4,i),
+    subplot(4,length(newJumps)/4,i),
     plot(degsFlyDist3secMoving{i},probabilitiesDist3secMoving{i},'k')
     xlim([-180, 180]); xlabel('Distance to the goal (deg)');
     ylabel('Probability');
@@ -720,7 +750,7 @@ probaDist3secMoving = reshape(probaDist3secMoving,length(probaDist3secMoving)/le
 %create new colormap
 newMap = flipud(gray);
 xaxis = [-180:360/17:180];
-trials = [1:length(jumps)];
+trials = [1:length(newJumps)];
 figure, imagesc(xaxis,trials,probaDist3secMoving')
 colormap(newMap)
 colorbar
@@ -738,7 +768,7 @@ sec = 3; %how many sec before and after the jump I want to look at
 perTrialData = getDataAroundJumpFiltered(rawData,j,sec,sizeBall);
 
 %apend jump data and save for using in the pooled flies analysis
-perTrialData.jumpMag = jumps;
+perTrialData.jumpMag = newJumps;
 %perTrialData.angPos = getPosAroundJump(data.ficTracAngularPosition,j,sec);
 perTrialData.angPos = getPosAroundJumpFiltered(data.ficTracAngularPosition,j,sec);
 save(strcat(path,'perTrialData',file(1:end-4),'.mat'),'perTrialData');
@@ -751,7 +781,7 @@ time = linspace(-sec,sec,length(perTrialData.forwardVel));
 %Pooling results from similar magnitude jumps
 %1) make a jump vector using the preloaded jump vector from the experiment
 %and taking only as many elements as trials there were
-trials = jumps;
+trials = newJumps;
 %2) identify elements in that vector belonging to the 4 different groups,
 %and put the perTrialData into those groups
 Data90.forwardVel = perTrialData.forwardVel(:,trials == 90);

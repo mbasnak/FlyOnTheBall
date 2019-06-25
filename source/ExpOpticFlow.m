@@ -1,7 +1,17 @@
-function ExpOpticFlow(flyNum,expNum,time,folder)
+function ExpOpticFlow(flyNum,expNum,time,folder,pattern)
 
 %code to make a grating move from front to back when the animal moves
 %forward and sideways when the animal rotates.
+
+%INPUTS
+%flyNum : number of fly you're running this day
+%expNum : number that this experiment represents for this fly
+%time : how long, in seconds, is the experiment running for
+%folder : what folder number is the data going to be saving in
+%pattern : what pattern number are you running, knowing that:
+    %pattern 29 = translational optic flow in 30 deg windows 180 deg apart
+    
+
 
 cd(strcat('Z:\Wilson Lab\Mel\FlyOnTheBall\data\Experiment',num2str(folder),'\'));
 
@@ -19,7 +29,7 @@ for i = 1:7
     aI(i).InputType = 'SingleEnded';
 end
 
-Panel_com('set_pattern_id', 29); %load the grating optic flow
+Panel_com('set_pattern_id', pattern); %load the grating optic flow
 pause(0.01)
 Panel_com('set_mode', [3 3]); %set both dimensions to be in closed-loop with the animal's mvts.
 Panel_com('start');

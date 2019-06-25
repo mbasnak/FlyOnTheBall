@@ -38,17 +38,17 @@ lh = niOI.addlistener('DataAvailable',@(src,event)logDaqData(fid,event));
 
 niOI.startBackground(); %start acquiring
 
-startPos = 2; %to match the starting position of the Y pattern.
+startPos = 1; %round(rand*96); %to match the starting position of the Y pattern.
 
 jumpFunction = 165;
 jumps = [90,-90,-90,90,90,-90,90,90,-90,-90,90,90,-90,-90,-90,-90,90,-90,90,90,90,90,-90,-90,90,-90,-90,90,90,-90,90,-90];
 
 
 %%%%%% Run the panels %%%%%%
-Panel_com('set_pattern_id', 1); %set the bar
+Panel_com('set_pattern_id', 13); %set the bar
 Panel_com('set_mode', [3 4]); %set it to closed-loop mode in the x dimension and to be controlled by a function in the y dimension 
 pause(0.03)
-Panel_com('set_position',[73 1]);
+Panel_com('set_position',[startPos 1]);
 pause(0.03)
 Panel_com('set_funcy_freq', 5);
 pause(0.03)

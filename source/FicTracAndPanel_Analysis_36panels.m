@@ -73,7 +73,7 @@ title('Distribution of forward velocities');
 xlabel('Forward velocity (mm/s)');
 ylabel('Frequency');
 
-%saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(11:end-4), '.png'))
+saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(11:end-4), '.png'))
 %saveas(gcf,strcat(path,'ForwardVelocity_ExpNum', file(11:end-4), '.svg'))
 
 
