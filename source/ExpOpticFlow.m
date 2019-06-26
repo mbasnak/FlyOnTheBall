@@ -9,7 +9,12 @@ function ExpOpticFlow(flyNum,expNum,time,folder,pattern)
 %time : how long, in seconds, is the experiment running for
 %folder : what folder number is the data going to be saving in
 %pattern : what pattern number are you running, knowing that:
-    %pattern 29 = translational optic flow in 30 deg windows 180 deg apart
+    %pattern 29 = grating with translational optic flow in 26 deg windows 180 deg apart
+    %pattern 30 = starfield with translational optic flow in 26 deg windows 180 deg apart
+    %pattern 31 = grating with translational optic flow in 52 deg windows 180 deg apart
+    %pattern 32 = starfield with translational optic flow in 52 deg windows 180 deg apart
+    %pattern 33 = starfield with translational optic flow in 52 deg windows
+    %180 apart, and 2 'dark ends'
     
 
 
@@ -59,7 +64,7 @@ else
 end
 
 
-save(strcat('dataOpticFlowHallway30degWindow',num2str(expNum),'.mat'),'rawData'); %save as 
+save(strcat('dataOpticFlowHallwayWindow',num2str(expNum),'.mat'),'rawData','pattern'); %save as 
 
 
 end

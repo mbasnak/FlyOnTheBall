@@ -1,4 +1,4 @@
-%% Analysis of the panel/FicTrac data
+%% Analysis of the optic flow data
 % To run it, you should be standing inside the folder of the fly whose data
 % you're trying to analyze.
 
@@ -159,36 +159,40 @@ for i=1:length(downsampled.xPanelPos)
     end
 end
 
+
+%Define window when the animal is getting front to back motion
+if pattern == 29 | pattern == 30
+    window1 = wrapTo180(([1:7]+27).*pxToDeg);
+    window2 = wrapTo180(([49:55]+27).*pxToDeg);
+else
+    window1 = wrapTo180(([1:14]+27).*pxToDeg);
+    window2 = wrapTo180(([48:61]+27).*pxToDeg);
+end
+
 %% Probability density function of the stimulus position
 
 % Remapping the positions to span -180 to 180 deg
 remapPosToDeg = wrapTo180(posToDeg);
 
-figure('Position', [100 100 1800 900]),
+%points in window
+correctPos = (remapPosToDeg > window1(1) & remapPosToDeg < window1(end)) | (remapPosToDeg > window2(1) & remapPosToDeg < window2(end));
+
+figure('Position', [100 100 1000 900]),
 
 % Stimulus position in time, with every frame
 time = linspace(0,(length(rawData)/1000),length(remapPosToDeg));
-subplot(2,4,[1,5])
-scatter(remapPosToDeg, time, [], forwardVelocity); %add the forward velocity as a color
+subplot(2,2,[1,3])
+plot(remapPosToDeg, time, '.k'); %add the forward velocity as a color
 hold on
 plot(remapPosToDeg, time,'k','HandleVisibility','off')
+plot(remapPosToDeg(correctPos==1),time(correctPos==1),'.r')
 xlabel('Heading angle (deg)'); ylabel('Time (s)');
 title('Angular position of the stimulus');
 xlim([-180 180]); ylim([0 max(time)]);
 ax = gca;
 ax.YDir = 'reverse';
 
- % Heading in time, with only moving frames.
-%time = linspace(0,(length(rawData)/1000),length(flyPos180(forwardVelocity>1)));
-subplot(2,4,[4,8])
-scatter(remapPosToDeg(forwardVelocity>1), time(forwardVelocity>1));
-xlabel('Heading angle (deg)'); ylabel('Time (s)');
-title('Angular position of the stimulus');
-xlim([-180 180]); ylim([0 max(time)]);
-ax = gca;
-ax.YDir = 'reverse'; 
-
-
+ 
 % Plot the histogram and probability density
 %With every frame
 edges = [-180:20:180];
@@ -196,57 +200,32 @@ edges = [-180:20:180];
 probabilities = counts./sum(counts);
 degs = linspace(-180,180,length(counts));
 
-subplot(2,4,2)
+subplot(2,2,2)
 plot(degs,probabilities,'k')
 set(0, 'DefaulttextInterpreter', 'none')
 xlim([-180 180]); ylim([0 max(probabilities)+0.05]);
 title('Pb density of the stimulus position');
 ylabel('Probability density'); xlabel('Stimulus position (deg)');
 
-%With only frames with velocity>1
-[countsMoving] = histcounts(remapPosToDeg(forwardVelocity>1),edges);
-probabilitiesMoving = countsMoving./sum(countsMoving);
-degsMoving = linspace(-180,180,length(countsMoving));
-
-subplot(2,4,3)
-plot(degsMoving,probabilitiesMoving,'k')
-set(0, 'DefaulttextInterpreter', 'none')
-xlim([-180 180]); ylim([0 max(probabilitiesMoving)+0.05]);
-title('Pb density of the stimulus position, moving frames');
-ylabel('Probability density'); xlabel('Stimulus position (deg)');
-
 
 % Polar coordinates analysis of the stimulus position
 posToRad = deg2rad(posToDeg);
-% some statistics...
-%CircularStats = circ_stats(posToRad);
-%[pval,z] = circ_rtest(posToRad);
-%circLength = circ_r(posToRad,[],2);
 
 %Plot the histogram in polar coordinates
 circedges = [0:20:360];
 circedges = deg2rad(circedges);
-subplot(2,4,6)
+subplot(2,2,4)
 polarhistogram(posToRad,circedges,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
 title('Pb density of the stimulus position, every frame');
 ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
-subplot(2,4,7)
-polarhistogram(posToRad(forwardVelocity>1),circedges,'Normalization','probability','FaceColor',[0.2,0.5,1],'HandleVisibility','off');
-title('Pb density of the stimulus position, moving frames');
-ax = gca;
-ax.ThetaDir = 'clockwise';
-ax.ThetaZeroLocation = 'top';
-
+saveas(gcf,strcat(path,'StimPositionWithWindow_',file(4:end-4),'.png'));
 
 %% Fly's heading thoughout the experiment
 
-%I think for the fly's heading I don't need to remap anything, cause it
-%should be based on fictrac's calibration and have the front be 0?
-
-figure('Position', [100 100 1800 900]),
+figure('Position', [100 100 1000 900]),
 
 % Heading in time, with every frame
 flyPosPx = rad2deg(smoothed.angularPosition)/pxToDeg;
@@ -267,27 +246,23 @@ FlyPos360 = wrapTo360(FlyPosDeg);
 flyPos180 = wrapTo180(FlyPos360);
 
 time = linspace(0,(length(rawData)/1000),length(flyPos180));
-subplot(2,4,[1,5])
-scatter(flyPos180, time, [], forwardVelocity); %add the forward velocity as a color
+
+%points in window
+correctPosFly = (flyPos180 > window1(1) & flyPos180 < window1(end)) | (flyPos180 > window2(1) & flyPos180 < window2(end));
+
+
+subplot(2,2,[1,3])
+plot(flyPos180, time, '.k'); %add the forward velocity as a color
 hold on
 plot(flyPos180, time,'k','HandleVisibility','off')
+plot(flyPos180(correctPosFly==1), time(correctPosFly==1),'.r','HandleVisibility','off')
 xlabel('Heading angle (deg)'); ylabel('Time (s)');
 title('Angular position of the Fly');
 xlim([-180 180]); ylim([0 max(time)]);
 ax = gca;
 ax.YDir = 'reverse';
 
- % Heading in time, with only moving frames.
-%time = linspace(0,(length(rawData)/1000),length(flyPos180(forwardVelocity>1)));
-subplot(2,4,[4,8])
-scatter(flyPos180(forwardVelocity>1), time(forwardVelocity>1));
-xlabel('Heading angle (deg)'); ylabel('Time (s)');
-title('Angular position of the Fly');
-xlim([-180 180]); ylim([0 max(time)]);
-ax = gca;
-ax.YDir = 'reverse'; 
  
-
 % Plot the histogram and probability density
 edges = [-180:20:180];
 [countsFly] = histcounts(flyPos180,edges);
@@ -297,16 +272,10 @@ probabilitiesFlyMoving = countsFlyMoving./sum(countsFlyMoving);
 degsFly = linspace(-180,180,length(countsFly));
 degsFlyMoving = linspace(-180,180,length(countsFlyMoving));
 
-subplot(2,4,2) %with every frame
+subplot(2,2,2) %with every frame
 plot(degsFly,probabilitiesFly,'k')
 xlim([-180 180]); ylim([0 max(probabilitiesFly)+0.05]);
 title('Fly heading with every frame');
-ylabel('Probability density'); xlabel('Fly heading (deg)');
-
-subplot(2,4,3) %with moving frames only
-plot(degsFlyMoving,probabilitiesFlyMoving,'k')
-xlim([-180 180]); ylim([0 max(probabilitiesFlyMoving)+0.05]);
-title('Fly heading with moving frames');
 ylabel('Probability density'); xlabel('Fly heading (deg)');
 
 % In polar coordinates...
@@ -315,22 +284,13 @@ posToRadFly = deg2rad(FlyPos360);
 %CircularStatsFly = circ_stats(posToRadFly);
 circedges = [0:20:360];
 circedges = deg2rad(circedges);
-subplot(2,4,6)
+subplot(2,2,4)
 polarhistogram(posToRadFly,circedges,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
 ax = gca;
 ax.ThetaDir='clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
 
-%with only moving frames
-%CircularStatsFlyMoving = circ_stats(posToRadFly(forwardVelocity>1));
-subplot(2,4,7)
-polarhistogram(posToRadFly(forwardVelocity>1),circedges,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
-ax = gca;
-ax.ThetaDir = 'clockwise';
-ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
-
-saveas(gcf,strcat(path,'FlyPosition_',file(4:end-4),'.png'));
-
+saveas(gcf,strcat(path,'FlyPositionWithWindow_',file(4:end-4),'.png'));
 
 %% Distance to the goal
 
