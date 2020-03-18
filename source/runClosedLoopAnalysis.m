@@ -109,14 +109,14 @@ time = linspace(0,(length(rawData)/1000),length(forwardVelocity));
 % We will work with the downsampled data
 
 downsampled.xPanelPos = downsample(data.xPanelPos,1000/25); %downsample the panels position
-dataMoving.xPanelPos = downsampled.xPanelPos(forwardVelocity>0.75); %keep the position frames during which the fly moved
-moving = smoothed.angularPosition(forwardVelocity>0.75); %keep the angular position frames during which the fly moved
+dataMoving.xPanelPos = downsampled.xPanelPos(forwardVelocity>0.5); %keep the position frames during which the fly moved
+moving = smoothed.angularPosition(forwardVelocity>0.5); %keep the angular position frames during which the fly moved
 
 percentageActivity = 100*size(moving)/size(smoothed.angularPosition);
 activity = zeros(length(forwardVelocity),1);
 
 for i = 1:length(forwardVelocity)
-    if forwardVelocity(i,1) > 0.75
+    if forwardVelocity(i,1) > 0.5
         activity(i,1) = 1;
     else
         activity(i,1) = 0;
@@ -300,21 +300,21 @@ edges = [-180:20:180];
 % In polar coordinates...
 %Taking every frame into account
 posToRadFly = deg2rad(FlyPos360);
-% circedges = [0:20:360];
-% circedges = deg2rad(circedges);
-% subplot(2,4,6)
-% polarhistogram(posToRadFly,circedges,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
-% ax = gca;
-% ax.ThetaDir='clockwise';
-% ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
-% 
-% %with only moving frames
-% subplot(2,4,7)
-% polarhistogram(posToRadFly(forwardVelocity>1),circedges,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
-% ax = gca;
-% ax.ThetaDir = 'clockwise';
-% ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
-% 
+circedges = [0:20:360];
+circedges = deg2rad(circedges);
+subplot(2,4,6)
+polarhistogram(posToRadFly,circedges,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
+ax = gca;
+ax.ThetaDir='clockwise';
+ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
+
+%with only moving frames
+subplot(2,4,7)
+polarhistogram(posToRadFly(forwardVelocity>1),circedges,'Normalization','probability','FaceColor',[1,0.2,0.7],'HandleVisibility','off');
+ax = gca;
+ax.ThetaDir = 'clockwise';
+ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
+
 % saveas(gcf,strcat(path,'FlyPosition_',trialName,'.png'));
 
 
@@ -335,8 +335,8 @@ degsFlyDist = linspace(-180,180,length(countsDist));
 % ylabel('Probability');
 
 %taking only 'moving frames'
-goalMoving = circ_mean(posToRadFly(forwardVelocity>1),[],2);
-dist2goalMoving2 = circ_dist(posToRadFly(forwardVelocity>1),goalMoving);
+goalMoving = circ_mean(posToRadFly(forwardVelocity>0.5),[],2);
+dist2goalMoving2 = circ_dist(posToRadFly(forwardVelocity>0.5),goalMoving);
 dist2goalMoving = wrapTo180(rad2deg(dist2goalMoving2));
 [countsDistMoving] = histcounts(dist2goalMoving,edges);
 probabilitiesDistMoving = countsDistMoving./sum(countsDistMoving);
