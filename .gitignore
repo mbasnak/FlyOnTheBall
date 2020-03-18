@@ -13,11 +13,11 @@ schematics of set up.svg
 source/log.dat
 source/suptitle.m
 source/mtit.m
+source/watsontest.m
 source/license.txt
 log.dat
 source/CircStat2012a/
 source/.gitignore
-source/Thumbs.db
 Thumbs.db
 source/MC_nonlinearCmap.m
 source/plotSpikeRaster.m
