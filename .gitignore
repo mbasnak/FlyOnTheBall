@@ -19,6 +19,9 @@ log.dat
 source/CircStat2012a/
 source/.gitignore
 Thumbs.db
+source/test.txt
+source/kakearney-boundedline-pkg-8179f9a
+source/Thumbs.db
 source/MC_nonlinearCmap.m
 source/plotSpikeRaster.m
 source/smooth_diff.m
