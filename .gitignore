@@ -17,6 +17,7 @@ source/license.txt
 log.dat
 source/CircStat2012a/
 source/.gitignore
+source/Thumbs.db
 Thumbs.db
 source/MC_nonlinearCmap.m
 source/plotSpikeRaster.m
