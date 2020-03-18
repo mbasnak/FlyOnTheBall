@@ -109,7 +109,7 @@ velocityOut = gradient( accumulatedPositionOut ) .* sampleRate ; % degees / sec
 %velocityOut = lowPassFilter( velocityOut, lowPassFilterCutOff, sampleRate );
 
 % remove velocity values that are too large to be possible for the fly
-velocityOut = replaceValuesOutsideThresholdBound( velocityOut, maxFlyVelocity);
+%velocityOut = replaceValuesOutsideThresholdBound( velocityOut, maxFlyVelocity);
 
 % plotting to check degree calulation and velocity
  %{ 
