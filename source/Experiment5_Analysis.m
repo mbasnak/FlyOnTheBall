@@ -833,7 +833,7 @@ perTrialData.angPos = getPosAroundJump(data.ficTracAngularPosition,j,sec);
 
 save(strcat(path,'perTrialData',file(1:end-4),'.mat'),'perTrialData');
 
-%% Velocity and around the jumps
+%% Velocity around the jumps
 
 time = linspace(-sec,sec,length(perTrialData.forwardVel));
 
