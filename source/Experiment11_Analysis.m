@@ -198,7 +198,7 @@ plot(remapPosToDegSC{1,1}(4:end),meanPfourier,'k','LineWidth',2)
 %(2) M = (Rcw-Rccw)/2
 subplot(1,2,2)
 for i = 1:length(FastClockOpenLoopIndex)
-    Mfourier(:,i) = (smoothedSC{1,i}.angularVel(4:end) - flip(smoothedSCC{1,i}.angularVel(1:end-3)))/2;;
+    Mfourier(:,i) = (smoothedSC{1,i}.angularVel(4:end) - flip(smoothedSCC{1,i}.angularVel(1:end-3)))/2;
     plot(remapPosToDegSC{1,i}(4:end),Mfourier(:,i))
     hold on
 end
