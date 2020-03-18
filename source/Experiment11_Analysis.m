@@ -59,7 +59,7 @@ circedges = [0:20:360];
 circedges = deg2rad(circedges);
 for i = 1:length(LightClosedLoopIndex)
 subplot(1,length(LightClosedLoopIndex),i)
-polarhistogram(posToRadFlyL{i}(smoothedL{1,i}.xVel>1),circedges,'Normalization','probability','FaceColor',[0,0,1],'HandleVisibility','off');
+polarhistogram(posToRadFlyL{i}(smoothedL{1,i}.xVel>0.5),circedges,'Normalization','probability','FaceColor',[0,0,1],'HandleVisibility','off');
 ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
@@ -71,7 +71,7 @@ saveas(gcf,strcat(path,'PolardistL',file(1:end-4),'.svg'));
 figure('Position', [100 100 1400 400]),
 for i = 1:length(DarkClosedLoopIndex)
 subplot(1,length(DarkClosedLoopIndex),i)
-polarhistogram(posToRadFlyD{i}(smoothedD{1,i}.xVel>1),circedges,'Normalization','probability','FaceColor',[0,0,0],'HandleVisibility','off');
+polarhistogram(posToRadFlyD{i}(smoothedD{1,i}.xVel>0.5),circedges,'Normalization','probability','FaceColor',[0,0,0],'HandleVisibility','off');
 ax = gca;
 ax.ThetaDir = 'clockwise';
 ax.ThetaZeroLocation = 'top'; %rotate the plot so that 0 is on the top
@@ -110,9 +110,9 @@ subplot(1,2,1)
 p1 = boundedline(remapPosToDegFC{1,1}(4:end),meanAngVelFC(4:end),stdFC(4:end)/sqrt(i),'k','alpha')
 hold on
 p2 = boundedline(remapPosToDegFCC{1,1}(1:end-3),meanAngVelFCC(1:end-3),stdFCC(1:end-3)/sqrt(i),'r','alpha')
-plot([0 0], [-30 30],'k','handleVisibility','off')
+plot([0 0], [-60 60],'k','handleVisibility','off')
 plot([-180 180], [0 0], 'k','handleVisibility','off')
-ylim([-30 30]); xlim([-180 180]);
+ylim([-60 60]); xlim([-180 180]);
 title('Open-loop tracking responses');
 ylabel('Angular velocity (deg/s)'); xlabel('Bar position (deg)');
 legend([p1,p2],'Clockwise turns', 'Counterclockwise turns');
@@ -133,9 +133,9 @@ subplot(1,2,2)
 p1 = boundedline(remapPosToDegSC{1,1}(4:end),meanAngVelSC(4:end),stdSC(4:end)/sqrt(i),'k','alpha')
 hold on
 p2 = boundedline(remapPosToDegSCC{1,1}(1:end-3),meanAngVelSCC(1:end-3),stdSCC(1:end-3)/sqrt(i),'r','alpha')
-plot([0 0], [-30 30],'k','handleVisibility','off')
+plot([0 0], [-60 60],'k','handleVisibility','off')
 plot([-180 180], [0 0], 'k','handleVisibility','off')
-ylim([-30 30]); xlim([-180 180]);
+ylim([-60 60]); xlim([-180 180]);
 title('Open-loop tracking responses with Fourier bar');
 ylabel('Angular velocity (deg/s)'); xlabel('Bar position (deg)');
 legend([p1,p2],'Clockwise turns', 'Counterclockwise turns');
